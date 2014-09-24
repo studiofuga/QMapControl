@@ -5,6 +5,9 @@ TEMPLATE = subdirs
 CONFIG += ordered
 
 # Sub directory projects.
-SUBDIRS +=                  \
-    src                     \
-    Samples                 \
+SUBDIRS += src
+
+#equals(with-samples, "yes") {
+#    SUBDIRS += Samples
+#}
+

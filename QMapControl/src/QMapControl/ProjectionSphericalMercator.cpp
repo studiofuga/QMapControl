@@ -27,6 +27,7 @@
 
 // STL includes.
 #include <cmath>
+#include <m_constants.h>
 
 // Local include.
 #include "ImageManager.h"

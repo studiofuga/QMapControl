@@ -55,6 +55,7 @@ HEADERS +=                                      \
     QuadTreeContainer.h                         \
 # Third-party headers: QProgressIndicator
     QProgressIndicator.h                        \
+    m_constants.h
 
 # Add source files.
 SOURCES +=                                      \

@@ -55,7 +55,8 @@ HEADERS +=                                      \
     QuadTreeContainer.h                         \
 # Third-party headers: QProgressIndicator
     QProgressIndicator.h                        \
-    m_constants.h
+    m_constants.h \
+    MapAdapterOpenSeaMap.h
 
 # Add source files.
 SOURCES +=                                      \
@@ -88,7 +89,8 @@ SOURCES +=                                      \
     ProjectionSphericalMercator.cpp             \
     QMapControl.cpp                             \
 # Third-party sources: QProgressIndicator
-    QProgressIndicator.cpp                      \
+    QProgressIndicator.cpp \
+    MapAdapterOpenSeaMap.cpp
 
 # Include GDAL-required files.
 contains(DEFINES, QMC_GDAL) {

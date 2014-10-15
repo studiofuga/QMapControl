@@ -5,6 +5,6 @@ TEMPLATE = subdirs
 SUBDIRS +=                  \
     Citymap                 \
     GPS                     \
-    LinesAndPoints          \
+   # LinesAndPoints          \
     Mapviewer               \
     Multidemo               \

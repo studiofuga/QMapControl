@@ -16,8 +16,7 @@ HEADERS +=                      \
 
 # Add source files.
 SOURCES +=                      \
-    src/main.cpp                \
-    src/LinesAndPoints.cpp      \
+    src/main.cpp
 
 # Add resource files.
 RESOURCES +=                    \

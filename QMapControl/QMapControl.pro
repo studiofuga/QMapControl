@@ -7,7 +7,7 @@ CONFIG += ordered
 # Sub directory projects.
 SUBDIRS += src
 
-#equals(with-samples, "yes") {
-#    SUBDIRS += Samples
-#}
+CONFIG(with-samples,with-samples) {
+    SUBDIRS += Samples
+}
 

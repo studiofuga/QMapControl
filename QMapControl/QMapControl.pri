@@ -4,6 +4,8 @@ CONFIG += c++11
 # Hide debug output in release mode.
 CONFIG(release, debug|release) : DEFINES += QT_NO_DEBUG_OUTPUT
 
+DEFINES += QMC_GDAL
+
 # Required defines.
 DEFINES +=                          \
     # Windows: To force math constants to be defined in <cmath>

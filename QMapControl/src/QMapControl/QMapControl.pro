@@ -107,13 +107,15 @@ contains(DEFINES, QMC_GDAL) {
         LayerESRIShapefile.cpp                  \
 
     # Add GDAL include path.
-    INCLUDEPATH += $$(QMC_GDAL_INC)
+    INCLUDEPATH += $$QMC_GDAL_INC
+
+    message("INCLUDEPATH: $$QMC_GDAL_INC")
 
     # Add GDAL library path and library (windows).
-    win32:LIBS += -L$$(QMC_GDAL_LIB) -lgdal_i
+    win32:LIBS += -L$$QMC_GDAL_LIB -lgdal
 
     # Add GDAL library path and library (unix).
-    unix:LIBS += -L$$(QMC_GDAL_LIB) -lgdal
+    unix:LIBS += -L$$QMC_GDAL_LIB -lgdal
 }
 
 # Capture whether this is a release/debug build.

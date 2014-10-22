@@ -5,6 +5,15 @@ CONFIG += c++11
 CONFIG(release, debug|release) : DEFINES += QT_NO_DEBUG_OUTPUT
 
 DEFINES += QMC_GDAL
+win32 {
+    EXTRA_DIR = $$top_srcdir/install/extra/usr/local/
+    QMC_GDAL_INC = $$EXTRA_DIR/include
+    QMC_GDAL_LIB = $$EXTRA_DIR/lib
+
+    message("Include: $$QMC_GDAL_INC")
+    #LIBS += -LC:\mingw\msys\1.0\local\lib
+    #INCLUDEPATH += C:\mingw\msys\1.0\local\include
+}
 
 # Required defines.
 DEFINES +=                          \

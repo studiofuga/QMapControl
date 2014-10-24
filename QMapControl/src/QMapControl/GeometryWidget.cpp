@@ -228,6 +228,11 @@ namespace qmapcontrol
         return return_touches;
     }
 
+    bool GeometryWidget::hitTestPoint(const PointWorldCoord &point, qreal fuzzyfactor, int controller_zoom) const
+    {
+        return boundingBox(controller_zoom).rawRect().contains(point.rawPoint());
+    }
+
     void GeometryWidget::draw(QPainter& /*painter*/, const RectWorldCoord& /*backbuffer_rect_coord*/, const int& /*controller_zoom*/)
     {
         // Do nothing.

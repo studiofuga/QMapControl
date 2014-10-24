@@ -87,7 +87,7 @@ namespace qmapcontrol
          * Fetches the QPolygonF representation of the polygon.
          * @return the QPolygonF representation of the polygon.
          */
-        const QPolygonF toQPolygonF() const;
+        const QPolygonF &toQPolygonF() const;
 
     public:
         /*!
@@ -105,6 +105,8 @@ namespace qmapcontrol
          */
         bool touches(const Geometry* geometry, const int& controller_zoom) const final;
 
+        bool hitTestPoint(const PointWorldCoord &point, qreal fuzzyfactor, int controller_zoom) const final;
+
         /*!
          * Draws the geometry to a pixmap using the provided painter.
          * @param painter The painter that will draw to the pixmap.
@@ -116,5 +118,6 @@ namespace qmapcontrol
     private:
         /// The points that the polygon is made up of.
         std::vector<PointWorldCoord> m_points;
+        QPolygonF m_poly;
     };
 }

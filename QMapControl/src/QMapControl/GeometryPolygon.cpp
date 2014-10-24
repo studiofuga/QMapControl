@@ -9,7 +9,10 @@ namespace qmapcontrol
         : Geometry(Geometry::GeometryType::GeometryPolygon, zoom_minimum, zoom_maximum),
           m_points(points)
     {
-
+        for(const auto& point : m_points)
+        {
+            m_poly.append(point.rawPoint());
+        }
     }
 
     std::vector<PointWorldCoord> GeometryPolygon::points() const
@@ -31,36 +34,14 @@ namespace qmapcontrol
         }
     }
 
-    const QPolygonF GeometryPolygon::toQPolygonF() const
+    const QPolygonF &GeometryPolygon::toQPolygonF() const
     {
-        // The QPolygonF to return.
-        QPolygonF return_polygon;
-
-        // Loop through each point to add it to the QPolygonF.
-        for(const auto& point : m_points)
-        {
-            // Add the point.
-            return_polygon.append(point.rawPoint());
-        }
-
-        // Return the QPolygonF.
-        return return_polygon;
+        return m_poly;
     }
 
     RectWorldCoord GeometryPolygon::boundingBox(const int& /*controller_zoom*/) const
     {
-        // Create a polygon of the points.
-        QPolygonF polygon;
-
-        // Loop through each point to add to the polygon.
-        for(const auto& point : m_points)
-        {
-            // Add the point to be drawn.
-            polygon.append(point.rawPoint());
-        }
-
-        // Return the bounding box.
-        return RectWorldCoord::fromQRectF(polygon.boundingRect());
+        return RectWorldCoord::fromQRectF(m_poly.boundingRect());
     }
 
     bool GeometryPolygon::touches(const Geometry* geometry, const int& controller_zoom) const
@@ -118,6 +99,14 @@ namespace qmapcontrol
 
         // Return our success.
         return return_touches;
+    }
+
+    bool GeometryPolygon::hitTestPoint(const PointWorldCoord &point, qreal fuzzyfactor, int controller_zoom) const
+    {
+        Q_UNUSED(controller_zoom);
+        Q_UNUSED(fuzzyfactor);
+
+        return m_poly.containsPoint(point.rawPoint(), Qt::OddEvenFill);
     }
 
     void GeometryPolygon::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)

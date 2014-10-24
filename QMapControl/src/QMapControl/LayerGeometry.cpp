@@ -140,7 +140,7 @@ namespace qmapcontrol
                     QWriteLocker locker(&m_geometries_mutex);
 
                     // Loop through each GeometryLineString point and add it to the container.
-                    for(const auto point : std::static_pointer_cast<GeometryLineString>(geometry)->points())
+                    for(const auto point : std::static_pointer_cast<GeometryLineString>(geometry)->quadtree_points())
                     {
                         // Add the geometry.
                         m_geometries.insert(point, geometry);
@@ -301,19 +301,25 @@ namespace qmapcontrol
                 const PointWorldPx mouse_point_px(projection::get().toPointWorldPx(mouse_point_coord, controller_zoom));
 
                 // Calculate a rect around the mouse point with a 'fuzzy-factor' around it in pixels.
-                const RectWorldPx mouse_rect_px(PointWorldPx(mouse_point_px.x() - mFuzzyFactorPx, mouse_point_px.y() - mFuzzyFactorPx), PointWorldPx(mouse_point_px.x() + mFuzzyFactorPx, mouse_point_px.y() + mFuzzyFactorPx));
+                const RectWorldPx mouse_rect_px(PointWorldPx(mouse_point_px.x() - mFuzzyFactorPx,
+                                                             mouse_point_px.y() - mFuzzyFactorPx),
+                                                PointWorldPx(mouse_point_px.x() + mFuzzyFactorPx,
+                                                             mouse_point_px.y() + mFuzzyFactorPx));
 
                 // Calculate a rect around the mouse point with a 'fuzzy-factor' around it in coordinates.
                 const RectWorldCoord mouse_rect_coord(projection::get().toPointWorldCoord(mouse_rect_px.topLeftPx(), controller_zoom), projection::get().toPointWorldCoord(mouse_rect_px.bottomRightPx(), controller_zoom));
 
+                qreal ff = std::abs(mouse_rect_coord.topLeftCoord().longitude() - mouse_rect_coord.bottomRightCoord().longitude());
+
                 // Create a QGraphicsRectItem to perform touches check, as required.
-                const GeometryPolygon touches_rect_coord({ mouse_rect_coord.topLeftCoord(), mouse_rect_coord.bottomRightCoord() });
+//                const GeometryPolygon touches_rect_coord({ mouse_rect_coord.topLeftCoord(), mouse_rect_coord.bottomRightCoord() });
 
                 // Check each geometry to see it is contained in our touch area.
                 for(const auto& geometry : getGeometries(mouse_rect_coord))
                 {
                     // Does it touch? (Will emit if it does).
-                    if(geometry->touches(&touches_rect_coord, controller_zoom))
+                    //if(geometry->touches(&touches_rect_coord, controller_zoom))
+                    if (geometry->hitTestPoint(mouse_point_coord, ff, controller_zoom))
                     {
                         // Emit that the geometry has been clicked.
                         emit geometryClicked(geometry.get());

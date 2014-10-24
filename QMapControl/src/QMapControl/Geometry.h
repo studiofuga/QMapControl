@@ -41,6 +41,8 @@
 #include "qmapcontrol_global.h"
 #include "Point.h"
 
+#include <QDebug>
+
 namespace qmapcontrol
 {
     class LayerGeometry;
@@ -241,6 +243,8 @@ namespace qmapcontrol
          */
         virtual bool touches(const Geometry* geometry, const int& controller_zoom) const = 0;
 
+        virtual bool hitTestPoint (const PointWorldCoord &point, qreal fuzzyfactor, int controller_zoom) const = 0;
+
         /*!
          * Draws the geometry to a pixmap using the provided painter.
          * @param painter The painter that will draw to the pixmap.
@@ -266,6 +270,18 @@ namespace qmapcontrol
          * Signal emitted when a change has occurred that requires the layer to be redrawn.
          */
         void requestRedraw() const;
+
+    protected:
+        /* Helper functions */
+
+        qreal sqr(qreal x) const { return x * x; }
+        qreal dist2(qreal vx, qreal vy, qreal wx, qreal wy) const {
+            return sqr(vx - wx) + sqr(vy - wy);
+        }
+        qreal dist2(const QPointF &v, const QPointF &w) const {
+            return dist2(v.x(), v.y(), w.x(), w.y());
+        }
+
 
     private:
         //! Disable copy constructor.

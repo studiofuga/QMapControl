@@ -100,6 +100,12 @@ namespace qmapcontrol
             BottomMiddle
         };
 
+        enum FlagsFields {
+            IsSelectable = 0x00000001,
+        };
+
+        typedef qint32 Flags;
+
     protected:
         //! Constructor.
         /*!
@@ -253,6 +259,12 @@ namespace qmapcontrol
          */
         virtual void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom) = 0;
 
+        bool selected() const;
+        void setSelected(bool value);
+
+        Flags flags() const;
+        void setFlags(const Flags &value);
+
     signals:
         /*!
          * Signal emitted when a geometry is clicked.
@@ -328,5 +340,8 @@ namespace qmapcontrol
         double m_metadata_displayed_alignment_offset_px;
 
         AncillaryData *mAncillaryData;
+
+        bool mSelected;
+        Flags mFlags;
     };
 }

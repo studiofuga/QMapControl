@@ -36,10 +36,34 @@ namespace qmapcontrol
           m_metadata_displayed_zoom_minimum(10),
           m_metadata_displayed_alignment_type(AlignmentType::TopRight),
           m_metadata_displayed_alignment_offset_px(5.0),
-          mAncillaryData(0)
+          mAncillaryData(0),
+          mSelected(false),
+          mFlags(0)
     {
 
     }
+
+    Geometry::Flags Geometry::flags() const
+    {
+        return mFlags;
+    }
+
+    void Geometry::setFlags(const Flags &value)
+    {
+        mFlags = value;
+    }
+
+    bool Geometry::selected() const
+    {
+        return mSelected;
+    }
+
+    void Geometry::setSelected(bool value)
+    {
+        if (mFlags & IsSelectable)
+            mSelected = value;
+    }
+
 
     const Geometry::GeometryType& Geometry::geometryType() const
     {

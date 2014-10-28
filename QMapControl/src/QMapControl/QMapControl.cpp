@@ -772,6 +772,11 @@ namespace qmapcontrol
                         {
                             // Add the geometry to the selected collection.
                             selected_geometries[layer->getName()].push_back(geometry);
+
+                            if (geometry->flags() & Geometry::IsSelectable) {
+                                geometry->setSelected(true);
+                                geometry->requestRedraw();
+                            }
                         }
                     }
                 }

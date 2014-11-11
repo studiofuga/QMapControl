@@ -41,3 +41,22 @@ To install QMapControl, run:
 make install
 ````
 Note: **INSTALL_LOCATION** must be an absolute path to the install directory required.
+
+## Using the library as a subproject
+
+When working on other project, it may be necessary to configure the library with special path and options.
+The pro files include an optional localconfig.pri file located on the top source directory.
+If the special variable $$top_srcdir is not defined, the library project file will define it as the top QMapControl directory, and will look there for the local config file.
+To customize the configuration, you can either create the localconfig.pri file in the library top dir, or, if you prefer not to touch the cloned repository, do the following:
+
+Create a file named .qmake.conf on the top project directory with the following content:
+
+````
+top_srcdir=$$PWD
+top_builddir=$$shadowed($$PWD)
+````
+
+qmake will read that file and include it in your project.
+Then, put your localconfig.pri in the top project directory.
+
+This is a general approach, that can be used anywhere to customize the project without committing the local changes.

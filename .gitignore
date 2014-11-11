@@ -39,3 +39,4 @@ ui_*.h
 
 # Doxygen
 html/*
+/localconfig.pri

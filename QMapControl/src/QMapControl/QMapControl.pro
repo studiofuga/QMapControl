@@ -1,6 +1,12 @@
 # Include common configurations.
 include(../../QMapControl.pri)
 
+
+# Include local configuration *after* common configuration
+include("$$top_srcdir/localconfig.pri") {
+    message("Local configuration $$top_srcdir/localconfig.pri processed")
+}
+
 # Capture whether this is a release/debug build.
 CONFIG(debug, debug|release) {
     # Target name.
@@ -108,8 +114,6 @@ contains(DEFINES, QMC_GDAL) {
 
     # Add GDAL include path.
     INCLUDEPATH += $$QMC_GDAL_INC
-
-    message("INCLUDEPATH: $$QMC_GDAL_INC")
 
     # Add GDAL library path and library (windows).
     win32:LIBS += -L$$QMC_GDAL_LIB -lgdal

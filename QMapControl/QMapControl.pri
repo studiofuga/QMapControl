@@ -4,15 +4,10 @@ CONFIG += c++11
 # Hide debug output in release mode.
 CONFIG(release, debug|release) : DEFINES += QT_NO_DEBUG_OUTPUT
 
-DEFINES += QMC_GDAL
-win32 {
-    EXTRA_DIR = $$top_srcdir/install/extra/usr/local/
-    QMC_GDAL_INC = $$EXTRA_DIR/include
-    QMC_GDAL_LIB = $$EXTRA_DIR/lib
-
-    message("Include: $$QMC_GDAL_INC")
-    #LIBS += -LC:\mingw\msys\1.0\local\lib
-    #INCLUDEPATH += C:\mingw\msys\1.0\local\include
+isEmpty(top_srcdir) {
+    # This file is located in a subdirectory of the top source dir.
+    top_srcdir=$$PWD/..
+    top_builddir=$$shadowed($$PWD/..)
 }
 
 # Required defines.

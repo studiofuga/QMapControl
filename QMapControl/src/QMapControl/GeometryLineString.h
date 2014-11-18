@@ -136,7 +136,7 @@ namespace qmapcontrol
         }
 
 
-    private:
+    protected:
         LayerGeometry *mLayer;
         /// The points that the linestring is made up of.
         std::vector<PointWorldCoord> m_points;

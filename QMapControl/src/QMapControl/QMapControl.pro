@@ -124,26 +124,22 @@ contains(DEFINES, QMC_GDAL) {
 
 # Capture whether this is a release/debug build.
 CONFIG(debug, debug|release) {
-    TARGET_TYPE = debug
-}
-CONFIG(release, debug|release) {
-    TARGET_TYPE = release
 }
 
 # Install details.
 # Has a prefix been specified?
-!isEmpty(prefix) {
-    # Change prefix to PREFIX.
-    PREFIX = $${prefix}/$$TARGET_TYPE
-}
 isEmpty(PREFIX) {
-    # Default to parent directory.
-    PREFIX = ../../../$$TARGET_TYPE
+    # Change prefix to PREFIX.
+    PREFIX = /usr/local/
 }
+
 # Install headers to $${PREFIX}/include/QMapControl
 headers.path = $${PREFIX}/include/QMapControl
 headers.files = $${HEADERS}
 # Install target to $${PREFIX}/lib.
 target.path = $${PREFIX}/lib
 # Install headers and target.
-INSTALLS += target headers
+
+isEmpty(INSTALLS) {
+    INSTALLS += target headers
+}

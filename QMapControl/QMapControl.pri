@@ -31,7 +31,9 @@ RCC_DIR = resources
 UI_DIR = ui
 
 # Target install directory.
-DESTDIR = lib
+isEmpty(DESTDIR) {
+    DESTDIR = lib
+}
 
 # Add Qt modules.
 QT +=                               \

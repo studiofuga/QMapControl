@@ -26,6 +26,7 @@
 #include "ImageManager.h"
 
 // Qt includes.
+#include <QDateTime>
 #include <QtCore/QCryptographicHash>
 #include <QtGui/QPainter>
 

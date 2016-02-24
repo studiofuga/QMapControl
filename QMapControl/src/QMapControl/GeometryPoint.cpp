@@ -4,6 +4,8 @@
 #include "GeometryPolygon.h"
 #include "Projection.h"
 
+#include <cmath>
+
 namespace qmapcontrol
 {
     GeometryPoint::GeometryPoint(const qreal& longitude, const qreal& latitude, const int& zoom_minimum, const int& zoom_maximum)

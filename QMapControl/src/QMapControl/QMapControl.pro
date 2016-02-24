@@ -119,7 +119,7 @@ contains(DEFINES, QMC_GDAL) {
     win32:LIBS += -L$$QMC_GDAL_LIB -lgdal
 
     # Add GDAL library path and library (unix).
-    unix:LIBS += -L$$QMC_GDAL_LIB -lgdal
+    unix,!macx:LIBS += -L$$QMC_GDAL_LIB -lgdal
 }
 
 # Capture whether this is a release/debug build.

@@ -99,28 +99,25 @@ SOURCES +=                                      \
     MapAdapterOpenSeaMap.cpp
 
 # Include GDAL-required files.
-contains(DEFINES, QMC_GDAL) {
-    message(Building with GDAL support...)
 
-    # Add header files.
-    HEADERS +=                                  \
-        ESRIShapefile.h                         \
-        LayerESRIShapefile.h                    \
+# Add header files.
+HEADERS +=                                  \
+    ESRIShapefile.h                         \
+    LayerESRIShapefile.h                    \
 
-    # Add source files.
-    SOURCES +=                                  \
-        ESRIShapefile.cpp                       \
-        LayerESRIShapefile.cpp                  \
+# Add source files.
+SOURCES +=                                  \
+    ESRIShapefile.cpp                       \
+    LayerESRIShapefile.cpp                  \
 
-    # Add GDAL include path.
-    INCLUDEPATH += $$QMC_GDAL_INC
+# Add GDAL include path.
+INCLUDEPATH += $$QMC_GDAL_INC
 
-    # Add GDAL library path and library (windows).
-    win32:LIBS += -L$$QMC_GDAL_LIB -lgdal
+# Add GDAL library path and library (windows).
+win32:LIBS += -L$$QMC_GDAL_LIB -lgdal
 
-    # Add GDAL library path and library (unix).
-    unix,!macx:LIBS += -L$$QMC_GDAL_LIB -lgdal
-}
+# Add GDAL library path and library (unix).
+unix,!macx:LIBS += -L$$QMC_GDAL_LIB -lgdal
 
 # Capture whether this is a release/debug build.
 CONFIG(debug, debug|release) {

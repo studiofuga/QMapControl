@@ -40,3 +40,6 @@ ui_*.h
 # Doxygen
 html/*
 /localconfig.pri
+
+# MacOS garbage
+.DS_Store

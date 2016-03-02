@@ -119,6 +119,8 @@ win32:LIBS += -L$$QMC_GDAL_LIB -lgdal
 # Add GDAL library path and library (unix).
 unix,!macx:LIBS += -L$$QMC_GDAL_LIB -lgdal
 
+macx:LIBS += -L/Library/Frameworks/GDAL.framework/unix/lib/ -lgdal
+
 # Capture whether this is a release/debug build.
 CONFIG(debug, debug|release) {
 }

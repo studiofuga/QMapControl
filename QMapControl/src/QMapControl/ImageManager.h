@@ -32,6 +32,7 @@
 #include <QtCore/QUrl>
 #include <QtGui/QPixmap>
 #include <QtNetwork/QNetworkProxy>
+#include <QCache>
 
 // STL includes.
 #include <chrono>
@@ -138,6 +139,8 @@ namespace qmapcontrol
          */
         void setLoadingPixmap (const QPixmap &pixmap);
 
+        void setMemoryCacheCapacity(int capacityKiB);
+
     signals:
         /*!
          * Signal emitted to schedule an image resource to be downloaded.
@@ -195,7 +198,7 @@ namespace qmapcontrol
          * @param url The url to generate a md5 hex for.
          * @return the md5 hex of the url.
          */
-        QString md5hex(const QUrl& url);
+        QByteArray hashTileUrl(const QUrl& url) const;
 
         /*!
          * Generate the persistent file path for the given url.
@@ -220,12 +223,15 @@ namespace qmapcontrol
          */
         bool persistentCacheInsert(const QUrl& url, const QPixmap& pixmap);
 
+        void insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap);
+        bool findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const;
+
     private:
         /// Network manager.
-        NetworkManager m_nm;
+        NetworkManager m_networkManager;
 
-        /// Cache of pixmaps already loaded.
-        std::map<QString, QPixmap> m_pixmap_cache;
+        /// Memory cache for tiles
+        QCache<QByteArray, QPixmap> m_memoryCache;
 
         /// The tile size in pixels.
         int m_tile_size_px;

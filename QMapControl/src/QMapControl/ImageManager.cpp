@@ -36,6 +36,9 @@
 
 namespace qmapcontrol
 {
+    const int kDefaultTileSizePx = 256;
+    const int kDefaultPixmapCacheSizeKiB = 30 * 1024;
+
     namespace
     {
         /// Singleton instance of Image Manager.
@@ -47,8 +50,8 @@ namespace qmapcontrol
         // Does the singleton instance exist?
         if(m_instance == nullptr)
         {
-            // Create a default instance (256px tiles).
-            m_instance.reset(new ImageManager(256));
+            // Create a default instance
+            m_instance.reset(new ImageManager(kDefaultTileSizePx));
         }
 
         // Return the reference to the instance object.
@@ -67,15 +70,17 @@ namespace qmapcontrol
           m_pixmap_loading(),
           m_persistent_cache(false),
           m_persistent_cache_expiry(0)
-    {
+    {        
+        setMemoryCacheCapacity(kDefaultPixmapCacheSizeKiB);
+
         // Setup a loading pixmap.
         setupLoadingPixmap();
 
         // Connect signal/slot for image downloads.
-        QObject::connect(this, &ImageManager::downloadImage, &m_nm, &NetworkManager::downloadImage);
-        QObject::connect(&m_nm, &NetworkManager::imageDownloaded, this, &ImageManager::imageDownloaded);
-        QObject::connect(&m_nm, &NetworkManager::downloadingInProgress, this, &ImageManager::downloadingInProgress);
-        QObject::connect(&m_nm, &NetworkManager::downloadingFinished, this, &ImageManager::downloadingFinished);
+        QObject::connect(this, &ImageManager::downloadImage, &m_networkManager, &NetworkManager::downloadImage);
+        QObject::connect(&m_networkManager, &NetworkManager::imageDownloaded, this, &ImageManager::imageDownloaded);
+        QObject::connect(&m_networkManager, &NetworkManager::downloadingInProgress, this, &ImageManager::downloadingInProgress);
+        QObject::connect(&m_networkManager, &NetworkManager::downloadingFinished, this, &ImageManager::downloadingFinished);
     }
 
     int ImageManager::tileSizePx() const
@@ -96,7 +101,7 @@ namespace qmapcontrol
     void ImageManager::setProxy(const QNetworkProxy& proxy)
     {
         // Set the proxy on the network manager.
-        m_nm.setProxy(proxy);
+        m_networkManager.setProxy(proxy);
     }
 
     bool ImageManager::enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path)
@@ -105,7 +110,7 @@ namespace qmapcontrol
         bool success = path.mkpath(path.absolutePath());
 
         // If the path does exist, enable persistent cache.
-        if(success)
+        if (success)
         {
             // Set the persistent cache directory path.
             m_persistent_cache_directory = path;
@@ -130,38 +135,37 @@ namespace qmapcontrol
     void ImageManager::abortLoading()
     {
         // Abort any remaing network manager downloads.
-        m_nm.abortDownloads();
+        m_networkManager.abortDownloads();
     }
 
     int ImageManager::loadQueueSize() const
     {
         // Return the network manager downloading queue size.
-        return m_nm.downloadQueueSize();
+        return m_networkManager.downloadQueueSize();
     }
 
     QPixmap ImageManager::getImage(const QUrl& url)
     {
-        // Holding resource for image to be loaded into.
-        QPixmap return_pixmap(m_pixmap_loading);
+        QPixmap return_pixmap;
 
         // Is the image already been downloaded by the network manager?
-        if(m_nm.isDownloading(url) == false)
-        {
-            // Is the image in our volatile "in-memory" cache?
-            const auto find_itr = m_pixmap_cache.find(md5hex(url));
-            if(find_itr != m_pixmap_cache.end())
+        if (!m_networkManager.isDownloading(url))
+        {          
+            if (findTileInMemoryCache(url, return_pixmap))
             {
-                // Set the return image to the "in-memory" cached version.
-                return_pixmap = find_itr->second;
+                Q_ASSERT(!return_pixmap.isNull());
+                // Image found in memory cache, use it
+                return return_pixmap;
             }
             // Is the persistent cache enabled?
-            else if(m_persistent_cache)
+            else if (m_persistent_cache)
             {
                 // Does the image exist in the persistent cache.
-                if(persistentCacheFind(url, return_pixmap))
+                if (persistentCacheFind(url, return_pixmap))
                 {
-                    // Add the image to the volatile cache.
-                    m_pixmap_cache[md5hex(url)] = return_pixmap;
+                    // Add the image to the memory cache
+                    insertTileToMemoryCache(url, return_pixmap);
+                    return return_pixmap;
                 }
                 else
                 {
@@ -176,8 +180,8 @@ namespace qmapcontrol
             }
         }
 
-        // Default return the image.
-        return return_pixmap;
+        // Image bot found, return "loading" image
+        return m_pixmap_loading;
     }
 
     QPixmap ImageManager::prefetchImage(const QUrl& url)
@@ -200,18 +204,18 @@ namespace qmapcontrol
         qDebug() << "ImageManager::imageDownloaded '" << url << "'";
 #endif
 
-        // Add it to the pixmap cache.
-        m_pixmap_cache[md5hex(url)] = pixmap;
+        // Add it to the pixmap cache
+        insertTileToMemoryCache(url, pixmap);
 
         // Do we have the persistent cache enabled?
-        if(m_persistent_cache)
+        if (m_persistent_cache)
         {
             // Add the pixmap to the persistent cache.
             persistentCacheInsert(url, pixmap);
         }
 
         // Is this a prefetch request?
-        if(m_prefetch_urls.contains(url))
+        if (m_prefetch_urls.contains(url))
         {
             // Remove the url from the prefetch list.
             m_prefetch_urls.removeAt(m_prefetch_urls.indexOf(url));
@@ -241,16 +245,16 @@ namespace qmapcontrol
         painter.drawText(m_pixmap_loading.rect(), Qt::AlignCenter, "LOADING...");
     }
 
-    QString ImageManager::md5hex(const QUrl& url)
+    QByteArray ImageManager::hashTileUrl(const QUrl& url) const
     {
         // Return the md5 hex value of the given url at a specific projection and tile size.
-        return QString(QCryptographicHash::hash((url.toString() + QString::number(projection::get().epsg()) + QString::number(m_tile_size_px)).toUtf8(), QCryptographicHash::Md5).toHex());
+        return QCryptographicHash::hash((url.toString() + QString::number(projection::get().epsg()) + QString::number(m_tile_size_px)).toUtf8(), QCryptographicHash::Md5).toHex();
     }
 
     QString ImageManager::persistentCacheFilename(const QUrl& url)
     {
         // Return the persistent file path for the given url.
-        return m_persistent_cache_directory.absolutePath() + QDir::separator() + md5hex(url);
+        return m_persistent_cache_directory.absolutePath() + QDir::separator() + hashTileUrl(url);
     }
 
     bool ImageManager::persistentCacheFind(const QUrl& url, QPixmap& return_pixmap)
@@ -295,5 +299,39 @@ namespace qmapcontrol
     {
         // Return the result of saving the pixmap to the persistent cache.
         return pixmap.save(persistentCacheFilename(url), "PNG");
+    }
+
+    void ImageManager::setMemoryCacheCapacity(int capacityKiB)
+    {
+        m_memoryCache.setMaxCost(capacityKiB * 1024);
+    }
+
+    class QPixmapCacheEntry : public QPixmap
+    {
+    public:
+        QPixmapCacheEntry(const QPixmap &pixmap) : QPixmap(pixmap) { }
+        ~QPixmapCacheEntry() { }
+    };
+
+    void ImageManager::insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap)
+    {
+        if (!pixmap.isNull()) {
+            int cost = pixmap.width() * pixmap.height() * pixmap.depth() / 8;
+            m_memoryCache.insert(hashTileUrl(url), new QPixmapCacheEntry(pixmap), cost);
+        }
+
+        qDebug() << "ImageManager: pixmap cache -> total size KiB: " << m_memoryCache.totalCost() / 1024
+                 << ", now inserted: " << url.toString();
+    }
+
+    bool ImageManager::findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const
+    {
+        QPixmap *entry = m_memoryCache.object(hashTileUrl(url));
+        if (entry != nullptr) {
+            pixmap = *entry;
+            return true;
+        }
+
+        return false;
     }
 }

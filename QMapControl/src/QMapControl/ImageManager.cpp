@@ -37,7 +37,7 @@
 namespace qmapcontrol
 {
     const int kDefaultTileSizePx = 256;
-    const int kDefaultPixmapCacheSizeKiB = 30 * 1024;
+    const int kDefaultPixmapCacheSizeMiB = 30;
 
     namespace
     {
@@ -67,11 +67,10 @@ namespace qmapcontrol
     ImageManager::ImageManager(const int& tile_size_px, QObject* parent)
         : QObject(parent),
           m_tile_size_px(tile_size_px),
-          m_pixmap_loading(),
-          m_persistent_cache(false),
-          m_persistent_cache_expiry(0)
+          m_diskCache(new QNetworkDiskCache(this)),
+          m_pixmap_loading()
     {        
-        setMemoryCacheCapacity(kDefaultPixmapCacheSizeKiB);
+        setMemoryCacheCapacity(kDefaultPixmapCacheSizeMiB);
 
         // Setup a loading pixmap.
         setupLoadingPixmap();
@@ -104,28 +103,23 @@ namespace qmapcontrol
         m_networkManager.setProxy(proxy);
     }
 
-    bool ImageManager::enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path)
+    bool ImageManager::enableDiskCache(const QDir& dir, int capacityMiB)
     {
         // Ensure that the path exists (still returns true when path already exists.
-        bool success = path.mkpath(path.absolutePath());
+        bool success = dir.mkpath(dir.absolutePath());
 
-        // If the path does exist, enable persistent cache.
+        // If the path does exist, enable disk cache.
         if (success)
         {
-            // Set the persistent cache directory path.
-            m_persistent_cache_directory = path;
+            m_diskCache->setCacheDirectory(dir.absolutePath());
+            m_diskCache->setMaximumCacheSize(capacityMiB * 1024 * 1024);
 
-            // Set the persistent cache expiry.
-            /// @TODO should each map adapter should provide their own specific exipry?
-            m_persistent_cache_expiry = expiry;
-
-            // Enable persistent caching.
-            m_persistent_cache = true;
+            m_networkManager.setCache(m_diskCache);
         }
         else
         {
-            // Log error.
-            qDebug() << "Unable to create directory for persistent cache '" << path.absolutePath() << "'";
+            m_networkManager.setCache(nullptr);
+            qDebug() << "Unable to create directory for persistent cache '" << dir.absolutePath() << "'";
         }
 
         // Return success.
@@ -156,22 +150,6 @@ namespace qmapcontrol
                 Q_ASSERT(!return_pixmap.isNull());
                 // Image found in memory cache, use it
                 return return_pixmap;
-            }
-            // Is the persistent cache enabled?
-            else if (m_persistent_cache)
-            {
-                // Does the image exist in the persistent cache.
-                if (persistentCacheFind(url, return_pixmap))
-                {
-                    // Add the image to the memory cache
-                    insertTileToMemoryCache(url, return_pixmap);
-                    return return_pixmap;
-                }
-                else
-                {
-                    // Emit that we need to download the image using the network manager.
-                    emit downloadImage(url);
-                }
             }
             else
             {
@@ -206,13 +184,6 @@ namespace qmapcontrol
 
         // Add it to the pixmap cache
         insertTileToMemoryCache(url, pixmap);
-
-        // Do we have the persistent cache enabled?
-        if (m_persistent_cache)
-        {
-            // Add the pixmap to the persistent cache.
-            persistentCacheInsert(url, pixmap);
-        }
 
         // Is this a prefetch request?
         if (m_prefetch_urls.contains(url))
@@ -251,59 +222,9 @@ namespace qmapcontrol
         return QCryptographicHash::hash((url.toString() + QString::number(projection::get().epsg()) + QString::number(m_tile_size_px)).toUtf8(), QCryptographicHash::Md5).toHex();
     }
 
-    QString ImageManager::persistentCacheFilename(const QUrl& url)
+    void ImageManager::setMemoryCacheCapacity(int capacityMiB)
     {
-        // Return the persistent file path for the given url.
-        return m_persistent_cache_directory.absolutePath() + QDir::separator() + hashTileUrl(url);
-    }
-
-    bool ImageManager::persistentCacheFind(const QUrl& url, QPixmap& return_pixmap)
-    {
-        // Track our success.
-        bool success(false);
-
-        // The file for the given url from the persistent cache.
-        QFile file(persistentCacheFilename(url));
-
-        // Does the file exist?
-        if(file.exists())
-        {
-            // Get the file information.
-            QFileInfo file_info(file);
-
-            // Is the persistent cache expiry set, and if so is the file older than the expiry time
-            // allowed?
-            if(m_persistent_cache_expiry.count() > 0
-               && file_info.lastModified().msecsTo(QDateTime::currentDateTime()) > std::chrono::duration_cast<std::chrono::milliseconds>(m_persistent_cache_expiry).count())
-            {
-                // The file is too old, remove it.
-                m_persistent_cache_directory.remove(file.fileName());
-
-                // Log removing the file.
-#ifdef QMAP_DEBUG
-                qDebug() << "Removing '" << file.fileName() << "' from persistent cache for url '" << url << "'";
-#endif
-            }
-            else
-            {
-                // Try to load the file into the pixmap, store the success result.
-                success = return_pixmap.load(persistentCacheFilename(url));
-            }
-        }
-
-        // Return success.
-        return success;
-    }
-
-    bool ImageManager::persistentCacheInsert(const QUrl& url, const QPixmap& pixmap)
-    {
-        // Return the result of saving the pixmap to the persistent cache.
-        return pixmap.save(persistentCacheFilename(url), "PNG");
-    }
-
-    void ImageManager::setMemoryCacheCapacity(int capacityKiB)
-    {
-        m_memoryCache.setMaxCost(capacityKiB * 1024);
+        m_memoryCache.setMaxCost(capacityMiB * 1024 * 1024);
     }
 
     class QPixmapCacheEntry : public QPixmap

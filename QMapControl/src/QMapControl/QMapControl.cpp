@@ -150,12 +150,6 @@ namespace qmapcontrol
         QWidget::setStyleSheet("QWidget#QMapControl { background-color: " + colour.name() + " }");
     }
 
-    void QMapControl::enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path)
-    {
-        // Set the Image Manager's persistent cache settings.
-        ImageManager::get().enablePersistentCache(expiry, path);
-    }
-
     void QMapControl::setProxy(const QNetworkProxy& proxy)
     {
         // Set the Image Manager's network proxy.

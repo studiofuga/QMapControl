@@ -89,6 +89,12 @@ namespace qmapcontrol
          */
         bool isDownloading(const QUrl& url) const;
 
+        /*!
+         * Sets the disk cache for network manager
+         * @param qCache the disk cache object to set
+         */
+        void setCache(QAbstractNetworkCache* cache);
+
     public slots:
         /*!
          * Downloads an image resource for the given url.
@@ -136,11 +142,12 @@ namespace qmapcontrol
         //! Disable copy assignment.
         NetworkManager& operator=(const NetworkManager&); /// @todo remove once MSVC supports default/delete syntax.
 
-        /// Network access manager.
-        QNetworkAccessManager m_nam;
+        QNetworkAccessManager m_accessManager;
 
         /// Downloading image queue.
         QMap<QNetworkReply*, QUrl> m_downloading_image;
+
+        bool m_cacheEnabled;
 
         /// Mutex protecting downloading image queue.
         mutable QMutex m_mutex_downloading_image;

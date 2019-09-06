@@ -33,6 +33,7 @@
 #include <QtGui/QPixmap>
 #include <QtNetwork/QNetworkProxy>
 #include <QCache>
+#include <QNetworkDiskCache>
 
 // STL includes.
 #include <chrono>
@@ -91,14 +92,6 @@ namespace qmapcontrol
         void setProxy(const QNetworkProxy& proxy);
 
         /*!
-         * Enables the persistent cache, specifying the directory and expiry timeout.
-         * @param path The path where the images should be stored.
-         * @param expiry The max age (in minutes) of an image before its removed and a new one is requested (0 to keep forever).
-         * @return whether the persistent cache was enabled.
-         */
-        bool enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path);
-
-        /*!
          * Aborts all current loading threads.
          * This is useful when changing the zoom-factor.
          */
@@ -139,7 +132,20 @@ namespace qmapcontrol
          */
         void setLoadingPixmap (const QPixmap &pixmap);
 
-        void setMemoryCacheCapacity(int capacityKiB);
+        /*!
+         * Enables the persistent disk cache for tile images (also over application restarts),
+         * specifying the directory and max size.
+         * @param dir The directory path where the images should be stored.
+         * @param capacityMiB Cache capacity in MiB
+         * @return whether the persistent cache was enabled.
+         */
+        bool enableDiskCache(const QDir& dir, int capacityMiB);
+
+        /*!
+         * Sets capacity of memory cache for decoded tile images.
+         * @param capacityMiB Max cache capacity in MiB, when full LRU images are deleted
+         */
+        void setMemoryCacheCapacity(int capacityMiB);
 
     signals:
         /*!
@@ -207,50 +213,28 @@ namespace qmapcontrol
          */
         QString persistentCacheFilename(const QUrl& url);
 
-        /*!
-         * Finds and loads the requested image if is exists in the persistent cache.
-         * @param url The image url to fetch.
-         * @param return_pixmap The pixmap of the image to be populated.
-         * @return whether the image was actually found and loaded.
-         */
-        bool persistentCacheFind(const QUrl& url, QPixmap& return_pixmap);
-
-        /*!
-         * Inserts the image into the persistent cache.
-         * @param url The image url to insert.
-         * @param pixmap The pixmap of the image to insert.
-         * @return whether the image was actually inserted.
-         */
-        bool persistentCacheInsert(const QUrl& url, const QPixmap& pixmap);
-
         void insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap);
         bool findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const;
 
     private:
         QMutex mMutex;
 
+        /// The tile size in pixels.
+        int m_tile_size_px;
+
         /// Network manager.
         NetworkManager m_networkManager;
 
-        /// Memory cache for tiles
+        /// Memory cache for decoded tile images
         QCache<QByteArray, QPixmap> m_memoryCache;
 
-        /// The tile size in pixels.
-        int m_tile_size_px;
+        /// Local disk cache for tile image files
+        QNetworkDiskCache* m_diskCache;
 
         /// Pixmap of an empty image with "LOADING..." text.
         QPixmap m_pixmap_loading;
 
         /// A list of image urls being prefetched.
         QList<QUrl> m_prefetch_urls;
-
-        /// Whether persistent caching is enabled.
-        bool m_persistent_cache;
-
-        /// The persistent cache's storage directory.
-        QDir m_persistent_cache_directory;
-
-        /// The persistent cache's image expiry.
-        std::chrono::minutes m_persistent_cache_expiry;
     };
 }

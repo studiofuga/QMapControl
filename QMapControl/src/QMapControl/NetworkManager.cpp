@@ -36,13 +36,15 @@
 
 namespace qmapcontrol
 {
-    NetworkManager::NetworkManager(QObject* parent) : QObject(parent)
+    NetworkManager::NetworkManager(QObject* parent)
+        : QObject(parent),
+          m_cacheEnabled(false)
     {
         // Connect signal/slot to handle proxy authentication.
-        QObject::connect(&m_nam, &QNetworkAccessManager::proxyAuthenticationRequired, this, &NetworkManager::proxyAuthenticationRequired);
+        QObject::connect(&m_accessManager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &NetworkManager::proxyAuthenticationRequired);
 
         // Connect signal/slot to handle finished downloads.
-        QObject::connect(&m_nam, &QNetworkAccessManager::finished, this, &NetworkManager::downloadFinished);
+        QObject::connect(&m_accessManager, &QNetworkAccessManager::finished, this, &NetworkManager::downloadFinished);
     }
 
     NetworkManager::~NetworkManager()
@@ -54,7 +56,7 @@ namespace qmapcontrol
     void NetworkManager::setProxy(const QNetworkProxy& proxy)
     {
         // Set the proxy on the network access manager.
-        m_nam.setProxy(proxy);
+        m_accessManager.setProxy(proxy);
     }
 
     void NetworkManager::abortDownloads()
@@ -62,7 +64,7 @@ namespace qmapcontrol
         // Loop through each reply to abort and then remove it from the downloading image queue.
         QMutexLocker lock(&m_mutex_downloading_image);
         QMutableMapIterator<QNetworkReply*, QUrl> itr(m_downloading_image);
-        while(itr.hasNext())
+        while (itr.hasNext())
         {
             // Tell the reply to abort.
             itr.next().key()->abort();
@@ -103,14 +105,22 @@ namespace qmapcontrol
             QMutexLocker lock(&m_mutex_downloading_image);
 
             // Check this is a new request.
-            if(m_downloading_image.values().contains(url) == false)
+            if (m_downloading_image.values().contains(url) == false)
             {
                 // Generate a new request.
                 QNetworkRequest request(url);
                 request.setRawHeader("User-Agent", "QMapControl");
 
+                if (m_cacheEnabled)
+                {
+                    // Prefer our cached version (if enabled) over fresh network query
+                    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
+                    // Data obtained should be saved to cache for future uses
+                    request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, true);
+                }
+
                 // Send the request.
-                QNetworkReply* reply = m_nam.get(request);
+                QNetworkReply* reply = m_accessManager.get(request);
 
                 // Store the request into the downloading image queue.
                 m_downloading_image[reply] = url;
@@ -126,7 +136,7 @@ namespace qmapcontrol
         }
 
         // Was we successful?
-        if(success)
+        if (success)
         {
             // Emit that we are downloading a new image (with details of the current queue size).
             emit downloadingInProgress(downloadQueueSize());
@@ -180,7 +190,7 @@ namespace qmapcontrol
     void NetworkManager::downloadFinished(QNetworkReply* reply)
     {
         // Did the reply return no errors...
-        if(reply->error() != QNetworkReply::NoError)
+        if (reply->error() != QNetworkReply::NoError)
         {
 #ifdef QMAP_DEBUG
             // Log error.
@@ -208,7 +218,7 @@ namespace qmapcontrol
             }
 
             // Should we process this as an image download.
-            if(continue_processing_image)
+            if (continue_processing_image)
             {
                 // Emit that we have downloaded an image.
                 QImageReader image_reader(reply);
@@ -217,14 +227,20 @@ namespace qmapcontrol
         }
 
         // If the reply did not fail due to cancellation... (as cancellation locks our mutexes!)
-        if(reply->error() != QNetworkReply::OperationCanceledError)
+        if (reply->error() != QNetworkReply::OperationCanceledError)
         {
             // Check if the current download queue is empty.
-            if(downloadQueueSize() == 0)
+            if (downloadQueueSize() == 0)
             {
                 // Emit that all queued downloads have finished.
                 emit downloadingFinished();
             }
         }
+    }
+
+    void NetworkManager::setCache(QAbstractNetworkCache* cache)
+    {
+        m_cacheEnabled = (cache != nullptr);
+        m_accessManager.setCache(cache);
     }
 }

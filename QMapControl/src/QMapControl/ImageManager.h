@@ -127,6 +127,13 @@ namespace qmapcontrol
         QPixmap prefetchImage(const QUrl& url);
 
         /*!
+         * Downloads tile image from network and places it in disk cache (if enabled). Useful
+         * for caching some area for later offline use.
+         * \param url
+         */
+        void cacheImageToDisk(const QUrl& url);
+
+        /*!
          * \brief setLoadingPixmap sets the pixmap displayed when a tile is not yet loaded
          * \param pixmap the pixmap to display
          */
@@ -146,6 +153,12 @@ namespace qmapcontrol
          * @param capacityMiB Max cache capacity in MiB, when full LRU images are deleted
          */
         void setMemoryCacheCapacity(int capacityMiB);
+
+        /*!
+         * When offline mode is enabled tile images are pulled from local disk cache only.
+         * \param enabled
+         */
+        void setOfflineMode(bool enabled);
 
     signals:
         /*!
@@ -205,13 +218,6 @@ namespace qmapcontrol
          * @return the md5 hex of the url.
          */
         QByteArray hashTileUrl(const QUrl& url) const;
-
-        /*!
-         * Generate the persistent file path for the given url.
-         * @param url The url to generate a file path for.
-         * @return the file path for the url.
-         */
-        QString persistentCacheFilename(const QUrl& url);
 
         void insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap);
         bool findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const;

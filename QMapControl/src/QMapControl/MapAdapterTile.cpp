@@ -49,7 +49,7 @@ namespace qmapcontrol
         int y_axis(y);
 
         // Do we need to invert the y-axis?
-        if(m_invert_y)
+        if (m_invert_y)
         {
             // Inverse-y required.
             y_axis = projection::get().tilesY(zoom_controller - 1) - 1 - y;

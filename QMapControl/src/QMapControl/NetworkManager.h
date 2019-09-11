@@ -95,6 +95,8 @@ namespace qmapcontrol
          */
         void setCache(QAbstractNetworkCache* cache);
 
+        void setCacheMode(QNetworkRequest::CacheLoadControl mode);
+
     public slots:
         /*!
          * Downloads an image resource for the given url.
@@ -148,6 +150,7 @@ namespace qmapcontrol
         QMap<QNetworkReply*, QUrl> m_downloading_image;
 
         bool m_cacheEnabled;
+        QNetworkRequest::CacheLoadControl m_cacheMode;
 
         /// Mutex protecting downloading image queue.
         mutable QMutex m_mutex_downloading_image;

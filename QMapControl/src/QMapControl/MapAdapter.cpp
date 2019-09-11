@@ -64,24 +64,24 @@ namespace qmapcontrol
         bool success(false);
 
         // Check if the projection is supported.
-        if(m_epsg_projections.find(static_cast<projection::EPSG>(projection::get().epsg())) == m_epsg_projections.end())
+        if (m_epsg_projections.find(static_cast<projection::EPSG>(projection::get().epsg())) == m_epsg_projections.end())
         {
             // Projection not supported, fail!
         }
         // Else check the zoom is supported (if min <= max).
-        else if(m_adapter_zoom_minimum <= m_adapter_zoom_maximum &&
+        else if (m_adapter_zoom_minimum <= m_adapter_zoom_maximum &&
            (toAdapterZoom(controller_zoom) < m_adapter_zoom_minimum || toAdapterZoom(controller_zoom) > m_adapter_zoom_maximum))
         {
             // Controller zoom is out of range, fail!
         }
         // Else check the zoom is supported (if min > max).
-        else if(m_adapter_zoom_minimum > m_adapter_zoom_maximum &&
+        else if (m_adapter_zoom_minimum > m_adapter_zoom_maximum &&
             (toAdapterZoom(controller_zoom) < m_adapter_zoom_maximum || toAdapterZoom(controller_zoom) > m_adapter_zoom_minimum))
         {
             // Controller zoom is out of range, fail!
         }
         // Else, check x and y are between 0 and "max_tiles" - 1 inclusive (as 0 based indexed!)
-        else if(x >= 0 && x < projection::get().tilesX(controller_zoom) && y >= 0 && y < projection::get().tilesY(controller_zoom))
+        else if (x >= 0 && x < projection::get().tilesX(controller_zoom) && y >= 0 && y < projection::get().tilesY(controller_zoom))
         {
             // Success, tile is valid.
             success = true;

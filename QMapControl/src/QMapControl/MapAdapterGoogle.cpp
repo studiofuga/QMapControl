@@ -43,14 +43,8 @@ namespace qmapcontrol
         ///: MapAdapterTile("http://mt1.google.com/vt/v=ap.106&hl=en&x=%x&y=%y&zoom=%zoom&lyrs=" +
         ///layerTypeToString(layer_type), { projection::EPSG::SphericalMercator }, 17, 0, 0, false,
         ///parent) @todo re-add once MSVC supports initializer lists.
-        : MapAdapterTile("http://mt.google.com/vt/v=ap.106&hl=en&x=%x&y=%y&zoom=%zoom&lyrs="
-                             + layerTypeToString(layer_type),
-                         supportedProjections(),
-                         17,
-                         0,
-                         0,
-                         false,
-                         parent) /// @todo remove once MSVC supports initializer lists.
+        : MapAdapterTile("http://mt.google.com/vt/v=ap.116&hl=en&x=%x&y=%y&zoom=%zoom&lyrs=" + layerTypeToString(layer_type),
+                         supportedProjections(), 17, 0, 0, false, parent) /// @todo remove once MSVC supports initializer lists.
     {
 
     }

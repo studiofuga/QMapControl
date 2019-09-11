@@ -231,7 +231,6 @@ namespace qmapcontrol
     {
     public:
         QPixmapCacheEntry(const QPixmap &pixmap) : QPixmap(pixmap) { }
-        ~QPixmapCacheEntry() { }
     };
 
     void ImageManager::insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap)
@@ -241,8 +240,10 @@ namespace qmapcontrol
             m_memoryCache.insert(hashTileUrl(url), new QPixmapCacheEntry(pixmap), cost);
         }
 
+#ifdef QMAP_DEBUG
         qDebug() << "ImageManager: pixmap cache -> total size KiB: " << m_memoryCache.totalCost() / 1024
                  << ", now inserted: " << url.toString();
+#endif
     }
 
     bool ImageManager::findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const
@@ -255,4 +256,16 @@ namespace qmapcontrol
 
         return false;
     }
+
+    void ImageManager::cacheImageToDisk(const QUrl& url)
+    {
+        m_networkManager.downloadImage(url);
+    }
+
+    void ImageManager::setOfflineMode(bool enabled)
+    {
+        auto mode = (enabled ? QNetworkRequest::AlwaysCache : QNetworkRequest::PreferCache);
+        m_networkManager.setCacheMode(mode);
+    }
 }
+

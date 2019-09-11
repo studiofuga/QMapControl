@@ -38,7 +38,8 @@ namespace qmapcontrol
 {
     NetworkManager::NetworkManager(QObject* parent)
         : QObject(parent),
-          m_cacheEnabled(false)
+          m_cacheEnabled(false),
+          m_cacheMode(QNetworkRequest::PreferCache)
     {
         // Connect signal/slot to handle proxy authentication.
         QObject::connect(&m_accessManager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &NetworkManager::proxyAuthenticationRequired);
@@ -114,7 +115,7 @@ namespace qmapcontrol
                 if (m_cacheEnabled)
                 {
                     // Prefer our cached version (if enabled) over fresh network query
-                    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
+                    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, m_cacheMode);
                     // Data obtained should be saved to cache for future uses
                     request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, true);
                 }
@@ -242,5 +243,9 @@ namespace qmapcontrol
     {
         m_cacheEnabled = (cache != nullptr);
         m_accessManager.setCache(cache);
+    }
+
+    void NetworkManager::setCacheMode(QNetworkRequest::CacheLoadControl mode) {
+        m_cacheMode = mode;
     }
 }

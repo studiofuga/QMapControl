@@ -67,8 +67,10 @@ namespace qmapcontrol
         /*!
          * Set the network proxy to use.
          * @param proxy The network proxy to use.
+         * @param useName Proxy user name if needed
+         * @param password Proxy password if needed
          */
-        void setProxy(const QNetworkProxy& proxy);
+        void setProxy(const QNetworkProxy& proxy, const QString& userName = QString(), const QString& password = QString());
 
         /*!
          * Aborts all current downloading threads.
@@ -95,6 +97,11 @@ namespace qmapcontrol
          */
         void setCache(QAbstractNetworkCache* cache);
 
+        /*!
+         * Sets caching mode for network requests. Only applicable when setCache() was called
+         * before with some cache instance.
+         * \param mode
+         */
         void setCacheMode(QNetworkRequest::CacheLoadControl mode);
 
     public slots:
@@ -154,5 +161,8 @@ namespace qmapcontrol
 
         /// Mutex protecting downloading image queue.
         mutable QMutex m_mutex_downloading_image;
+
+        QString m_proxyUserName;
+        QString m_proxyPassword;
     };
 }

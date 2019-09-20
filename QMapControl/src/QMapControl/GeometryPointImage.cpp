@@ -36,10 +36,10 @@ namespace qmapcontrol
     const QPixmap& GeometryPointImage::image() const
     {
         // Is the image pixmap currently null?
-        if(m_image == nullptr)
+        if (m_image == nullptr)
         {
             // Have we already constructed the null image pixmap?
-            if(m_image_null == nullptr)
+            if (m_image_null == nullptr)
             {
                 // Construct the null image pixmap.
                 m_image_null.reset(new QPixmap);
@@ -78,11 +78,11 @@ namespace qmapcontrol
     void GeometryPointImage::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)
     {
         // Check the geometry is visible.
-        if(isVisible(controller_zoom))
+        if (isVisible(controller_zoom))
         {
             // Check if the bounding boxes intersect.
             const RectWorldCoord pixmap_rect_coord(boundingBox(controller_zoom));
-            if(backbuffer_rect_coord.rawRect().intersects(pixmap_rect_coord.rawRect()))
+            if (backbuffer_rect_coord.rawRect().intersects(pixmap_rect_coord.rawRect()))
             {
                 // Calculate the pixmap rect to draw within.
                 const RectWorldPx pixmap_rect_px(projection::get().toPointWorldPx(pixmap_rect_coord.topLeftCoord(), controller_zoom), projection::get().toPointWorldPx(pixmap_rect_coord.bottomRightCoord(), controller_zoom));
@@ -99,7 +99,7 @@ namespace qmapcontrol
                 painter.translate(-pixmap_rect_px.centerPx().rawPoint());
 
                 // Do we have a meta-data value and should we display it at this zoom?
-                if(controller_zoom >= m_metadata_displayed_zoom_minimum && metadata(m_metadata_displayed_key).isNull() == false)
+                if (controller_zoom >= m_metadata_displayed_zoom_minimum && metadata(m_metadata_displayed_key).isNull() == false)
                 {
                     /// @todo calculate correct alignment for metadata displayed offset.
 

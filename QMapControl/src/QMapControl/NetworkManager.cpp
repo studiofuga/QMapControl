@@ -28,11 +28,6 @@
 // Qt includes.
 #include <QtCore/QMutexLocker>
 #include <QtGui/QImageReader>
-#include <QtWidgets/QDialog>
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QPushButton>
 
 namespace qmapcontrol
 {
@@ -54,8 +49,11 @@ namespace qmapcontrol
         abortDownloads();
     }
 
-    void NetworkManager::setProxy(const QNetworkProxy& proxy)
+    void NetworkManager::setProxy(const QNetworkProxy& proxy, const QString& userName, const QString& password)
     {
+        m_proxyUserName = userName;
+        m_proxyPassword = password;
+
         // Set the proxy on the network access manager.
         m_accessManager.setProxy(proxy);
     }
@@ -149,43 +147,9 @@ namespace qmapcontrol
         // Log proxy authentication request.
         qDebug() << "Proxy Authentication Required for '" << proxy.hostName() << "' with the authenticator '" << &authenticator << "'";
 
-        // We need to capture the proxy login details.
-        // Setup a form to capture these details.
-        QDialog dialog;
-        QGridLayout layout;
-
-        // Add username/password text fields.
-        QLabel username, password;
-        username.setText("Username:");
-        password.setText("Password:");
-        layout.addWidget(&username, 0, 0);
-        layout.addWidget(&password, 1, 0);
-        QLineEdit user, pass;
-        pass.setEchoMode(QLineEdit::Password);
-        layout.addWidget(&user, 0, 1);
-        layout.addWidget(&pass, 1, 1);
-
-        // Setup signals to exit the form when the return key is entered.
-        QObject::connect(&user, &QLineEdit::returnPressed, &dialog, &QDialog::accept);
-        QObject::connect(&pass, &QLineEdit::returnPressed, &dialog, &QDialog::accept);
-
-        // Add an "OK" button.
-        QPushButton button;
-        button.setText("OK");
-        layout.addWidget(&button, 2, 0, 1, 2, Qt::AlignCenter);
-
-        // Setup signal to exit the form when the button is clicked.
-        QObject::connect(&button, &QPushButton::clicked, &dialog, &QDialog::accept);
-
-        // Set the layout to the dialog to display.
-        dialog.setLayout(&layout);
-
-        // Run the form.
-        dialog.exec();
-
-        // Set the form's username/password values into the authenticator to use.
-        authenticator->setUser(user.text());
-        authenticator->setPassword(pass.text());
+        // Set the stored username/password values into the authenticator to use.
+        authenticator->setUser(m_proxyUserName);
+        authenticator->setPassword(m_proxyPassword);
     }
 
     void NetworkManager::downloadFinished(QNetworkReply* reply)

@@ -43,7 +43,7 @@ namespace qmapcontrol
     Projection& projection::get()
     {
         // Does the singleton instance exist?
-        if(m_instance == nullptr)
+        if (m_instance == nullptr)
         {
             // Create a default instance (Spherical Mercator).
             set(EPSG::SphericalMercator);
@@ -56,7 +56,7 @@ namespace qmapcontrol
     void projection::set(const EPSG& type)
     {
         // Equirectangular ?
-        if(type == EPSG::Equirectangular)
+        if (type == EPSG::Equirectangular)
         {
             // Create a Equirectangular instance.
             m_instance.reset(new ProjectionEquirectangular);

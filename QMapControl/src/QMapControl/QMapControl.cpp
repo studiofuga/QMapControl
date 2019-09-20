@@ -79,11 +79,7 @@ namespace qmapcontrol
           m_primary_screen_backbuffer_rect_px(PointWorldPx(0.0, 0.0), PointWorldPx(0.0, 0.0)),
           m_primary_screen_scaled_enabled(false),
           m_primary_screen_scaled(size_px.toSize() * 2),
-          m_primary_screen_scaled_offset(0.0, 0.0),
-          m_zoom_control_align_left(true),
-          m_zoom_control_button_in("+", this),
-          m_zoom_control_slider(Qt::Vertical, this),
-          m_zoom_control_button_out("-", this),
+          m_primary_screen_scaled_offset(0.0, 0.0),          
           m_progress_indicator(this)
     {
         // Register meta types.
@@ -106,9 +102,6 @@ namespace qmapcontrol
 
         // Default - tile size as 256px.
         setTileSizePx(256);
-
-        // Default - zoom controls enabled.
-        enableZoomControls(true);
 
         // Default - allow the map to gain click focus.
         setFocusPolicy(Qt::ClickFocus);
@@ -145,9 +138,11 @@ namespace qmapcontrol
 
     void QMapControl::setBackgroundColour(const QColor& colour)
     {
+#ifndef QT_NO_STYLE_STYLESHEET
         // Update the QWidget background colour.
-        QWidget::setObjectName("QMapControl");
-        QWidget::setStyleSheet("QWidget#QMapControl { background-color: " + colour.name() + " }");
+        setObjectName("QMapControl");
+        setStyleSheet("QWidget#QMapControl { background-color: " + colour.name() + " }");
+#endif
     }
 
     void QMapControl::setProxy(const QNetworkProxy& proxy)
@@ -533,30 +528,6 @@ namespace qmapcontrol
         return m_current_zoom;
     }
 
-    void QMapControl::enableZoomControls(const bool& enable, const bool& align_left)
-    {
-        // Update the required aligment.
-        m_zoom_control_align_left = align_left;
-
-        // Set the zoom controls visibility.
-        m_zoom_control_button_in.setVisible(enable);
-        m_zoom_control_slider.setVisible(enable);
-        m_zoom_control_button_out.setVisible(enable);
-
-        // Disconnect previous signals from zoom controls.
-        QObject::disconnect(&m_zoom_control_button_in, 0, this, 0);
-        QObject::disconnect(&m_zoom_control_slider, 0, this, 0);
-        QObject::disconnect(&m_zoom_control_button_out, 0, this, 0);
-
-        // Connect signals from zoom controls.
-        QObject::connect(&m_zoom_control_button_in, &QPushButton::clicked, this, &QMapControl::zoomIn);
-        QObject::connect(&m_zoom_control_slider, &QSlider::valueChanged, this, &QMapControl::setZoom);
-        QObject::connect(&m_zoom_control_button_out, &QPushButton::clicked, this, &QMapControl::zoomOut);
-
-        // Update zoom controls.
-        updateControls();
-    }
-
     // Mouse management.
     void QMapControl::enableLayerMouseEvents(const bool& enable)
     {
@@ -829,6 +800,7 @@ namespace qmapcontrol
         emit mouseEventMoveCoordinate(mouse_event, toPointWorldCoord(m_mouse_position_pressed_px), toPointWorldCoord(m_mouse_position_current_px));
     }
 
+#if QT_CONFIG(wheelevent)
     void QMapControl::wheelEvent(QWheelEvent* wheel_event)
     {
         // Is the vertical angle delta positive?
@@ -892,6 +864,7 @@ namespace qmapcontrol
             }
         }
     }
+#endif
 
     // Keyboard management.
     void QMapControl::keyPressEvent(QKeyEvent* key_event)
@@ -1173,38 +1146,10 @@ namespace qmapcontrol
 
     void QMapControl::updateControls()
     {
-        // Default values.
         const int margin = 10;
-        const int slider_width = 25;
-        const int slider_height = 100;
+        const int width = 25;
 
-        // Left-aligned.
-        int margin_left = margin;
-        // Right-aligned required?
-        if(m_zoom_control_align_left == false)
-        {
-            margin_left = m_viewport_size_px.width() - slider_width - margin;
-        }
-
-        // Set the geometries/size of the zoom controls.
-        m_zoom_control_button_in.setGeometry(margin_left, margin, 24, 24);
-        m_zoom_control_slider.setMinimum(m_zoom_minimum);
-        m_zoom_control_slider.setMaximum(m_zoom_maximum);
-        m_zoom_control_slider.setValue(m_current_zoom);
-        m_zoom_control_slider.setGeometry(margin_left, 33, slider_width, slider_height);
-        m_zoom_control_button_out.setGeometry(margin_left, slider_height + 31, 24, 24);
-
-        // Set the default location of the progress indicator to the opposite side.
-        if(m_zoom_control_align_left)
-        {
-            // Place the progress indicator on the left.
-            m_progress_indicator.setGeometry(m_viewport_size_px.width() - slider_width - margin, margin, slider_width, slider_width);
-        }
-        else
-        {
-            // Place the progress indicator on the left.
-            m_progress_indicator.setGeometry(margin, margin, slider_width, slider_width);
-        }
+        m_progress_indicator.setGeometry(m_viewport_size_px.width() - width - margin, margin, width, width);
     }
 
     // Drawing management.

@@ -35,8 +35,6 @@
 #include <QtGui/QPaintEvent>
 #include <QtGui/QWheelEvent>
 #include <QtNetwork/QNetworkProxy>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QSlider>
 #include <QtWidgets/QWidget>
 #include <QMutex>
 
@@ -141,15 +139,6 @@ namespace qmapcontrol
          * @param colour The background colour to set.
          */
         void setBackgroundColour(const QColor& colour = Qt::transparent);
-
-        /*!
-         * Enable persistent caching of map tiles.
-         * Call this method to allow the QMapControl widget to save map tiles persistent (also over application restarts).
-         * Default: Images are stored in the subdirectory "QMapControl.cache" within the user's home directory.
-         * @param path The path where the images should be stored.
-         * @param expiry The max age (in minutes) of an image before its removed and a new one is requested (0 to keep forever).
-         */
-        void enablePersistentCache(const std::chrono::minutes& expiry = std::chrono::minutes(0), const QDir& path = QDir::homePath() + QDir::separator() + "QMapControl.cache");
 
         /*!
          * Sets the proxy for HTTP connections.
@@ -337,13 +326,6 @@ namespace qmapcontrol
          */
         int getCurrentZoom() const;
 
-        /*!
-         * Set whether the zoom controls should be displayed.
-         * @param enable Whether the zoom control should be displayed.
-         * @param align_left Whether to align the zoom controls to left or right of the widget.
-         */
-        void enableZoomControls(const bool& enable, const bool& align_left = true);
-
         // Mouse management.
         /*!
          * Set whether the layers should handle mouse events.
@@ -405,7 +387,9 @@ namespace qmapcontrol
          * Called when a mouse's wheel is scrolled.
          * @param wheel_event The mouse wheel event.
          */
+#if QT_CONFIG(wheelevent)
         void wheelEvent(QWheelEvent* wheel_event);
+#endif
 
         // Keyboard management.
         /*!
@@ -503,7 +487,7 @@ namespace qmapcontrol
         void checkZoom();
 
         /*!
-         * Updates the zoom/progress indicator controls.
+         * Updates the progress indicator controls.
          */
         void updateControls();
 
@@ -723,18 +707,6 @@ namespace qmapcontrol
 
         /// Primary screen scaled pixmap offset (wheel events only).
         PointPx m_primary_screen_scaled_offset;
-
-        /// Whether to align the zoom controls to the left (or right).
-        bool m_zoom_control_align_left;
-
-        /// The zoom control's '+' zoom in button.
-        QPushButton m_zoom_control_button_in;
-
-        /// The zoom control's slider.
-        QSlider m_zoom_control_slider;
-
-        /// The zoom control's '-' zoom out button.
-        QPushButton m_zoom_control_button_out;
 
         /// Mutex to protect the backbuffer during the redraw process.
         QMutex m_backbuffer_mutex;

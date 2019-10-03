@@ -26,15 +26,14 @@
 #include "NetworkManager.h"
 
 // Qt includes.
-#include <QtCore/QMutexLocker>
-#include <QtGui/QImageReader>
+#include <QMutexLocker>
+#include <QImageReader>
+#include <QAbstractNetworkCache>
 
 namespace qmapcontrol
 {
     NetworkManager::NetworkManager(QObject* parent)
-        : QObject(parent),
-          m_cacheEnabled(false),
-          m_cacheMode(QNetworkRequest::PreferCache)
+        : QObject(parent)
     {
         // Connect signal/slot to handle proxy authentication.
         QObject::connect(&m_accessManager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &NetworkManager::proxyAuthenticationRequired);
@@ -110,10 +109,10 @@ namespace qmapcontrol
                 QNetworkRequest request(url);
                 request.setRawHeader("User-Agent", "QMapControl");
 
-                if (m_cacheEnabled)
+                if (m_accessManager.cache() != nullptr)
                 {
-                    // Prefer our cached version (if enabled) over fresh network query
-                    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, m_cacheMode);
+                    // Prefer fresh tiles from network
+                    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferNetwork);
                     // Data obtained should be saved to cache for future uses
                     request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, true);
                 }
@@ -158,7 +157,7 @@ namespace qmapcontrol
         if (reply->error() != QNetworkReply::NoError)
         {
 #ifdef QMAP_DEBUG
-            // Log error.
+            // Log error
             qDebug() << "Failed to download '" << reply->url() << "' with error '" << reply->errorString() << "'";
 #endif
         }
@@ -170,7 +169,7 @@ namespace qmapcontrol
                 // Is the reply in the downloading image queue?
                 QMutexLocker lock(&m_mutex_downloading_image);
                 continue_processing_image = m_downloading_image.contains(reply);
-                if(continue_processing_image)
+                if (continue_processing_image)
                 {
 #ifdef QMAP_DEBUG
                     // Log success.
@@ -204,12 +203,8 @@ namespace qmapcontrol
     }
 
     void NetworkManager::setCache(QAbstractNetworkCache* cache)
-    {
-        m_cacheEnabled = (cache != nullptr);
+    {       
         m_accessManager.setCache(cache);
     }
 
-    void NetworkManager::setCacheMode(QNetworkRequest::CacheLoadControl mode) {
-        m_cacheMode = mode;
-    }
 }

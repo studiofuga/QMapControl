@@ -92,17 +92,11 @@ namespace qmapcontrol
         bool isDownloading(const QUrl& url) const;
 
         /*!
-         * Sets the disk cache for network manager
+         * Sets the disk cache for network manager. Useful for filling and updating of local
+         * cache for offline usage.
          * @param qCache the disk cache object to set
          */
         void setCache(QAbstractNetworkCache* cache);
-
-        /*!
-         * Sets caching mode for network requests. Only applicable when setCache() was called
-         * before with some cache instance.
-         * \param mode
-         */
-        void setCacheMode(QNetworkRequest::CacheLoadControl mode);
 
     public slots:
         /*!
@@ -156,13 +150,10 @@ namespace qmapcontrol
         /// Downloading image queue.
         QMap<QNetworkReply*, QUrl> m_downloading_image;
 
-        bool m_cacheEnabled;
-        QNetworkRequest::CacheLoadControl m_cacheMode;
-
         /// Mutex protecting downloading image queue.
         mutable QMutex m_mutex_downloading_image;
 
         QString m_proxyUserName;
-        QString m_proxyPassword;
+        QString m_proxyPassword; 
     };
 }

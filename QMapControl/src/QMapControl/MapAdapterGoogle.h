@@ -52,11 +52,11 @@ namespace qmapcontrol
             /// Terrain layer.
             TERRAIN_ONLY,
             TERRAIN,
-            // Roads layer
+            /// Roads layer
             ROADS_ONLY,
             /// Hybrid layer.
             HYBRID,
-            /// Ratser layer.
+            /// Raster layer.
             RASTER
         };
 

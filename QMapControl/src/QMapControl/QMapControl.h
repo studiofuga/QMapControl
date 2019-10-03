@@ -264,8 +264,9 @@ namespace qmapcontrol
         /*!
          * Set the map focus point to the given world coordinate.
          * @param point_coord The coordinate which the view´s middle should be set to
+         * @param disable_redraw Do not request the map redraw immediately
          */
-        void setMapFocusPoint(const PointWorldCoord& point_coord);
+        void setMapFocusPoint(const PointWorldCoord& point_coord, bool disable_redraw = false);
 
         /*!
          * Sets the map focus point, based on the mean average of all the coordinates.

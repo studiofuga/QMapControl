@@ -37,7 +37,6 @@
 
 // STL includes.
 #include <chrono>
-#include <map>
 #include <memory>
 
 // Local includes.
@@ -117,18 +116,15 @@ namespace qmapcontrol
 
         /*!
          * Fetches the requested image using the getImage function, which has been deemed
-         * "offscreen".
-         * However, if the image need to be fetched from the network, the "imageReceived" will be
-         * emitted on particular hardware platforms only (Eg: mobile platforms do not receive the
-         * "imageReceived" emission.
-         * @param url The image url to fetch.
-         * @return the pixmap of the image.
+         * "offscreen" but may be needed soon.
+         * @param url The image url to fetch.         
          */
-        QPixmap prefetchImage(const QUrl& url);
+        void prefetchImage(const QUrl& url);
 
         /*!
          * Downloads tile image from network and places it in disk cache (if enabled). Useful
-         * for caching some area for later offline use.
+         * for caching some area for later offline use. Cached tiles do not trigger
+         * map redraws when received from network nor they are stored in memory cache.
          * \param url
          */
         void cacheImageToDisk(const QUrl& url);
@@ -155,10 +151,16 @@ namespace qmapcontrol
         void setMemoryCacheCapacity(int capacityMiB);
 
         /*!
-         * When offline mode is enabled tile images are pulled from local disk cache only.
+         * When offline mode is enabled tile images are pulled from local disk cache only
+         * (no spawning of network requests etc.). Disk cache must be set (and filled) for offline mode to work.
          * \param enabled
          */
         void setOfflineMode(bool enabled);
+
+        /*!
+         * Is offline mode enabled right now?
+         */
+        bool offlineMode() const { return m_offlineMode; }
 
     signals:
         /*!
@@ -183,6 +185,11 @@ namespace qmapcontrol
          * @param url The url that the image was downloaded from.
          */
         void imageUpdated(const QUrl& url);
+
+        /*!
+         * Emited when some image (reuqested by cacheImageToDisk()) has been cached.
+         */
+        void imageCached();
 
     private slots:
         /*!
@@ -222,6 +229,8 @@ namespace qmapcontrol
         void insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap);
         bool findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const;
 
+        QPixmap getImageInternal(const QUrl& url, bool bypassMemChache, bool bypassDiskCache);
+
     private:
         /// The tile size in pixels.
         int m_tile_size_px;
@@ -235,10 +244,16 @@ namespace qmapcontrol
         /// Local disk cache for tile image files
         QNetworkDiskCache* m_diskCache;
 
-        /// Pixmap of an empty image with "LOADING..." text.
-        QPixmap m_pixmap_loading;
+        /// Only use local cache, no spawning of network requests
+        bool m_offlineMode;
 
-        /// A list of image urls being prefetched.
-        QList<QUrl> m_prefetch_urls;
+        /// Pixmap of an empty image with "LOADING..." text.
+        QPixmap m_pixmapLoading;
+
+        /// A set of image urls being prefetched.
+        QSet<QUrl> m_prefetchUrls;
+
+        /// A set of image urls being cached
+        QSet<QUrl> m_cacheUrls;
     };
 }

@@ -46,6 +46,7 @@ namespace qmapcontrol
     public:
         PointWorldCoord() : m_raw_point() {}
         PointWorldCoord(const qreal& longitude, const qreal& latitude) : m_raw_point(longitude, latitude) { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        PointWorldCoord(QPointF rawPoint) : m_raw_point(rawPoint) { }
         inline QPointF rawPoint() const { return m_raw_point; }
         inline qreal longitude() const { return m_raw_point.x(); }
         inline qreal latitude() const { return m_raw_point.y(); }

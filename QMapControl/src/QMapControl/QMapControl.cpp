@@ -410,15 +410,17 @@ namespace qmapcontrol
         return m_map_focus_coord;
     }
 
-    void QMapControl::setMapFocusPoint(const PointWorldCoord& point_coord)
+    void QMapControl::setMapFocusPoint(const PointWorldCoord& point_coord, bool disable_redraw)
     {
         // Set the map focus point.
         m_map_focus_coord = point_coord;
 
         emit mapFocusPointChanged(m_map_focus_coord);
 
-        // Request the primary screen to be redrawn.
-        redrawPrimaryScreen();
+        if (!disable_redraw) {
+            // Request the primary screen to be redrawn.
+            redrawPrimaryScreen();
+        }
     }
 
     void QMapControl::setMapFocusPoint(const std::vector<PointWorldCoord>& points_coord, const bool& auto_zoom)
@@ -427,7 +429,7 @@ namespace qmapcontrol
         setMapFocusPoint(calculateMapFocusPoint(points_coord));
 
         // Has auto zoom been requested?
-        if(auto_zoom)
+        if (auto_zoom)
         {
             // Auto zoom go-go-go!
 

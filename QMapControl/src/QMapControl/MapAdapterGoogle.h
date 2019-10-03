@@ -51,9 +51,11 @@ namespace qmapcontrol
             SATELLITE,
             /// Terrain layer.
             TERRAIN,
-            /// Hypnrid layer.
+            /// Roads layer
+            ROADS_ONLY,
+            /// Hybrid layer.
             HYBRID,
-            /// Ratser layer.
+            /// Raster layer.
             RASTER
         };
 

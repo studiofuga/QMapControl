@@ -29,6 +29,8 @@
 #include <QDateTime>
 #include <QtCore/QCryptographicHash>
 #include <QtGui/QPainter>
+#include <QPainter>
+#include <QImageReader>
 
 // Local includes.
 #include "Projection.h"
@@ -66,8 +68,9 @@ namespace qmapcontrol
     ImageManager::ImageManager(const int& tile_size_px, QObject* parent)
         : QObject(parent),
           m_tile_size_px(tile_size_px),
-          m_diskCache(new QNetworkDiskCache(this)),
-          m_pixmap_loading()
+          m_diskCache(nullptr),
+          m_offlineMode(false),
+          m_pixmapLoading()
     {        
         setMemoryCacheCapacity(kDefaultPixmapCacheSizeMiB);
 
@@ -110,6 +113,9 @@ namespace qmapcontrol
         // If the path does exist, enable disk cache.
         if (success)
         {
+            if (m_diskCache == nullptr) {
+                m_diskCache = new QNetworkDiskCache(this);
+            }
             m_diskCache->setCacheDirectory(dir.absolutePath());
             m_diskCache->setMaximumCacheSize(capacityMiB * 1024 * 1024);
 
@@ -118,7 +124,7 @@ namespace qmapcontrol
         else
         {
             m_networkManager.setCache(nullptr);
-            qDebug() << "Unable to create directory for persistent cache '" << dir.absolutePath() << "'";
+            qWarning() << "Unable to create directory for persistent cache '" << dir.absolutePath() << "'";
         }
 
         // Return success.
@@ -129,6 +135,9 @@ namespace qmapcontrol
     {
         // Abort any remaing network manager downloads.
         m_networkManager.abortDownloads();
+
+        m_prefetchUrls.clear();
+        m_cacheUrls.clear();
     }
 
     int ImageManager::loadQueueSize() const
@@ -139,42 +148,74 @@ namespace qmapcontrol
 
     QPixmap ImageManager::getImage(const QUrl& url)
     {
+        return getImageInternal(url, false, false);
+    }
+
+    QPixmap ImageManager::getImageInternal(const QUrl& url, bool bypassMemChache, bool bypassDiskCache)
+    {
         QPixmap return_pixmap;
 
-        // Is the image already been downloaded by the network manager?
-        if (!m_networkManager.isDownloading(url))
-        {          
-            if (findTileInMemoryCache(url, return_pixmap))
-            {
-                Q_ASSERT(!return_pixmap.isNull());
-                // Image found in memory cache, use it
+        if (!bypassMemChache && findTileInMemoryCache(url, return_pixmap))
+        {
+            Q_ASSERT(!return_pixmap.isNull());
+            // Image found in memory cache, use it
+            return return_pixmap;
+        }
+
+        if (!bypassDiskCache && (m_diskCache != nullptr) && offlineMode())
+        {
+            // In offline mode check manually if tile is in disk cache.
+            // Outside offline mode if cache is set it is used by NetworkManager.
+            auto data = m_diskCache->data(url);
+
+            if (data != nullptr) {
+                QImageReader image_reader(data);
+                return_pixmap = QPixmap::fromImageReader(&image_reader);
+
+                insertTileToMemoryCache(url, return_pixmap);
+                if (m_prefetchUrls.contains(url))
+                {
+                    m_prefetchUrls.remove(url);
+                }
+
                 return return_pixmap;
-            }
-            else
-            {
-                // Emit that we need to download the image using the network manager.
-                emit downloadImage(url);
-            }
+             }
+        }
+
+        if (offlineMode()) {
+            // In offline mode just look in the caches, no downloads
+            return m_pixmapLoading;
+        }
+
+        // Is the image already being downloaded by the network manager?
+        if (!m_networkManager.isDownloading(url))
+        {
+            // Emit that we need to download the image using the network manager.
+            emit downloadImage(url);
         }
 
         // Image bot found, return "loading" image
-        return m_pixmap_loading;
+        return m_pixmapLoading;
     }
 
-    QPixmap ImageManager::prefetchImage(const QUrl& url)
+    void ImageManager::prefetchImage(const QUrl& url)
     {
         QMutexLocker locker(&mMutex);
 
-        // Add the url to the prefetch list.
-        m_prefetch_urls.append(url);
+        QPixmap pixmap;
 
-        // Return the image for the url.
-        return getImage(url);
+        // Only if image is not already available
+        if (!findTileInMemoryCache(url, pixmap)) {
+            // Add the url to the prefetch list.
+            m_prefetchUrls.insert(url);
+            // Request the image
+            (void)getImageInternal(url, true, false);
+        }
     }
 
     void ImageManager::setLoadingPixmap(const QPixmap &pixmap)
     {
-        m_pixmap_loading = pixmap;
+        m_pixmapLoading = pixmap;
     }
 
     void ImageManager::imageDownloaded(const QUrl& url, const QPixmap& pixmap)
@@ -182,39 +223,48 @@ namespace qmapcontrol
 #ifdef QMAP_DEBUG
         qDebug() << "ImageManager::imageDownloaded '" << url << "'";
 #endif
-
-        // Add it to the pixmap cache
-        insertTileToMemoryCache(url, pixmap);
+        bool addToMemCache = true;
 
         // Is this a prefetch request?
-        if (m_prefetch_urls.contains(url))
+        if (m_prefetchUrls.contains(url))
         {
             // Remove the url from the prefetch list.
-            m_prefetch_urls.removeAt(m_prefetch_urls.indexOf(url));
+            m_prefetchUrls.remove(url);
+        }
+        else if (m_cacheUrls.contains(url))
+        {
+            addToMemCache = false;
+            m_cacheUrls.remove(url);
+            emit imageCached();
         }
         else
         {
             // Let the world know we have received an updated image.
             emit imageUpdated(url);
         }
+
+        if (addToMemCache) {
+            // Add it to the pixmap cache
+            insertTileToMemoryCache(url, pixmap);
+        }
     }
 
     void ImageManager::setupLoadingPixmap()
     {
         // Create a new pixmap.
-        m_pixmap_loading = QPixmap(m_tile_size_px, m_tile_size_px);
+        m_pixmapLoading = QPixmap(m_tile_size_px, m_tile_size_px);
 
         // Make is transparent.
-        m_pixmap_loading.fill(Qt::transparent);
+        m_pixmapLoading.fill(Qt::transparent);
 
         // Add a pattern.
-        QPainter painter(&m_pixmap_loading);
+        QPainter painter(&m_pixmapLoading);
         QBrush brush(Qt::lightGray, Qt::Dense5Pattern);
-        painter.fillRect(m_pixmap_loading.rect(), brush);
+        painter.fillRect(m_pixmapLoading.rect(), brush);
 
         // Add "LOADING..." text.
         painter.setPen(Qt::black);
-        painter.drawText(m_pixmap_loading.rect(), Qt::AlignCenter, "LOADING...");
+        painter.drawText(m_pixmapLoading.rect(), Qt::AlignCenter, "LOADING...");
     }
 
     QByteArray ImageManager::hashTileUrl(const QUrl& url) const
@@ -252,6 +302,11 @@ namespace qmapcontrol
         QPixmap *entry = m_memoryCache.object(hashTileUrl(url));
         if (entry != nullptr) {
             pixmap = *entry;
+
+#ifdef QMAP_DEBUG
+        qDebug() << "ImageManager: found in pixmap cache: " << url.toString();
+#endif
+
             return true;
         }
 
@@ -260,13 +315,17 @@ namespace qmapcontrol
 
     void ImageManager::cacheImageToDisk(const QUrl& url)
     {
-        m_networkManager.downloadImage(url);
+        Q_ASSERT(!m_offlineMode);
+
+        m_cacheUrls.insert(url);
+        // Bypass all caches, go directly to netwotk download
+        (void)getImageInternal(url, true, true);
     }
 
     void ImageManager::setOfflineMode(bool enabled)
     {
-        auto mode = (enabled ? QNetworkRequest::AlwaysCache : QNetworkRequest::PreferCache);
-        m_networkManager.setCacheMode(mode);
+        m_offlineMode = enabled;
     }
+
 }
 

@@ -47,17 +47,19 @@ namespace qmapcontrol
         // Gain a read lock to protect the geometries container.
         QReadLocker locker(&m_geometries_mutex);
 
-        // The geometries container to return.
-        std::vector<std::shared_ptr<Geometry>> return_geometries;
-
         // Populate the geometries container.
-        m_geometries.query(return_geometries, range_coord);
+        std::set<std::shared_ptr<Geometry>> queried_geometries;
+        m_geometries.query(queried_geometries, range_coord);
+
+        // The geometries container to return.
+        std::vector<std::shared_ptr<Geometry>> return_geometries(queried_geometries.begin(), queried_geometries.end());
 
         // Sort by z-index
         std::sort(return_geometries.begin(), return_geometries.end(),
                   [](std::shared_ptr<Geometry> a, std::shared_ptr<Geometry> b) {
                       return a->zIndex() < b->zIndex();
                   });
+
         // Return the list of geometries.
         return return_geometries;
     }
@@ -77,10 +79,10 @@ namespace qmapcontrol
         bool contains_geometry(false);
 
         // We only return true for valid geomtries to start with.
-        if(geometry != nullptr)
+        if (geometry != nullptr)
         {
             // Is it a geometry widget?
-            if(geometry->geometryType() == Geometry::GeometryType::GeometryWidget)
+            if (geometry->geometryType() == Geometry::GeometryType::GeometryWidget)
             {
                 // Fetch a copy of the current geometry widgets.
                 const auto geometry_widgets = getGeometryWidgets();
@@ -106,11 +108,11 @@ namespace qmapcontrol
     void LayerGeometry::addGeometry(const std::shared_ptr<Geometry>& geometry, const bool& disable_redraw)
     {
         // Check the geometry is valid.
-        if(geometry != nullptr)
+        if (geometry != nullptr)
         {
             geometry->mLayer = this;
             // Handle the different geometry types.
-            switch(geometry->geometryType())
+            switch (geometry->geometryType())
             {
                 // Is it a GeometryPoint.
                 case Geometry::GeometryType::GeometryPoint:
@@ -146,7 +148,7 @@ namespace qmapcontrol
                     QWriteLocker locker(&m_geometries_mutex);
 
                     // Loop through each GeometryLineString point and add it to the container.
-                    for(const auto point : std::static_pointer_cast<GeometryLineString>(geometry)->points())
+                    for (const auto& point : std::static_pointer_cast<GeometryLineString>(geometry)->points())
                     {
                         // Add the geometry.
                         m_geometries.insert(point, geometry);
@@ -163,7 +165,7 @@ namespace qmapcontrol
                     QWriteLocker locker(&m_geometries_mutex);
 
                     // Loop through each GeometryPolygon point and add it to the container.
-                    for(const auto point : std::static_pointer_cast<GeometryPolygon>(geometry)->points())
+                    for (const auto& point : std::static_pointer_cast<GeometryPolygon>(geometry)->points())
                     {
                         // Add the geometry.
                         m_geometries.insert(point, geometry);
@@ -177,7 +179,7 @@ namespace qmapcontrol
             geometry->onAddedToLayer(this);
 
             // Should we redraw?
-            if(disable_redraw == false)
+            if (disable_redraw == false)
             {
                 // Emit to redraw layer.
                 emit requestRedraw();
@@ -192,10 +194,10 @@ namespace qmapcontrol
     void LayerGeometry::removeGeometry(const std::shared_ptr<Geometry>& geometry, const bool& disable_redraw)
     {
         // Check the geometry is valid.
-        if(geometry != nullptr)
+        if (geometry != nullptr)
         {
             // Handle the different geometry types.
-            switch(geometry->geometryType())
+            switch (geometry->geometryType())
             {
                 // Is it a GeometryPoint.
                 case Geometry::GeometryType::GeometryPoint:
@@ -208,6 +210,9 @@ namespace qmapcontrol
 
                     // Remove the geometry from the list.
                     m_geometries.erase(std::static_pointer_cast<GeometryPoint>(geometry)->coord(), geometry);
+
+                    // Finished
+                    break;
                 }
 
                 // Is it a GeometryPointWidget.
@@ -221,7 +226,7 @@ namespace qmapcontrol
 
                     // Find the object in the container.
                     const auto itr_find = m_geometry_widgets.find(std::static_pointer_cast<GeometryWidget>(geometry));
-                    if(itr_find != m_geometry_widgets.end())
+                    if (itr_find != m_geometry_widgets.end())
                     {
                         // Remove the geometry from the list.
                         m_geometry_widgets.erase(itr_find);
@@ -242,7 +247,7 @@ namespace qmapcontrol
                     QObject::disconnect(geometry.get(), 0, this, 0);
 
                     // Loop through each GeometryLineString point and remove it to the container.
-                    for(const auto point : std::static_pointer_cast<GeometryLineString>(geometry)->points())
+                    for (const auto& point : std::static_pointer_cast<GeometryLineString>(geometry)->points())
                     {
                         // Remove the geometry.
                         m_geometries.erase(point, geometry);
@@ -262,7 +267,7 @@ namespace qmapcontrol
                     QObject::disconnect(geometry.get(), 0, this, 0);
 
                     // Loop through each GeometryPolygon point and remove it to the container.
-                    for(const auto point : std::static_pointer_cast<GeometryPolygon>(geometry)->points())
+                    for (const auto& point : std::static_pointer_cast<GeometryPolygon>(geometry)->points())
                     {
                         // Remove the geometry.
                         m_geometries.erase(point, geometry);
@@ -276,7 +281,7 @@ namespace qmapcontrol
             geometry->onRemovedFromLayer();
 
             // Should we redraw?
-            if(disable_redraw == false)
+            if (disable_redraw == false)
             {
                 // Emit to redraw layer.
                 emit requestRedraw();
@@ -298,10 +303,10 @@ namespace qmapcontrol
     bool LayerGeometry::mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int& controller_zoom) const
     {
         // Are mouse events enabled, is the layer visible and is it a mouse press event?
-        if(isMouseEventsEnabled() && isVisible(controller_zoom) && mouse_event->type() == QEvent::MouseButtonPress)
+        if (isMouseEventsEnabled() && isVisible(controller_zoom) && mouse_event->type() == QEvent::MouseButtonPress)
         {
             // Is this a left-click event?
-            if(mouse_event->button() == Qt::LeftButton)
+            if (mouse_event->button() == Qt::LeftButton)
             {
                 // Calculate the mouse press world point in pixels.
                 const PointWorldPx mouse_point_px(projection::get().toPointWorldPx(mouse_point_coord, controller_zoom));
@@ -316,10 +321,10 @@ namespace qmapcontrol
                 const GeometryPolygon touches_rect_coord({ mouse_rect_coord.topLeftCoord(), mouse_rect_coord.bottomRightCoord() });
 
                 // Check each geometry to see it is contained in our touch area.
-                for(const auto& geometry : getGeometries(mouse_rect_coord))
+                for (const auto& geometry : getGeometries(mouse_rect_coord))
                 {
                     // Does it touch? (Will emit if it does).
-                    if(geometry->touches(&touches_rect_coord, controller_zoom))
+                    if (geometry->touches(&touches_rect_coord, controller_zoom))
                     {
                         // Emit that the geometry has been clicked.
                         emit geometryClicked(geometry.get());
@@ -335,7 +340,7 @@ namespace qmapcontrol
     void LayerGeometry::draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const
     {
         // Check the layer is visible.
-        if(isVisible(controller_zoom))
+        if (isVisible(controller_zoom))
         {
             // Calculate the world coordinates.
             const RectWorldCoord backbuffer_rect_coord(projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom), projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom));
@@ -344,7 +349,7 @@ namespace qmapcontrol
             painter.save();
 
             // Loop through each geometry and draw it.
-            for(const auto& geometry : getGeometries(backbuffer_rect_coord))
+            for (const auto& geometry : getGeometries(backbuffer_rect_coord))
             {
                 // Draw the geometry (this will not move widgets).
                 geometry->draw(painter, backbuffer_rect_coord, controller_zoom);
@@ -358,10 +363,10 @@ namespace qmapcontrol
     void LayerGeometry::moveGeometryWidgets(const PointPx& offset_px, const int& controller_zoom) const
     {
         // Check the layer is visible.
-        if(isVisible(controller_zoom))
+        if (isVisible(controller_zoom))
         {
             // Loop through each geometry widget.
-            for(const auto& geometry : getGeometryWidgets())
+            for (const auto& geometry : getGeometryWidgets())
             {
                 // Set the widgets new location.
                 geometry->moveWidget(offset_px, controller_zoom);

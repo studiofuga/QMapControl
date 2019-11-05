@@ -85,6 +85,8 @@ namespace qmapcontrol
     bool GeometryLineString::touches(const Geometry* geometry, const int& controller_zoom) const
     {
         /// @todo change to world coordinates.
+        Q_UNUSED(geometry)
+        Q_UNUSED(controller_zoom)
 
         // Default return success.
         bool return_touches(false);
@@ -124,26 +126,26 @@ namespace qmapcontrol
     void GeometryLineString::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)
     {
         // Check the geometry is visible.
-        if(isVisible(controller_zoom))
+        if (isVisible(controller_zoom))
         {
             // Create a polygon of the points.
             QPolygonF polygon_line;
 
             // Loop through each point to add to the polygon.
-            for(const auto& point : m_points)
+            for (const auto& point : m_points)
             {
                 // Add the point to be drawn.
                 polygon_line.append(point.rawPoint());
             }
 
             // Does the polygon intersect with the backbuffer rect?
-            if(QPolygonF(backbuffer_rect_coord.rawRect()).intersected(polygon_line).empty() == false)
+            if (QPolygonF(backbuffer_rect_coord.rawRect()).intersected(polygon_line).empty() == false)
             {
                 // Create a polygon of the points.
                 QPolygonF polygon_line_px;
 
                 // Loop through each point to add to the polygon.
-                for(const auto& point : m_points)
+                for (const auto& point : m_points)
                 {
                     // Add the point to be drawn.
                     polygon_line_px.append(projection::get().toPointWorldPx(point, controller_zoom).rawPoint());

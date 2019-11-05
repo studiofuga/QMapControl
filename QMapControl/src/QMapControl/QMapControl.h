@@ -110,7 +110,7 @@ namespace qmapcontrol
          * @param parent QObject parent ownership.
          * @param window_flags QWidget window flags.
          */
-        QMapControl(const QSizeF& size_px, QWidget* parent = 0, Qt::WindowFlags window_flags = 0);
+        QMapControl(const QSize& size_px, QWidget* parent = 0, Qt::WindowFlags window_flags = 0);
 
         //! Disable copy constructor.
         ///QMapControl(const QMapControl&) = delete; @todo re-add once MSVC supports default/delete syntax.
@@ -227,7 +227,7 @@ namespace qmapcontrol
          * Set the viewport size in pixels.
          * @param size_px The viewport (visible-part of each layer) size in pixels.
          */
-        void setViewportSize(const QSizeF& size_px);
+        void setViewportSize(const QSize& size_px);
 
         /*!
          * Fetches the visible viewport rect in world coordinates.
@@ -238,9 +238,12 @@ namespace qmapcontrol
         /*!
          * Check whether all coordinates are visible in the current viewport.
          * @param points_coord The coordinates to check.
-         * @return Whether all the coordinates are visible in the viewport.
+         * @param viewport_contraction Viewport can be contracted(>0)/expanded(<0) for
+         * calculating the fitting of points (e.g. add "padding" so that some points are not too near the edge of viewport,
+         * 0.1 == take out 10% percent of viewport from each side).
+         * @return Whether all the coordinates are visible in the viewport.         
          */
-        bool viewportContainsAll(const std::vector<PointWorldCoord>& points_coord) const;
+        bool viewportContainsAll(const std::vector<PointWorldCoord>& points_coord, const qreal viewport_contraction = 0.0) const;
 
         /*!
          * Reset limited viewport rect (ie: disable it).
@@ -273,8 +276,13 @@ namespace qmapcontrol
          * If request, will also automatically calculate best zoom level and zoom to it.
          * @param points_coord The coorinates to based the map focus point on.
          * @param auto_zoom Whether to automatically zoom to the best level.
+         * @param viewport_contraction_pct When auto zoom is on viewport can be contracted(>0)/expanded(<0) for
+         * calculating the fitting of points (e.g. add "padding" so that some points are not too near the edge of viewport,
+         * 0.1 == take out 10% percent of viewport from each side).
          */
-        void setMapFocusPoint(const std::vector<PointWorldCoord>& points_coord, const bool& auto_zoom = false);
+        void setMapFocusPoint(const std::vector<PointWorldCoord>& points_coord,
+                              const bool auto_zoom = false,
+                              const qreal viewport_contraction_pct = 0.0);
 
         /*!
          * Smoothly moves the center of the view to the given coordinate.
@@ -548,7 +556,9 @@ namespace qmapcontrol
          * @param backbuffer_rect_px The updated backbuffer rect in pixels.
          * @param backbuffer_map_focus_px The updated backbuffer map foucs point in pixels.
          */
-        void updatePrimaryScreen(QPixmap backbuffer_pixmap, RectWorldPx backbuffer_rect_px, PointWorldPx backbuffer_map_focus_px);
+        void updatePrimaryScreen(const QPixmap& backbuffer_pixmap,
+                                 const RectWorldPx& backbuffer_rect_px,
+                                 const PointWorldPx& backbuffer_map_focus_px);
 
     signals:
         // Geometry management.
@@ -603,7 +613,9 @@ namespace qmapcontrol
          * @param backbuffer_rect_px The updated backbuffer rect in pixels.
          * @param backbuffer_map_focus_px The updated backbuffer map foucs point in pixels.
          */
-        void updatedBackBuffer(QPixmap backbuffer_pixmap, RectWorldPx backbuffer_rect_px, PointWorldPx backbuffer_map_focus_px);
+        void updatedBackBuffer(const QPixmap& backbuffer_pixmap,
+                               const RectWorldPx& backbuffer_rect_px,
+                               const PointWorldPx& backbuffer_map_focus_px);
 
         /**
          * Signal emitted when the map foucus has changed
@@ -635,7 +647,7 @@ namespace qmapcontrol
         QMetaObject::Connection m_following_geometry;
 
         /// The viewport (visible-part of each layer) size in pixels.
-        QSizeF m_viewport_size_px;
+        QSize m_viewport_size_px;
 
         /// The viewport (visible-part of each layer) top-left offset for the center point in pixels.
         PointViewportPx m_viewport_center_px;
@@ -717,5 +729,7 @@ namespace qmapcontrol
 
         /// Progress indicator to alert user to redrawing progress.
         QProgressIndicator m_progress_indicator;
+
+        QColor m_backgroundColor;
     };
 }

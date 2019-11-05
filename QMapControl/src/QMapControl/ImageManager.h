@@ -60,7 +60,7 @@ namespace qmapcontrol
         static ImageManager& get();
 
         //! Destroys the singleton instance of Image Manager.
-        static void destory();
+        static void destroy();
 
     public:
         //! Disable copy constructor.
@@ -117,7 +117,7 @@ namespace qmapcontrol
         /*!
          * Fetches the requested image using the getImage function, which has been deemed
          * "offscreen" but may be needed soon.
-         * @param url The image url to fetch.         
+         * @param url The image url to fetch.
          */
         void prefetchImage(const QUrl& url);
 

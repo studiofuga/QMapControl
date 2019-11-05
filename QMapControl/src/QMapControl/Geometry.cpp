@@ -58,7 +58,7 @@ namespace qmapcontrol
         bool visibility(m_visible);
 
         // Check whether the controller zoom is within range.
-        if(m_zoom_minimum > controller_zoom || m_zoom_maximum < controller_zoom)
+        if (m_zoom_minimum > controller_zoom || m_zoom_maximum < controller_zoom)
         {
             // Outside of supported zoom levels.
             visibility = false;

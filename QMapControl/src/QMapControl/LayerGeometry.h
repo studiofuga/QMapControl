@@ -147,7 +147,7 @@ namespace qmapcontrol
 
     private:
         /// List of geometries drawn by this layer.
-        QuadTreeContainer<std::shared_ptr<Geometry>> m_geometries;
+        QuadTreeContainer m_geometries;
 
         /// Mutex to protect geometries.
         mutable QReadWriteLock m_geometries_mutex;

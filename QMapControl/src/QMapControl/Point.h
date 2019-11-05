@@ -70,7 +70,7 @@ namespace qmapcontrol
         inline PointWorldCoord bottomRightCoord() const { return PointWorldCoord(m_raw_rect.right(), m_raw_rect.bottom()); }
         inline PointWorldCoord bottomLeftCoord() const { return PointWorldCoord(m_raw_rect.left(), m_raw_rect.bottom()); }
 
-        inline std::vector<PointWorldCoord> toStdVector()
+        inline std::vector<PointWorldCoord> toStdVector() const
         {
             // Create a vector to return the points.
             std::vector<PointWorldCoord> return_points;
@@ -85,8 +85,15 @@ namespace qmapcontrol
             return return_points;
         }
 
+        inline RectWorldCoord inflated(const qreal longitude, const qreal latitude) const
+        {
+            return fromQRectF(QRectF(m_raw_rect.left() - longitude, m_raw_rect.top() - latitude,
+                                     m_raw_rect.width() + 2*longitude, m_raw_rect.height() + 2*latitude));
+        }
+
     public:
         static RectWorldCoord fromQRectF(const QRectF& rect) { return RectWorldCoord(rect); }
+
     private:
         RectWorldCoord(const QRectF& rect) : m_raw_rect(rect) { }
     private:

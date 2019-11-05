@@ -58,7 +58,7 @@ namespace qmapcontrol
         return *(m_instance.get());
     }
 
-    void ImageManager::destory()
+    void ImageManager::destroy()
     {
         // Ensure the singleton instance is destroyed.
         m_instance.reset(nullptr);
@@ -66,11 +66,11 @@ namespace qmapcontrol
 
     ImageManager::ImageManager(const int& tile_size_px, QObject* parent)
         : QObject(parent),
-          m_tile_size_px(tile_size_px),          
+          m_tile_size_px(tile_size_px),
           m_diskCache(nullptr),
           m_offlineMode(false),
           m_pixmapLoading()
-    {        
+    {
         setMemoryCacheCapacity(kDefaultPixmapCacheSizeMiB);
 
         // Setup a loading pixmap.
@@ -298,7 +298,7 @@ namespace qmapcontrol
     {
         QPixmap *entry = m_memoryCache.object(hashTileUrl(url));
         if (entry != nullptr) {
-            pixmap = *entry;            
+            pixmap = *entry;
 
 #ifdef QMAP_DEBUG
         qDebug() << "ImageManager: found in pixmap cache: " << url.toString();

@@ -51,7 +51,10 @@ namespace qmapcontrol
         // Nothing else to do.
     }
 
-    QMapControl::QMapControl(const QSizeF& size_px, QWidget* parent, Qt::WindowFlags window_flags)
+    QMapControl::QMapControl(const QSize& size_px,
+                             QWidget* parent,
+                             bool redrawsEnabled,
+                             Qt::WindowFlags window_flags)
         : QWidget(parent, window_flags),
           m_scalebar_enabled(false),
           m_crosshairs_enabled(true),
@@ -74,17 +77,19 @@ namespace qmapcontrol
           m_mouse_right_origin_center(false),
           m_mouse_position_pressed_px(0.0, 0.0),
           m_mouse_position_current_px(0.0, 0.0),
-          m_primary_screen(size_px.toSize() * 2),
+          m_primary_screen(size_px * 2),
           m_primary_screen_map_focus_point_px(0.0, 0.0),
           m_primary_screen_backbuffer_rect_px(PointWorldPx(0.0, 0.0), PointWorldPx(0.0, 0.0)),
           m_primary_screen_scaled_enabled(false),
-          m_primary_screen_scaled(size_px.toSize() * 2),
+          m_primary_screen_scaled(size_px * 2),
           m_primary_screen_scaled_offset(0.0, 0.0),
           m_zoom_control_align_left(true),
           m_zoom_control_button_in("+", this),
           m_zoom_control_slider(Qt::Vertical, this),
           m_zoom_control_button_out("-", this),
-          m_progress_indicator(this)
+          m_progress_indicator(this),
+          m_backgroundColor(Qt::transparent),
+          m_redrawsEnabled(redrawsEnabled)
     {
         // Register meta types.
         qRegisterMetaType<RectWorldPx>("RectWorldPx");
@@ -141,12 +146,6 @@ namespace qmapcontrol
         projection::set(epsg);
     }
 
-    void QMapControl::setTileSizePx(const int& tile_size_px)
-    {
-        // Set the tile size used by the Image Manager.
-        ImageManager::get().setTileSizePx(tile_size_px);
-    }
-
     void QMapControl::setBackgroundColour(const QColor& colour)
     {
         mBackgroundColor = colour;
@@ -182,6 +181,8 @@ namespace qmapcontrol
         // Set whether the crosshairs should be visible.
         m_crosshairs_enabled = visible;
     }
+
+    void QMapControl::enableRedraws(bool enabled) { m_redrawsEnabled = enabled; }
 
     // Layer management.
     const std::vector<std::shared_ptr<Layer> > &QMapControl::getLayers() const
@@ -279,7 +280,7 @@ namespace qmapcontrol
                 if(itr_find != m_layers.end())
                 {
                     // Disconnect all signals associated with the layer.
-                    QObject::disconnect(itr_find->get(), 0, this, 0);
+                    QObject::disconnect(itr_find->get(), nullptr, this, nullptr);
 
                     // Remove the layer.
                     m_layers.erase(itr_find);
@@ -372,7 +373,8 @@ namespace qmapcontrol
         return RectWorldCoord(projection::get().toPointWorldCoord(mapFocusPointWorldPx() - m_viewport_center_px, m_current_zoom), projection::get().toPointWorldCoord(mapFocusPointWorldPx() + m_viewport_center_px, m_current_zoom));
     }
 
-    bool QMapControl::viewportContainsAll(const std::vector<PointWorldCoord>& points_coord) const
+    bool QMapControl::viewportContainsAll(const std::vector<PointWorldCoord>& points_coord,
+                                          const qreal viewport_contraction_pct) const
     {
         // Default return value.
         bool return_contains_all(true);
@@ -410,17 +412,15 @@ namespace qmapcontrol
         return m_map_focus_coord;
     }
 
-    void QMapControl::setMapFocusPoint(const PointWorldCoord& point_coord, bool disable_redraw)
+    void QMapControl::setMapFocusPoint(const PointWorldCoord& point_coord)
     {
         // Set the map focus point.
         m_map_focus_coord = point_coord;
 
         emit mapFocusPointChanged(m_map_focus_coord);
 
-        if (!disable_redraw) {
-            // Request the primary screen to be redrawn.
-            redrawPrimaryScreen();
-        }
+        // Request the primary screen to be redrawn.
+        redrawPrimaryScreen();
     }
 
     void QMapControl::setMapFocusPoint(const std::vector<PointWorldCoord>& points_coord, const bool& auto_zoom)
@@ -1424,6 +1424,11 @@ namespace qmapcontrol
 
     void QMapControl::redrawPrimaryScreen(const bool& force_redraw)
     {
+        if(!m_redrawsEnabled)
+        {
+            return;
+        }
+
         // If we are forced to redraw, or current backbuffer does not cover the required viewport.
         if(force_redraw || checkBackbuffer())
         {
@@ -1556,11 +1561,14 @@ namespace qmapcontrol
     // Drawing management.
     void QMapControl::loadingFinished()
     {
-        // Remove the scaled image, as all new images have been loaded.
-        m_primary_screen_scaled.fill(Qt::transparent);
+        if(m_primary_screen_scaled_enabled)
+        {
+            // Remove the scaled image, as all new images have been loaded.
+            m_primary_screen_scaled.fill(Qt::transparent);
 
-        // Reset the scaled image offset.
-        m_primary_screen_scaled_offset = PointPx(0.0, 0.0);
+            // Reset the scaled image offset.
+            m_primary_screen_scaled_offset = PointPx(0.0, 0.0);
+        }
 
         // Request the primary screen to be redrawn.
         redrawPrimaryScreen();

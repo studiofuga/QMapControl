@@ -101,16 +101,20 @@ namespace qmapcontrol
          * @param parent QObject parent ownership.
          * @param window_flags QWidget window flags.
          */
-        QMapControl(QWidget* parent = 0, Qt::WindowFlags window_flags = 0);
+        QMapControl(QWidget* parent = nullptr, Qt::WindowFlags window_flags = 0);
 
         //! QMapControl constructor.
         /*!
          * The QMapControl is the widget which displays the maps.
          * @param size_px The size of the widget in pixels.
          * @param parent QObject parent ownership.
+         * @param redrawsEnabled Whether the control starts with redraws enabled.
          * @param window_flags QWidget window flags.
          */
-        QMapControl(const QSize& size_px, QWidget* parent = 0, Qt::WindowFlags window_flags = 0);
+        QMapControl(const QSize& size_px,
+                    QWidget* parent = nullptr,
+                    bool redrawsEnabled = true,
+                    Qt::WindowFlags window_flags = 0);
 
         //! Disable copy constructor.
         ///QMapControl(const QMapControl&) = delete; @todo re-add once MSVC supports default/delete syntax.
@@ -129,13 +133,7 @@ namespace qmapcontrol
         void setProjection(const projection::EPSG& epsg = projection::EPSG::SphericalMercator);
 
         /*!
-         * Set the tile size used in pxiels.
-         * @param tile_size_px The tile size in pixels required.
-         */
-        void setTileSizePx(const int& tile_size_px = 256);
-
-        /*!
-         * Set the background colour of the map control.
+         * Set the background colour of the map control widget.
          * @param colour The background colour to set.
          */
         void setBackgroundColour(const QColor& colour = Qt::transparent);
@@ -170,6 +168,14 @@ namespace qmapcontrol
          * @param visible Whether the crosshairs should be displayed.
          */
         void enableCrosshairs(const bool& visible);
+
+        /*!
+         * Enable or disable (temporarily) redraws of map backbuffer. Useful for
+         * limiting redraws issued by QMapControl internals
+         * when you know you don't need them right away (e.g. doing batch of operations
+         * at the same time like rebuilding markers/layers+zoom+scroll).
+         */
+        void enableRedraws(bool enabled);
 
         // Layer management.
         /*!
@@ -243,7 +249,8 @@ namespace qmapcontrol
          * 0.1 == take out 10% percent of viewport from each side).
          * @return Whether all the coordinates are visible in the viewport.         
          */
-        bool viewportContainsAll(const std::vector<PointWorldCoord>& points_coord, const qreal viewport_contraction = 0.0) const;
+        bool viewportContainsAll(const std::vector<PointWorldCoord>& points_coord,
+                                 const qreal viewport_contraction_pct = 0.0) const;
 
         /*!
          * Reset limited viewport rect (ie: disable it).
@@ -266,10 +273,9 @@ namespace qmapcontrol
 
         /*!
          * Set the map focus point to the given world coordinate.
-         * @param point_coord The coordinate which the view´s middle should be set to
-         * @param disable_redraw Do not request the map redraw immediately
+         * @param point_coord The coordinate which the view´s middle should be set to         
          */
-        void setMapFocusPoint(const PointWorldCoord& point_coord, bool disable_redraw = false);
+        void setMapFocusPoint(const PointWorldCoord& point_coord);
 
         /*!
          * Sets the map focus point, based on the mean average of all the coordinates.
@@ -730,6 +736,10 @@ namespace qmapcontrol
         /// Progress indicator to alert user to redrawing progress.
         QProgressIndicator m_progress_indicator;
 
+        /// Background colour of the map control widget
         QColor m_backgroundColor;
+
+        /// Whether the redraws of map backbuffer are enabled
+        bool m_redrawsEnabled;
     };
 }

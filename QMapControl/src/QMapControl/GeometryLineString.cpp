@@ -31,7 +31,7 @@
 
 namespace qmapcontrol
 {
-    GeometryLineString::GeometryLineString(const std::vector<PointWorldCoord>& points, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryLineString::GeometryLineString(const std::vector<PointWorldCoord>& points, const int zoom_minimum, const int zoom_maximum)
         : Geometry(Geometry::GeometryType::GeometryLineString, zoom_minimum, zoom_maximum),
           m_points(points)
     {
@@ -91,7 +91,7 @@ namespace qmapcontrol
         emit requestRedraw();
     }
 
-    RectWorldCoord GeometryLineString::boundingBox(const int& /*controller_zoom*/) const
+    RectWorldCoord GeometryLineString::boundingBox(const int /*controller_zoom*/) const
     {
         // Create a polygon of the points.
         QPolygonF polygon_line;
@@ -107,7 +107,7 @@ namespace qmapcontrol
         return RectWorldCoord::fromQRectF(polygon_line.boundingRect());
     }
 
-    bool GeometryLineString::touches(const Geometry* geometry, const int& controller_zoom) const
+    bool GeometryLineString::touches(const Geometry* geometry, const int controller_zoom) const
     {
         Q_UNUSED(geometry);
         Q_UNUSED(controller_zoom);
@@ -180,7 +180,7 @@ namespace qmapcontrol
         return return_touches;
     }*/
 
-    void GeometryLineString::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)
+    void GeometryLineString::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom)
     {
         // Check the geometry is visible.
         if(isVisible(controller_zoom))

@@ -60,7 +60,7 @@ namespace qmapcontrol
         * @param zoom_minimum The minimum zoom level to show this geometry at.
         * @param zoom_maximum The maximum zoom level to show this geometry at.
         */
-        GeometryWidget(const qreal& longitude, const qreal& latitude, QWidget* widget, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryWidget(const qreal longitude, const qreal latitude, QWidget* widget, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -72,7 +72,7 @@ namespace qmapcontrol
         * @param zoom_minimum The minimum zoom level to show this geometry at.
         * @param zoom_maximum The maximum zoom level to show this geometry at.
         */
-        GeometryWidget(const PointWorldCoord& point_coord, QWidget* widget, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryWidget(const PointWorldCoord& point_coord, QWidget* widget, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
         GeometryWidget(const GeometryWidget&) = delete;
@@ -81,7 +81,7 @@ namespace qmapcontrol
         GeometryWidget& operator=(const GeometryWidget&) = delete;
 
         //! Destructor.
-        virtual ~GeometryWidget() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~GeometryWidget() = default;
 
         /*!
          * Fetches the longitude/latitude coordinate (x/y).
@@ -105,13 +105,13 @@ namespace qmapcontrol
          * Set the visibility of the geometry.
          * @param enabled Whether to make the geometry visible.
          */
-        virtual void setVisible(const bool& enabled) final;
+        virtual void setVisible(const bool enabled) final;
 
         /*!
          * Set the alignment type to use when drawing the geometry.
          * @param alignment_type The alignment type to set.
          */
-        void setAlignmentType(const AlignmentType& alignment_type = AlignmentType::Middle);
+        void setAlignmentType(const AlignmentType alignment_type = AlignmentType::Middle);
 
         /*!
          * Use this method to set a zoom level on which the pixmap will be drawn at its real size.
@@ -121,7 +121,7 @@ namespace qmapcontrol
          * @see setMinsize, setMaxsize
          * @param zoom The zoom level where the point will be drawn at its real size.
          */
-        void setBaseZoom(const int& zoom = -1);
+        void setBaseZoom(const int zoom = -1);
 
         /*!
          * Set the minimum size a point/widget/pixmap can be drawn.
@@ -142,7 +142,7 @@ namespace qmapcontrol
          * @param offset_px The offset in pixels to remove from the coordinate pixel point.
          * @param controller_zoom The current controller zoom.
          */
-        void moveWidget(const PointPx& offset_px, const int& controller_zoom);
+        void moveWidget(const PointPx& offset_px, const int controller_zoom);
 
     public:
         /*!
@@ -150,7 +150,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the bounding box.
          */
-        RectWorldCoord boundingBox(const int& controller_zoom) const final;
+        RectWorldCoord boundingBox(const int controller_zoom) const final;
 
         /*!
          * Checks if the geometry touches (intersects) with another geometry.
@@ -158,7 +158,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether the geometries touch (intersects).
          */
-        bool touches(const Geometry* geometry, const int& controller_zoom) const final;
+        bool touches(const Geometry* geometry, const int controller_zoom) const final;
 
         bool hitTestPoint(const PointWorldCoord &point, qreal fuzzyfactor, int controller_zoom) const final;
 
@@ -169,7 +169,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom) final;
+        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom) final;
 
     private:
         /*!
@@ -177,7 +177,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the geometry size (widget/pixmap) in pixels.
          */
-        QSizeF calculateGeometrySizePx(const int& controller_zoom) const;
+        QSizeF calculateGeometrySizePx(const int controller_zoom) const;
 
     private:
         /// The x/y coordinate (longitude/latitude).

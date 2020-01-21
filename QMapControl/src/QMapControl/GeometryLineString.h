@@ -55,18 +55,18 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        explicit GeometryLineString(const std::vector<PointWorldCoord>& points, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        explicit GeometryLineString(const std::vector<PointWorldCoord>& points, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
         explicit GeometryLineString(int zoom_min = 0, int zoom_max = kDefaultMaxZoom);
 
 
         //! Disable copy constructor.
-        ///GeometryLineString(const GeometryLineString&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryLineString(const GeometryLineString&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryLineString& operator=(const GeometryLineString&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryLineString& operator=(const GeometryLineString&) = delete;
 
         //! Destructor.
-        virtual ~GeometryLineString() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~GeometryLineString() = default;
 
         /*!
          * Fetches the list of points that form a line.
@@ -94,7 +94,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the bounding box.
          */
-        RectWorldCoord boundingBox(const int& controller_zoom) const final;
+        RectWorldCoord boundingBox(const int controller_zoom) const final;
 
         /*!
          * Checks if the geometry touches (intersects) with another geometry.
@@ -102,7 +102,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether the geometries touch (intersects).
          */
-        bool touches(const Geometry* geometry, const int& controller_zoom) const final;
+        bool touches(const Geometry* geometry, const int controller_zoom) const final;
 
         bool hitTestPoint(const PointWorldCoord &point, qreal fuzzyfactor, int controller_zoom) const final;
 
@@ -112,14 +112,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom);
-
-    private:
-        //! Disable copy constructor.
-        GeometryLineString(const GeometryLineString&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryLineString& operator=(const GeometryLineString&); /// @todo remove once MSVC supports default/delete syntax.
+        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom);
 
         /* Helper functions */
         qreal distToSegmentSquared(qreal px, qreal py, qreal vx, qreal vy, qreal wx, qreal wy) const {

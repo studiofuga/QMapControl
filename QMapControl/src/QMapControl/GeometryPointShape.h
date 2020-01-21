@@ -49,7 +49,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShape(const qreal& longitude, const qreal& latitude, const QSizeF& size_px, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointShape(const qreal longitude, const qreal latitude, const QSizeF& size_px, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -59,25 +59,17 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShape(const PointWorldCoord& point_coord, const QSizeF& size_px, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointShape(const PointWorldCoord& point_coord, const QSizeF& size_px, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
     public:
         //! Disable copy constructor.
-        ///GeometryPointShape(const GeometryPointShape&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointShape(const GeometryPointShape&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPointShape& operator=(const GeometryPointShape&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointShape& operator=(const GeometryPointShape&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointShape() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPointShape(const GeometryPointShape&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPointShape& operator=(const GeometryPointShape&); /// @todo remove once MSVC supports default/delete syntax.
-
+        virtual ~GeometryPointShape() = default;
     public:
         /*!
          * Sets the pen to draw the shape with (outline).
@@ -114,26 +106,26 @@ namespace qmapcontrol
          * @param size_px The size of the shape to set (pixels).
          * @param update_shape Whether updateShape() should be called at the end of this function.
          */
-        void setSizePx(const QSizeF& size_px, const bool& update_shape = true);
+        void setSizePx(const QSizeF& size_px, const bool update_shape = true);
 
         /*!
          * Fetches the alignment type to use when drawing the shape.
          * @return the alignment type to use when drawing the shape.
          */
-        const AlignmentType& alignmentType() const;
+        AlignmentType alignmentType() const;
 
         /*!
          * Sets the alignment type to use when drawing the shape.
          * @param alignment_type The alignment type to set.
          * @param update_shape Whether updateShape() should be called at the end of this function.
          */
-        void setAlignmentType(const AlignmentType& alignment_type = AlignmentType::Middle, const bool& update_shape = true);
+        void setAlignmentType(const AlignmentType alignment_type = AlignmentType::Middle, const bool update_shape = true);
 
         /*!
          * Fetches the rotation of the shape (degrees).
          * @return the rotation of the shape (degrees).
          */
-        const qreal& rotation() const;
+        qreal rotation() const;
 
         /*!
          * Sets the rotation of the shape (degrees).
@@ -141,7 +133,7 @@ namespace qmapcontrol
          * @param update_shape Whether updateShape() should be called at the end of this function.
          * @note Rotation will be applied to the center of the shape.
          */
-        void setRotation(const qreal& rotation, const bool& update_shape = true);
+        void setRotation(const qreal rotation, const bool update_shape = true);
 
     public:
         /*!
@@ -149,7 +141,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the bounding box.
          */
-        virtual RectWorldCoord boundingBox(const int& controller_zoom) const override;
+        virtual RectWorldCoord boundingBox(const int controller_zoom) const override;
 
     protected:
         /*!

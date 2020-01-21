@@ -56,7 +56,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShapeScaled(const qreal& longitude, const qreal& latitude, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointShapeScaled(const qreal longitude, const qreal latitude, const QSizeF& base_size_px, const int base_zoom, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -67,30 +67,23 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShapeScaled(const PointWorldCoord& point_coord, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointShapeScaled(const PointWorldCoord& point_coord, const QSizeF& base_size_px, const int base_zoom, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPointShapeScaled(const GeometryPointShapeScaled&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointShapeScaled(const GeometryPointShapeScaled&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPointShapeScaled& operator=(const GeometryPointShapeScaled&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointShapeScaled& operator=(const GeometryPointShapeScaled&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointShapeScaled() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPointShapeScaled(const GeometryPointShapeScaled&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPointShapeScaled& operator=(const GeometryPointShapeScaled&); /// @todo remove once MSVC supports default/delete syntax.
+        virtual ~GeometryPointShapeScaled() = default;
 
     public:
         /*!
          * Fetches the base zoom level.
          * @return the base zoom level.
          */
-        const int& baseZoom() const;
+        int baseZoom() const;
 
         /*!
          * Sets the zoom level that the shape will be drawn at its real size.
@@ -99,7 +92,7 @@ namespace qmapcontrol
          * @see setDrawMinimumPx, setDrawMaximumPx
          * @param base_zoom The zoom level where the shape will be drawn at its real size (use -1 to disable).
          */
-        void setBaseZoom(const int& base_zoom = -1);
+        void setBaseZoom(const int base_zoom = -1);
 
         /*!
          * \brief setNonlinearZoomFactor Sets a nonlinear zoom factor for the shape
@@ -109,7 +102,7 @@ namespace qmapcontrol
          * Use factor < 1.0 to rescale slower than zoom, > 1.0 to rescale faster.
          * \param factor
          */
-        void setNonlinearZoomFactor (double factor);
+        void setNonlinearZoomFactor(double factor);
 
         /*!
          * \brief getNonlinearZoomFactor Returns the current nonlinear zoom factor of the shape.
@@ -150,7 +143,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the bounding box.
          */
-        RectWorldCoord boundingBox(const int& controller_zoom) const final;
+        RectWorldCoord boundingBox(const int controller_zoom) const final;
 
         /*!
          * Draws the geometry to a pixmap using the provided painter.
@@ -158,7 +151,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom);
+        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom);
 
     private:
         /*!
@@ -166,7 +159,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the shape size in pixels.
          */
-        const QSizeF calculateGeometrySizePx(const int& controller_zoom) const;
+        const QSizeF calculateGeometrySizePx(const int controller_zoom) const;
 
     protected:
         /*!

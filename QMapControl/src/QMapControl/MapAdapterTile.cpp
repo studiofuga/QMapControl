@@ -32,10 +32,10 @@ namespace qmapcontrol
 {
     MapAdapterTile::MapAdapterTile(const QUrl& base_url,
                                    const std::set<projection::EPSG>& epsg_projections,
-                                   const int& adapter_zoom_minimum,
-                                   const int& adapter_zoom_maximum,
-                                   const int& adapter_minimum_offset,
-                                   const bool& invert_y,
+                                   const int adapter_zoom_minimum,
+                                   const int adapter_zoom_maximum,
+                                   const int adapter_minimum_offset,
+                                   const bool invert_y,
                                    QObject* parent)
             : MapAdapter(base_url, epsg_projections, adapter_zoom_minimum, adapter_zoom_maximum, adapter_minimum_offset, parent),
               m_invert_y(invert_y)
@@ -43,7 +43,7 @@ namespace qmapcontrol
 
     }
 
-    QUrl MapAdapterTile::tileQuery(const int& x, const int& y, const int& zoom_controller) const
+    QUrl MapAdapterTile::tileQuery(const int x, const int y, const int zoom_controller) const
     {
         // Capture inital y-axis tile request.
         int y_axis(y);

@@ -42,18 +42,7 @@ namespace qmapcontrol
      */
     class QMAPCONTROL_EXPORT GeometryPolygonImage : public GeometryPolygon
     {
-    public:
-        //! Constructor.
-        /*!
-         * This constructor creates a polygon with an image file to be displayed.
-         * @param top_left_coord The top-left point of the polygon (world coordinates).
-         * @param bottom_right_coord The bottom-right point of the polygon (world coordinates).
-         * @param filename The image file to draw.
-         * @param zoom_minimum The minimum zoom level to show this geometry at.
-         * @param zoom_maximum The maximum zoom level to show this geometry at.
-         */
-        GeometryPolygonImage(const PointWorldCoord& top_left_coord, const PointWorldCoord& bottom_right_coord, const std::string& filename, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
-
+    public:      
         //! Constructor.
         /*!
          * This constructor creates a polygon with an image to be displayed.
@@ -63,23 +52,16 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPolygonImage(const PointWorldCoord& point_top_left, const PointWorldCoord& bottom_right_coord, const QPixmap& image, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPolygonImage(const PointWorldCoord& point_top_left, const PointWorldCoord& bottom_right_coord, const QPixmap& image, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPointImageFixed(const GeometryPointImageFixed&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPolygonImage(const GeometryPolygonImage&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPointImageFixed& operator=(const GeometryPointImageFixed&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPolygonImage& operator=(const GeometryPolygonImage&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPolygonImage() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPolygonImage(const GeometryPolygonImage&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPolygonImage& operator=(const GeometryPolygonImage&); /// @todo remove once MSVC supports default/delete syntax.
+        virtual ~GeometryPolygonImage() = default;
 
     public:
         /*!
@@ -88,7 +70,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom) final;
+        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom) final;
 
     private:
         /// The image pixmap to draw.

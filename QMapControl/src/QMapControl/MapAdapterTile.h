@@ -58,11 +58,11 @@ namespace qmapcontrol
          */
         MapAdapterTile(const QUrl& base_url,
                        const std::set<projection::EPSG>& epsg_projections,
-                       const int& adapter_zoom_minimum = 0,
-                       const int& adapter_zoom_maximum = kDefaultMaxZoom,
-                       const int& adapter_minimum_offset = 0,
-                       const bool& invert_y = false,
-                       QObject* parent = 0);
+                       const int adapter_zoom_minimum = 0,
+                       const int adapter_zoom_maximum = kDefaultMaxZoom,
+                       const int adapter_minimum_offset = 0,
+                       const bool invert_y = false,
+                       QObject* parent = nullptr);
 
         //! Disable copy constructor.
         MapAdapterTile(const MapAdapterTile&) = delete;
@@ -71,7 +71,7 @@ namespace qmapcontrol
         MapAdapterTile& operator=(const MapAdapterTile&) = delete;
 
         //! Destructor.
-        virtual ~MapAdapterTile() { }
+        virtual ~MapAdapterTile() = default;
 
         /*!
          * Generates the url required to fetch the image tile for the specified x, y and zoom.
@@ -80,7 +80,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the generated url.
          */
-        virtual QUrl tileQuery(const int& x, const int& y, const int& controller_zoom) const override;
+        virtual QUrl tileQuery(const int x, const int y, const int controller_zoom) const override;
 
     private:
         /// Whether the y-axis tile needs to be inverted (ie: y-axis tiles start at bottom-left, instead of top-left).

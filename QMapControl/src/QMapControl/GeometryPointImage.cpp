@@ -11,26 +11,18 @@ namespace qmapcontrol
         std::unique_ptr<QPixmap> m_image_null = nullptr;
     }
 
-    GeometryPointImage::GeometryPointImage(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPointImage::GeometryPointImage(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int zoom_minimum, const int zoom_maximum)
         : GeometryPointShape(point_coord, image->size(), zoom_minimum, zoom_maximum),
           m_image(image)
     {
 
     }
 
-    GeometryPointImage::GeometryPointImage(const PointWorldCoord& point_coord, const QPixmap& image, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPointImage::GeometryPointImage(const PointWorldCoord& point_coord, const QPixmap& image, const int zoom_minimum, const int zoom_maximum)
         : GeometryPointShape(point_coord, image.size(), zoom_minimum, zoom_maximum),
           m_image(std::make_shared<QPixmap>(image))
     {
 
-    }
-
-    GeometryPointImage::GeometryPointImage(const PointWorldCoord& point_coord, const std::string& filename, const int& zoom_minimum, const int& zoom_maximum)
-        : GeometryPointShape(point_coord, QSizeF(0, 0), zoom_minimum, zoom_maximum),
-          m_image(std::make_shared<QPixmap>(filename.c_str()))
-    {
-        // Update the image size (as we have to wait for it to be loaded in the constructor).
-        setSizePx(m_image->size());
     }
 
     const QPixmap& GeometryPointImage::image() const
@@ -55,7 +47,7 @@ namespace qmapcontrol
         }
     }
 
-    void GeometryPointImage::setImage(const std::shared_ptr<QPixmap>& new_image, const bool& update_shape)
+    void GeometryPointImage::setImage(const std::shared_ptr<QPixmap>& new_image, const bool update_shape)
     {
         // Set the image pixmap.
         m_image = new_image;
@@ -65,7 +57,7 @@ namespace qmapcontrol
         setSizePx(image().size(), update_shape);
     }
 
-    void GeometryPointImage::setImage(const QPixmap& new_image, const bool& update_shape)
+    void GeometryPointImage::setImage(const QPixmap& new_image, const bool update_shape)
     {
         // Set the pixmap.
         m_image = std::make_shared<QPixmap>(new_image);
@@ -75,7 +67,7 @@ namespace qmapcontrol
         setSizePx(m_image->size(), update_shape);
     }
 
-    void GeometryPointImage::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)
+    void GeometryPointImage::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom)
     {
         // Check the geometry is visible.
         if (isVisible(controller_zoom))

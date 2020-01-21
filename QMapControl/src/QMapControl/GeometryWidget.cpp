@@ -34,7 +34,7 @@
 
 namespace qmapcontrol
 {
-    GeometryWidget::GeometryWidget(const qreal& longitude, const qreal& latitude, QWidget* widget, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryWidget::GeometryWidget(const qreal longitude, const qreal latitude, QWidget* widget, const int zoom_minimum, const int zoom_maximum)
         : Geometry(Geometry::GeometryType::GeometryWidget, zoom_minimum, zoom_maximum),
           m_point_coord(PointWorldCoord(longitude, latitude)),
           m_widget(widget),
@@ -52,7 +52,7 @@ namespace qmapcontrol
         }
     }
 
-    GeometryWidget::GeometryWidget(const PointWorldCoord& point_coord, QWidget* widget, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryWidget::GeometryWidget(const PointWorldCoord& point_coord, QWidget* widget, const int zoom_minimum, const int zoom_maximum)
         : Geometry(Geometry::GeometryType::GeometryWidget, zoom_minimum, zoom_maximum),
           m_point_coord(point_coord),
           m_widget(widget),
@@ -98,7 +98,7 @@ namespace qmapcontrol
         return m_widget;
     }
 
-    void GeometryWidget::setVisible(const bool& enabled)
+    void GeometryWidget::setVisible(const bool enabled)
     {
         // Do we have a widget?
         if(m_widget != nullptr)
@@ -111,13 +111,13 @@ namespace qmapcontrol
         Geometry::setVisible(enabled);
     }
 
-    void GeometryWidget::setAlignmentType(const AlignmentType& alignment_type)
+    void GeometryWidget::setAlignmentType(const AlignmentType alignment_type)
     {
         // Set the alignment type.
         m_alignment_type = alignment_type;
     }
 
-    void GeometryWidget::setBaseZoom(const int& zoom)
+    void GeometryWidget::setBaseZoom(const int zoom)
     {
         // Set the base zoom level.
         m_base_zoom = zoom;
@@ -135,7 +135,7 @@ namespace qmapcontrol
         m_draw_maximum_px = size_px;
     }
 
-    void GeometryWidget::moveWidget(const PointPx& offset_px, const int& controller_zoom)
+    void GeometryWidget::moveWidget(const PointPx& offset_px, const int controller_zoom)
     {
         // Check the geometry is visible and a widget exists.
         if(isVisible(controller_zoom) && m_widget != nullptr)
@@ -155,7 +155,7 @@ namespace qmapcontrol
         }
     }
 
-    RectWorldCoord GeometryWidget::boundingBox(const int& controller_zoom) const
+    RectWorldCoord GeometryWidget::boundingBox(const int controller_zoom) const
     {
         // Translate the point into the current world pixel point, and remove the offset.
         const PointWorldPx point_px(projection::get().toPointWorldPx(m_point_coord, controller_zoom));
@@ -171,7 +171,7 @@ namespace qmapcontrol
         return RectWorldCoord(projection::get().toPointWorldCoord(top_left_point_px, controller_zoom), projection::get().toPointWorldCoord(bottom_right_px, controller_zoom));
     }
 
-    bool GeometryWidget::touches(const Geometry* geometry, const int& controller_zoom) const
+    bool GeometryWidget::touches(const Geometry* geometry, const int controller_zoom) const
     {
         // Default return success.
         bool return_touches(false);
@@ -233,12 +233,12 @@ namespace qmapcontrol
         return boundingBox(controller_zoom).rawRect().contains(point.rawPoint());
     }
 
-    void GeometryWidget::draw(QPainter& /*painter*/, const RectWorldCoord& /*backbuffer_rect_coord*/, const int& /*controller_zoom*/)
+    void GeometryWidget::draw(QPainter& /*painter*/, const RectWorldCoord& /*backbuffer_rect_coord*/, const int /*controller_zoom*/)
     {
         // Do nothing.
     }
 
-    QSizeF GeometryWidget::calculateGeometrySizePx(const int& controller_zoom) const
+    QSizeF GeometryWidget::calculateGeometrySizePx(const int controller_zoom) const
     {
         // Get the object size (default to point - ie: no size).
         QSizeF return_size_px(1.0, 1.0);

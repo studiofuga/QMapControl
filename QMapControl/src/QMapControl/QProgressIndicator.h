@@ -43,16 +43,16 @@ public:
      * This construct a QProgressIndicator.
      * @param parent QWidget parent ownership.
      */
-    explicit QProgressIndicator(QWidget* parent = 0);
+    explicit QProgressIndicator(QWidget* parent = nullptr);
 
     //! Copy constructor.
-    ///QProgressIndicator(const QProgressIndicator&) = default; @todo re-add once MSVC supports default/delete syntax.
+    QProgressIndicator(const QProgressIndicator&);
 
     //! Copy assignment.
-    ///QProgressIndicator& operator=(const QProgressIndicator&) = default; @todo re-add once MSVC supports default/delete syntax.
+    QProgressIndicator& operator=(const QProgressIndicator&);
 
     //! Destructor.
-    ~QProgressIndicator() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+    ~QProgressIndicator() = default;
 
     /*!
      * Returns the delay between animation steps.
@@ -114,14 +114,14 @@ public slots:
      * @param delay The delay, in milliseconds.
      * @sa animationDelay
      */
-    void setAnimationDelay(const int& delay);
+    void setAnimationDelay(const int delay);
 
     /*!
      * Sets whether the component hides itself when it is not animating.
      * @param state The animation state. Set false to hide the progress indicator when it is not animating; otherwise true.
      * @sa isDisplayedWhenStopped
      */
-    void setDisplayedWhenStopped(const bool& state);
+    void setDisplayedWhenStopped(const bool state);
 
     /*!
      * Sets the color of the components to the given color.

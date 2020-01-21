@@ -52,16 +52,16 @@ namespace qmapcontrol
          * @param epsg_projections The supported EPSG projections.
          * @param parent QObject parent ownership.
          */
-        MapAdapterWMS(const QUrl& base_url, const std::set<projection::EPSG>& epsg_projections, QObject* parent = 0);
+        MapAdapterWMS(const QUrl& base_url, const std::set<projection::EPSG>& epsg_projections, QObject* parent = nullptr);
 
         //! Disable copy constructor.
-        ///MapAdapterWMS(const MapAdapterWMS&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterWMS(const MapAdapterWMS&) = delete;
 
         //! Disable copy assignment.
-        ///MapAdapterWMS& operator=(const MapAdapterWMS&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterWMS& operator=(const MapAdapterWMS&) = delete;
 
         //! Destructor.
-        virtual ~MapAdapterWMS() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~MapAdapterWMS() = default;
 
         /*!
          * Change the base url post initialisation (performs query modifications).
@@ -76,7 +76,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the generated url.
          */
-        virtual QUrl tileQuery(const int& x, const int& y, const int& controller_zoom) const override;
+        virtual QUrl tileQuery(const int x, const int y, const int controller_zoom) const override;
 
     protected:
         /*!
@@ -87,13 +87,7 @@ namespace qmapcontrol
          * @param y2 The y2 value.
          * @return the formatted BBOX string.
          */
-        virtual QString getBBox(const qreal& x1, const qreal& y1, const qreal& x2, const qreal& y2) const;
+        virtual QString getBBox(const qreal x1, const qreal y1, const qreal x2, const qreal y2) const;
 
-    private:
-        //! Disable copy constructor.
-        MapAdapterWMS(const MapAdapterWMS&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        MapAdapterWMS& operator=(const MapAdapterWMS&); /// @todo remove once MSVC supports default/delete syntax.
     };
 }

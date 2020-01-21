@@ -114,17 +114,29 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        Geometry(const GeometryType& geometry_type, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        Geometry(const GeometryType geometry_type, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
     public:
         //! Disable copy constructor.
-        ///Geometry(const Geometry&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        Geometry(const Geometry&) = delete;
 
         //! Disable copy assignment.
-        ///Geometry& operator=(const Geometry&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        Geometry& operator=(const Geometry&) = delete;
 
         //! Destructor.
-        virtual ~Geometry() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~Geometry() = default;
+
+        /*!
+         * Fetches the zindex of the geometry
+         * \return z-index of the geomety
+         */
+        int zIndex() const;
+
+        /*!
+         * Set the ZIndex of this geometry
+         * \param z_index
+         */
+        void setZIndex(const int z_index);
 
         /*!
          * Fetches the geometry type.
@@ -137,13 +149,13 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether the geometry is visible.
          */
-        bool isVisible(const int& controller_zoom) const;
+        bool isVisible(const int controller_zoom) const;
 
         /*!
          * Set the visibility of the geometry.
          * @param enabled Whether to make the geometry visible.
          */
-        virtual void setVisible(const bool& enabled);
+        virtual void setVisible(const bool enabled);
 
         /*!
          * Fetches the pen to draw the geometry with (outline).
@@ -202,7 +214,7 @@ namespace qmapcontrol
          * @param alignment_type The alignment type to use when displaying the meta-data value.
          * @param alignment_offset_px The offset that the meta-data value is displayed from in pixels.
          */
-        void setMetadataDisplayed(const std::string& key, const int& zoom_minimum = 10, const AlignmentType& alignment_type = AlignmentType::TopRight, const double& alignment_offset_px = 5.0);
+        void setMetadataDisplayed(const std::string& key, const int zoom_minimum = 10, const AlignmentType alignment_type = AlignmentType::TopRight, const double alignment_offset_px = 5.0);
 
         /*!
          * Calculates the top-left world point in pixels after the alignment type has been applied.
@@ -211,7 +223,7 @@ namespace qmapcontrol
          * @param geometry_size_px The geometry object (widget/pixmap) at this zoom level.
          * @return the top-left world point in pixels.
          */
-        PointWorldPx calculateTopLeftPoint(const PointWorldPx& point_px, const AlignmentType& alignment_type, const QSizeF& geometry_size_px) const;
+        PointWorldPx calculateTopLeftPoint(const PointWorldPx& point_px, const AlignmentType alignment_type, const QSizeF& geometry_size_px) const;
 
         LayerGeometry *layer() const { return mLayer; }
 
@@ -239,7 +251,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the bounding box.
          */
-        virtual RectWorldCoord boundingBox(const int& controller_zoom) const = 0;
+        virtual RectWorldCoord boundingBox(const int controller_zoom) const = 0;
 
         /*!
          * Checks if the geometry touches (intersects) with another geometry.
@@ -247,7 +259,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether the geometries touch (intersects).
          */
-        virtual bool touches(const Geometry* geometry, const int& controller_zoom) const = 0;
+        virtual bool touches(const Geometry* geometry, const int controller_zoom) const = 0;
 
         virtual bool hitTestPoint (const PointWorldCoord &point, qreal fuzzyfactor, int controller_zoom) const = 0;
 
@@ -257,7 +269,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        virtual void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom) = 0;
+        virtual void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom) = 0;
 
         bool selected() const;
         void setSelected(bool value);

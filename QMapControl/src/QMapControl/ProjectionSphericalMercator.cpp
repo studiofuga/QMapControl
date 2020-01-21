@@ -32,13 +32,13 @@
 
 namespace qmapcontrol
 {
-    int ProjectionSphericalMercator::tilesX(const int& zoom) const
+    int ProjectionSphericalMercator::tilesX(const int zoom) const
     {
         // Return the number of tiles for the x-axis.
         return std::pow(2, zoom);
     }
 
-    int ProjectionSphericalMercator::tilesY(const int& zoom) const
+    int ProjectionSphericalMercator::tilesY(const int zoom) const
     {
         // Return the number of tiles for the y-axis.
         return std::pow(2, zoom);
@@ -50,7 +50,7 @@ namespace qmapcontrol
         return 3857;
     }
 
-    PointWorldPx ProjectionSphericalMercator::toPointWorldPx(const PointWorldCoord& point_coord, const int& zoom) const
+    PointWorldPx ProjectionSphericalMercator::toPointWorldPx(const PointWorldCoord& point_coord, const int zoom) const
     {
         /*!
           Formula basis: http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers
@@ -65,7 +65,7 @@ namespace qmapcontrol
         return PointWorldPx(x_px, y_px);
     }
 
-    PointWorldCoord ProjectionSphericalMercator::toPointWorldCoord(const PointWorldPx& point_px, const int& zoom) const
+    PointWorldCoord ProjectionSphericalMercator::toPointWorldCoord(const PointWorldPx& point_px, const int zoom) const
     {
         /*!
           Formula basis: http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_numbers_to_lon..2Flat.

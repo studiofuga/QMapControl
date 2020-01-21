@@ -53,7 +53,7 @@ namespace qmapcontrol
         return *(m_instance.get());
     }
 
-    void projection::set(const EPSG& type)
+    void projection::set(const EPSG type)
     {
         // Equirectangular ?
         if (type == EPSG::Equirectangular)

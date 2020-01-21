@@ -47,21 +47,21 @@ namespace qmapcontrol
         Projection& operator=(const Projection&) = delete;
 
         //! Destructor.
-        virtual ~Projection() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~Projection() = default;
 
         /*!
          * The number of tiles on the x-axis for a given zoom.
          * @param zoom The zoom level.
          * @return number of tiles on the x-axis for a given zoom.
          */
-        virtual int tilesX(const int& zoom) const = 0;
+        virtual int tilesX(const int zoom) const = 0;
 
         /*!
          * The number of tiles on the y-axis for a given zoom.
          * @param zoom The zoom level.
          * @return number of tiles on the y-axis for a given zoom.
          */
-        virtual int tilesY(const int& zoom) const = 0;
+        virtual int tilesY(const int zoom) const = 0;
 
         /*!
          * Fetch the recognised EPSG number for the projection.
@@ -75,7 +75,7 @@ namespace qmapcontrol
          * @param zoom The zoom level.
          * @return the converted world pixel point.
          */
-        virtual PointWorldPx toPointWorldPx(const PointWorldCoord& point_coord, const int& zoom) const = 0;
+        virtual PointWorldPx toPointWorldPx(const PointWorldCoord& point_coord, const int zoom) const = 0;
 
         /*!
          * Converts a world pixel point into the coorindate point (longitude/latitude) for a given zoom.
@@ -83,14 +83,14 @@ namespace qmapcontrol
          * @param zoom The zoom level.
          * @return the converted world coorindate point (longitude/latitude).
          */
-        virtual PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int& zoom) const = 0;
+        virtual PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int zoom) const = 0;
 
     protected:
         //! Constuctor.
         /*!
          * Projection constructor.
          */
-        Projection() { } /// = default; @todo re-add once MSVC supports default/delete syntax.    
+        Projection() = default;
     };
 
     namespace projection
@@ -114,6 +114,6 @@ namespace qmapcontrol
          * Set the projection (Creates new singleton instance).
          * @param type The projection type required.
          */
-        QMAPCONTROL_EXPORT void set(const EPSG& type);
+        QMAPCONTROL_EXPORT void set(const EPSG type);
     }
 }

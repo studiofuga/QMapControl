@@ -8,7 +8,7 @@
 
 namespace qmapcontrol
 {
-    GeometryPointShapeScaled::GeometryPointShapeScaled(const qreal& longitude, const qreal& latitude, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPointShapeScaled::GeometryPointShapeScaled(const qreal longitude, const qreal latitude, const QSizeF& base_size_px, const int base_zoom, const int zoom_minimum, const int zoom_maximum)
         : GeometryPointShape(PointWorldCoord(longitude, latitude), base_size_px, zoom_minimum, zoom_maximum),
           m_base_zoom(base_zoom),
           m_nonlinear_zoom(1.0),
@@ -18,7 +18,7 @@ namespace qmapcontrol
 
     }
 
-    GeometryPointShapeScaled::GeometryPointShapeScaled(const PointWorldCoord& point_coord, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPointShapeScaled::GeometryPointShapeScaled(const PointWorldCoord& point_coord, const QSizeF& base_size_px, const int base_zoom, const int zoom_minimum, const int zoom_maximum)
         : GeometryPointShape(point_coord, base_size_px, zoom_minimum, zoom_maximum),
           m_base_zoom(base_zoom),
           m_nonlinear_zoom(1.0),
@@ -28,13 +28,13 @@ namespace qmapcontrol
 
     }
 
-    const int& GeometryPointShapeScaled::baseZoom() const
+    int GeometryPointShapeScaled::baseZoom() const
     {
         // Return the base zoom level.
         return m_base_zoom;
     }
 
-    void GeometryPointShapeScaled::setBaseZoom(const int& base_zoom)
+    void GeometryPointShapeScaled::setBaseZoom(const int base_zoom)
     {
         // Set the base zoom level.
         m_base_zoom = base_zoom;
@@ -83,7 +83,7 @@ namespace qmapcontrol
         updateShape();
     }
 
-    RectWorldCoord GeometryPointShapeScaled::boundingBox(const int& controller_zoom) const
+    RectWorldCoord GeometryPointShapeScaled::boundingBox(const int controller_zoom) const
     {
         // Calculate the world point in pixels.
         const PointWorldPx point_px(projection::get().toPointWorldPx(coord(), controller_zoom));
@@ -101,7 +101,7 @@ namespace qmapcontrol
         return RectWorldCoord(projection::get().toPointWorldCoord(top_left_point_px, controller_zoom), projection::get().toPointWorldCoord(bottom_right_point_px, controller_zoom));
     }
 
-    void GeometryPointShapeScaled::draw(QPainter &painter, const RectWorldCoord &backbuffer_rect_coord, const int &controller_zoom)
+    void GeometryPointShapeScaled::draw(QPainter &painter, const RectWorldCoord &backbuffer_rect_coord, const int controller_zoom)
     {
         // Check the geometry is visible.
         if(isVisible(controller_zoom))
@@ -140,7 +140,7 @@ namespace qmapcontrol
         }
     }
 
-    const QSizeF GeometryPointShapeScaled::calculateGeometrySizePx(const int& controller_zoom) const
+    const QSizeF GeometryPointShapeScaled::calculateGeometrySizePx(const int controller_zoom) const
     {
         // Get the object size (default to base size).
         QSizeF return_size_px(sizePx());

@@ -166,19 +166,19 @@ namespace qmapcontrol
          * Whether the scaled primary screen image should be displayed during zoom changes in the background.
          * @param visible Whether the scaled background image should be displayed.
          */
-        void enableScaledBackground(const bool& visible);
+        void enableScaledBackground(const bool visible);
 
         /*!
          * Set whether the scalebar should be displayed within the widget.
          * @param visible Whether the scalebar should be displayed.
          */
-        void enableScalebar(const bool& visible);
+        void enableScalebar(const bool visible);
 
         /*!
          * Set whether the crosshairs should be displayed at the center point of the widget.
          * @param visible Whether the crosshairs should be displayed.
          */
-        void enableCrosshairs(const bool& visible);
+        void enableCrosshairs(const bool visible);
 
         /*!
          * Enable or disable (temporarily) redraws of map backbuffer. Useful for
@@ -198,7 +198,7 @@ namespace qmapcontrol
          * Fetch the layers (Use this instead of the member variable for thread-safety).
          * @return a list of all layers.
          */
-        const std::vector<std::shared_ptr<Layer> > &getLayers() const;
+        const std::vector<std::shared_ptr<Layer>> &getLayers() const;
 
         /*!
          * Fetch the layer with the given name.
@@ -214,7 +214,7 @@ namespace qmapcontrol
          * @param index The index position the layer should added (-1 means the layer is added to the top).
          * @note 'index 0' is the base layer, 'index 1 layer' will be painted on top of 'index 0 layer', and so on...
          */
-        void addLayer(const std::shared_ptr<Layer>& layer, const int& index = -1);
+        void addLayer(const std::shared_ptr<Layer>& layer, const int index = -1);
 
         /*!
          * Removes a layer.
@@ -229,7 +229,7 @@ namespace qmapcontrol
          * @param partial Whether a geometry can be partially visible, or must be totally visible.
          * @return whether the geometry is visible.
          */
-        bool isGeometryVisible(const std::shared_ptr<Geometry> geometry, const bool& partial) const;
+        bool isGeometryVisible(const std::shared_ptr<Geometry> geometry, const bool partial) const;
 
         /*!
          * Keeps the center of the map on the Geometry, even when it moves.
@@ -300,31 +300,31 @@ namespace qmapcontrol
          * @param steps The number of steps to use in the animation.
          * @param step_interval The number of millseconds to wait between each step.
          */
-        void setMapFocusPointAnimated(const PointWorldCoord& coordinate, const int& steps = 25, const std::chrono::milliseconds& step_interval = std::chrono::milliseconds(50));
+        void setMapFocusPointAnimated(const PointWorldCoord& coordinate, const int steps = 25, const std::chrono::milliseconds& step_interval = std::chrono::milliseconds(50));
 
         /*!
          * Scrol the view left by required pixels.
          * @param delta_px The required number of pixels to scroll by.
          */
-        void scrollViewLeft(const double& delta_px = 10.0);
+        void scrollViewLeft(const double delta_px = 10.0);
 
         /*!
          * Scrol the view right by required pixels.
          * @param delta_px The required number of pixels to scroll by.
          */
-        void scrollViewRight(const double& delta_px = 10.0);
+        void scrollViewRight(const double delta_px = 10.0);
 
         /*!
          * Scrol the view up by required pixels.
          * @param delta_px The required number of pixels to scroll by.
          */
-        void scrollViewUp(const double& delta_px = 10.0);
+        void scrollViewUp(const double delta_px = 10.0);
 
         /*!
          * Scrol the view down by required pixels.
          * @param delta_px The required number of pixels to scroll by.
          */
-        void scrollViewDown(const double& delta_px = 10.0);
+        void scrollViewDown(const double delta_px = 10.0);
 
         // Zoom management.
         /*!
@@ -357,7 +357,7 @@ namespace qmapcontrol
          * Set whether the layers should handle mouse events.
          * @param enable Whether the layers should handle mouse events.
          */
-        void enableLayerMouseEvents(const bool& enable);
+        void enableLayerMouseEvents(const bool enable);
 
         /*!
          * Fetches the left mouse button mode.
@@ -370,7 +370,7 @@ namespace qmapcontrol
          * @param mode The mouse mode required.
          * @param origin_center Whether the origin is centered to the starting mouse point.
          */
-        void setMouseButtonLeft(const MouseButtonMode& mode, const bool& origin_center);
+        void setMouseButtonLeft(const MouseButtonMode mode, const bool origin_center);
 
         /*!
          * Fetches the right mouse button mode.
@@ -383,7 +383,7 @@ namespace qmapcontrol
          * @param mode The mouse mode required.
          * @param origin_center Whether the origin is centered to the starting mouse point.
          */
-        void setMouseButtonRight(const MouseButtonMode& mode, const bool& origin_center);
+        void setMouseButtonRight(const MouseButtonMode mode, const bool origin_center);
 
         /*!
          * Called when a mouse button is pressed down.
@@ -538,7 +538,7 @@ namespace qmapcontrol
          * Redraws the primary screen image.
          * @param force_redraw Whether to force the backbuffer to be redrawn, even if checkBackbuffer() states we do not need to.
          */
-        void redrawPrimaryScreen(const bool& force_redraw = false);
+        void redrawPrimaryScreen(const bool force_redraw = false);
 
         /*!
          * Redraws the backbuffer image, which when ready will emit updatePrimaryScreen() for it to be stored/drawn.
@@ -635,6 +635,7 @@ namespace qmapcontrol
 
         /// Emitted whem zoom level changes
         void zoomChanged();
+
     private:
         //! Disable copy constructor.
         QMapControl(const QMapControl&); /// @todo remove once MSVC supports default/delete syntax.

@@ -29,14 +29,14 @@ namespace qmapcontrol
 {
     constexpr char kGoogleMapUrlFormat[] = "http://mt.google.com/vt/hl=en&x=%x&y=%y&z=%zoom&lyrs=";
 
-    MapAdapterGoogle::MapAdapterGoogle(const MapAdapterGoogle::GoogleLayerType& layer_type,
+    MapAdapterGoogle::MapAdapterGoogle(const MapAdapterGoogle::GoogleLayerType layer_type,
                                        QObject* parent)
         : MapAdapterTile(QUrl(kGoogleMapUrlFormat + layerTypeToString(layer_type)), { projection::EPSG::SphericalMercator },
                          0, 19, 0, false, parent)
     {
     }
 
-    QString MapAdapterGoogle::layerTypeToString(const MapAdapterGoogle::GoogleLayerType& layer_type)
+    QString MapAdapterGoogle::layerTypeToString(const MapAdapterGoogle::GoogleLayerType layer_type)
     {
         // Convert the enum to a 1-character representation.
         switch (layer_type)

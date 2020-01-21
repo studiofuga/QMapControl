@@ -163,19 +163,19 @@ namespace qmapcontrol
         ImageManager::get().setProxy(QNetworkProxy(QNetworkProxy::HttpProxy, host.c_str(), port));
     }
 
-    void QMapControl::enableScaledBackground(const bool& visible)
+    void QMapControl::enableScaledBackground(const bool visible)
     {
         // Set whether the scaled primary screen should be visible as a background image.
         m_primary_screen_scaled_enabled = visible;
     }
 
-    void QMapControl::enableScalebar(const bool& visible)
+    void QMapControl::enableScalebar(const bool visible)
     {
         // Set whether the scalebar should be visible.
         m_scalebar_enabled = visible;
     }
 
-    void QMapControl::enableCrosshairs(const bool& visible)
+    void QMapControl::enableCrosshairs(const bool visible)
     {
         // Set whether the crosshairs should be visible.
         m_crosshairs_enabled = visible;
@@ -219,7 +219,7 @@ namespace qmapcontrol
         return return_layer;
     }
 
-    void QMapControl::addLayer(const std::shared_ptr<Layer>& layer, const int& index)
+    void QMapControl::addLayer(const std::shared_ptr<Layer>& layer, const int index)
     {
         // Check we have a valid layer.
         if(layer != nullptr)
@@ -303,7 +303,7 @@ namespace qmapcontrol
     }
 
     // Geometry management.
-    bool QMapControl::isGeometryVisible(const std::shared_ptr<Geometry> geometry, const bool& partial) const
+    bool QMapControl::isGeometryVisible(const std::shared_ptr<Geometry> geometry, const bool partial) const
     {
         // Default return visibility.
         bool return_visible(false);
@@ -464,7 +464,7 @@ namespace qmapcontrol
         }
     }
 
-    void QMapControl::setMapFocusPointAnimated(const PointWorldCoord& coordinate, const int& steps, const std::chrono::milliseconds& step_interval)
+    void QMapControl::setMapFocusPointAnimated(const PointWorldCoord& coordinate, const int steps, const std::chrono::milliseconds& step_interval)
     {
         // Is animation already taking place?
         if(m_animated_mutex.tryLock())
@@ -488,25 +488,25 @@ namespace qmapcontrol
         }
     }
 
-    void QMapControl::scrollViewLeft(const double& delta_px)
+    void QMapControl::scrollViewLeft(const double delta_px)
     {
         // Scroll the view left by required pixels.
         scrollView(PointPx(-delta_px, 0.0));
     }
 
-    void QMapControl::scrollViewRight(const double& delta_px)
+    void QMapControl::scrollViewRight(const double delta_px)
     {
         // Scroll the view right by required pixels.
         scrollView(PointPx(delta_px, 0.0));
     }
 
-    void QMapControl::scrollViewUp(const double& delta_px)
+    void QMapControl::scrollViewUp(const double delta_px)
     {
         // Scroll the view up by required pixels.
         scrollView(PointPx(0.0, -delta_px));
     }
 
-    void QMapControl::scrollViewDown(const double& delta_px)
+    void QMapControl::scrollViewDown(const double delta_px)
     {
         // Scroll the view down by required pixels.
         scrollView(PointPx(0.0, delta_px));
@@ -568,7 +568,7 @@ namespace qmapcontrol
     }
 
     // Mouse management.
-    void QMapControl::enableLayerMouseEvents(const bool& enable)
+    void QMapControl::enableLayerMouseEvents(const bool enable)
     {
         // Set whether to enable mouse events for layers.
         m_layer_mouse_events_enabled = enable;
@@ -580,7 +580,7 @@ namespace qmapcontrol
         return m_mouse_left_mode;
     }
 
-    void QMapControl::setMouseButtonLeft(const MouseButtonMode& mode, const bool& origin_center)
+    void QMapControl::setMouseButtonLeft(const MouseButtonMode mode, const bool origin_center)
     {
         // Set the left mouse button settings.
         m_mouse_left_mode = mode;
@@ -593,7 +593,7 @@ namespace qmapcontrol
         return m_mouse_right_mode;
     }
 
-    void QMapControl::setMouseButtonRight(const MouseButtonMode& mode, const bool& origin_center)
+    void QMapControl::setMouseButtonRight(const MouseButtonMode mode, const bool origin_center)
     {
         // Set the right mouse button settings.
         m_mouse_right_mode = mode;
@@ -1439,7 +1439,7 @@ namespace qmapcontrol
         return return_redraw_required;
     }
 
-    void QMapControl::redrawPrimaryScreen(const bool& force_redraw)
+    void QMapControl::redrawPrimaryScreen(const bool force_redraw)
     {
         if(!m_redrawsEnabled)
         {

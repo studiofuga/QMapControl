@@ -48,23 +48,16 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointArrow(const PointWorldCoord& point_coord, const QSizeF& size_px, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointArrow(const PointWorldCoord& point_coord, const QSizeF& size_px, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPointArrow(const GeometryPointArrow&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointArrow(const GeometryPointArrow&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPointArrow& operator=(const GeometryPointArrow&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointArrow& operator=(const GeometryPointArrow&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointArrow() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPointArrow(const GeometryPointArrow&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPointArrow& operator=(const GeometryPointArrow&); /// @todo remove once MSVC supports default/delete syntax.
+        virtual ~GeometryPointArrow()  = default;
 
     protected:
         /*!

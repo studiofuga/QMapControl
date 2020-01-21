@@ -2,7 +2,7 @@
 
 namespace qmapcontrol
 {
-    GeometryPointCircle::GeometryPointCircle(const PointWorldCoord& point_coord, const QSizeF& size_px, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPointCircle::GeometryPointCircle(const PointWorldCoord& point_coord, const QSizeF& size_px, const int zoom_minimum, const int zoom_maximum)
         : GeometryPointImage(point_coord, QPixmap(size_px.toSize()), zoom_minimum, zoom_maximum)
     {
         // Update the shape (to draw the initial image pixmap).

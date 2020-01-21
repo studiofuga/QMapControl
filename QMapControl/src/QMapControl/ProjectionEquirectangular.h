@@ -41,7 +41,7 @@ namespace qmapcontrol
         /*!
          * Projection Equirectangular (EPSG:4326 - lat/long) constructor.
          */
-        ProjectionEquirectangular() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        ProjectionEquirectangular() { }
 
         //! Disable copy constructor.
         ProjectionEquirectangular(const ProjectionEquirectangular&) = delete;
@@ -50,21 +50,21 @@ namespace qmapcontrol
         ProjectionEquirectangular& operator=(const ProjectionEquirectangular&) = delete;
 
         //! Destructor.
-        ~ProjectionEquirectangular() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        ~ProjectionEquirectangular() = default;
 
         /*!
          * The number of tiles on the x-axis for a given zoom.
          * @param zoom The zoom level.
          * @return number of tiles on the x-axis for a given zoom.
          */
-        int tilesX(const int& zoom) const final;
+        int tilesX(const int zoom) const final;
 
         /*!
          * The number of tiles on the y-axis for a given zoom.
          * @param zoom The zoom level.
          * @return number of tiles on the y-axis for a given zoom.
          */
-        int tilesY(const int& zoom) const final;
+        int tilesY(const int zoom) const final;
 
         /*!
          * Fetch the recognised EPSG number for the projection.
@@ -78,7 +78,7 @@ namespace qmapcontrol
          * @param zoom The zoom level.
          * @return the converted world pixel point.
          */
-        PointWorldPx toPointWorldPx(const PointWorldCoord& point_coord, const int& zoom) const final;
+        PointWorldPx toPointWorldPx(const PointWorldCoord& point_coord, const int zoom) const final;
 
         /*!
          * Converts a world pixel point into the coorindate point (longitude/latitude) for a given zoom.
@@ -86,6 +86,6 @@ namespace qmapcontrol
          * @param zoom The zoom level.
          * @return the converted world coorindate point (longitude/latitude).
          */
-        PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int& zoom) const final;
+        PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int zoom) const final;
       };
 }

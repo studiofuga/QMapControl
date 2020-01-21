@@ -27,7 +27,7 @@
 
 namespace qmapcontrol
 {
-    Geometry::Geometry(const GeometryType& geometry_type, const int& zoom_minimum, const int& zoom_maximum)
+    Geometry::Geometry(const GeometryType geometry_type, const int zoom_minimum, const int zoom_maximum)
         : m_geometry_type(geometry_type),
           m_zoom_minimum(zoom_minimum),
           m_zoom_maximum(zoom_maximum),
@@ -53,6 +53,7 @@ namespace qmapcontrol
         mFlags = value;
     }
 
+    void Geometry::setZIndex(const int z_index) { m_z_index = z_index; }
     bool Geometry::selected() const
     {
         return mSelected;
@@ -71,7 +72,7 @@ namespace qmapcontrol
         return m_geometry_type;
     }
 
-    bool Geometry::isVisible(const int& controller_zoom) const
+    bool Geometry::isVisible(const int controller_zoom) const
     {
         // Default visibility.
         bool visibility(m_visible);
@@ -87,7 +88,7 @@ namespace qmapcontrol
         return visibility;
     }
 
-    void Geometry::setVisible(const bool& enabled)
+    void Geometry::setVisible(const bool enabled)
     {
         // Only update visibility if it has changed.
         if(m_visible != enabled)
@@ -174,7 +175,7 @@ namespace qmapcontrol
         m_metadata[key] = value;
     }
 
-    void Geometry::setMetadataDisplayed(const std::string& key, const int& zoom_minimum, const AlignmentType& alignment_type, const double& alignment_offset_px)
+    void Geometry::setMetadataDisplayed(const std::string& key, const int zoom_minimum, const AlignmentType alignment_type, const double alignment_offset_px)
     {
         // Set the meta-data key to use.
         m_metadata_displayed_key = key;
@@ -186,7 +187,7 @@ namespace qmapcontrol
         emit requestRedraw();
     }
 
-    PointWorldPx Geometry::calculateTopLeftPoint(const PointWorldPx& point_px, const AlignmentType& alignment_type, const QSizeF& geometry_size_px) const
+    PointWorldPx Geometry::calculateTopLeftPoint(const PointWorldPx& point_px, const AlignmentType alignment_type, const QSizeF& geometry_size_px) const
     {
         // Default world point to return.
         PointWorldPx top_left_point_px(point_px);

@@ -98,7 +98,7 @@ void QProgressIndicator::stopAnimation()
     }
 }
 
-void QProgressIndicator::setAnimationDelay(const int& delay)
+void QProgressIndicator::setAnimationDelay(const int delay)
 {
     // Check if the timer is running.
     if(m_timer_identifier != -1)
@@ -118,7 +118,7 @@ void QProgressIndicator::setAnimationDelay(const int& delay)
     }
 }
 
-void QProgressIndicator::setDisplayedWhenStopped(const bool& state)
+void QProgressIndicator::setDisplayedWhenStopped(const bool state)
 {
     // Set the new state.
     m_always_visible = state;

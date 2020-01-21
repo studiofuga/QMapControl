@@ -49,7 +49,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPoint(const qreal& longitude, const qreal& latitude, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPoint(const qreal longitude, const qreal latitude, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -58,7 +58,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPoint(const PointWorldCoord& point_coord, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPoint(const PointWorldCoord& point_coord, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
         GeometryPoint(const GeometryPoint&) = delete;
@@ -67,7 +67,7 @@ namespace qmapcontrol
         GeometryPoint& operator=(const GeometryPoint&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPoint() { }
+        virtual ~GeometryPoint() = default;
 
     public:
         /*!
@@ -88,7 +88,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the bounding box.
          */
-        virtual RectWorldCoord boundingBox(const int& controller_zoom) const override;
+        virtual RectWorldCoord boundingBox(const int controller_zoom) const override;
 
         /*!
          * Checks if the geometry touches (intersects) with another geometry.
@@ -96,7 +96,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether the geometries touch (intersects).
          */
-        virtual bool touches(const Geometry* geometry, const int& controller_zoom) const override;
+        virtual bool touches(const Geometry* geometry, const int controller_zoom) const override;
 
         /*!
          * Draws the geometry to a pixmap using the provided painter.
@@ -104,7 +104,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        virtual void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom) override;
+        virtual void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom) override;
 
     private:
         /// The point to be displayed (world coordinates).

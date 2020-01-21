@@ -5,21 +5,14 @@
 
 namespace qmapcontrol
 {
-    GeometryPolygonImage::GeometryPolygonImage(const PointWorldCoord& top_left_coord, const PointWorldCoord& bottom_right_coord, const std::string& filename, const int& zoom_minimum, const int& zoom_maximum)
-        : GeometryPolygon(RectWorldCoord(top_left_coord, bottom_right_coord).toStdVector(), zoom_minimum, zoom_maximum),
-          m_image(QPixmap(filename.c_str()))
-    {
-
-    }
-
-    GeometryPolygonImage::GeometryPolygonImage(const PointWorldCoord& top_left_coord, const PointWorldCoord& bottom_right_coord, const QPixmap& image, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPolygonImage::GeometryPolygonImage(const PointWorldCoord& top_left_coord, const PointWorldCoord& bottom_right_coord, const QPixmap& image, const int zoom_minimum, const int zoom_maximum)
         : GeometryPolygon(RectWorldCoord(top_left_coord, bottom_right_coord).toStdVector(), zoom_minimum, zoom_maximum),
           m_image(image)
     {
 
     }
 
-    void GeometryPolygonImage::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)
+    void GeometryPolygonImage::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom)
     {
         // Check the geometry is visible.
         if(isVisible(controller_zoom))

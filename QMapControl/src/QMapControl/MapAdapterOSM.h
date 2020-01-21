@@ -56,24 +56,18 @@ namespace qmapcontrol
          * @param tileServer Tile server where to pull tiles from.
          * @param parent QObject parent ownership.
          */
-        explicit MapAdapterOSM(TileServer tileServer = TileServer::OpenStreetMap, QObject* parent = 0);
+        explicit MapAdapterOSM(TileServer tileServer = TileServer::OpenStreetMap, QObject* parent = nullptr);
 
         //! Disable copy constructor.
-        ///MapAdapterOSM(const MapAdapterOSM&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterOSM(const MapAdapterOSM&) = delete;
 
         //! Disable copy assignment.
-        ///MapAdapterOSM& operator=(const MapAdapterOSM&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterOSM& operator=(const MapAdapterOSM&) = delete;
 
         //! Destructor.
-        ~MapAdapterOSM() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        ~MapAdapterOSM() = default;
 
     private:
         MapAdapterOSM(const std::pair<QUrl, int>& server, QObject* parent);
-
-        //! Disable copy constructor.
-        MapAdapterOSM(const MapAdapterOSM&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        MapAdapterOSM& operator=(const MapAdapterOSM&); /// @todo remove once MSVC supports default/delete syntax.
     };
 }

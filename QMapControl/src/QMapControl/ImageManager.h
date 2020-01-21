@@ -71,7 +71,7 @@ namespace qmapcontrol
         ImageManager& operator=(const ImageManager&) = delete;
 
         //! Destructor.
-        ~ImageManager() { }
+        ~ImageManager() = default;
 
         /*!
          * Fetch the tile size in pixels.
@@ -83,7 +83,7 @@ namespace qmapcontrol
          * Set the new tile size (and resets any resources as required).
          * @param tile_size_px The tile size in pixels to set.
          */
-        void setTileSizePx(const int& tile_size_px);
+        void setTileSizePx(const int tile_size_px);
 
         /*!
          * Set the network proxy to use.
@@ -175,7 +175,7 @@ namespace qmapcontrol
          * Signal emitted when a new image has been queued for download.
          * @param count The current size of the download queue.
          */
-        void downloadingInProgress(const int& count);
+        void downloadingInProgress(const int count);
 
         /*!
          * Signal emitted when a image download has finished and the download queue is empty.
@@ -215,7 +215,7 @@ namespace qmapcontrol
          * @param tile_size_px The tile size in pixels.
          * @param parent QObject parent ownership.
          */
-        ImageManager(const int& tile_size_px, QObject* parent = nullptr);
+        ImageManager(const int tile_size_px, QObject* parent = nullptr);
 
         /*!
          * Create a loading pixmap for use.

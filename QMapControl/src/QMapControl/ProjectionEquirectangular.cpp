@@ -33,13 +33,13 @@
 
 namespace qmapcontrol
 {
-    int ProjectionEquirectangular::tilesX(const int& zoom) const
+    int ProjectionEquirectangular::tilesX(const int zoom) const
     {
         // Return the number of tiles for the x-axis.
         return std::pow(2, zoom) * 2;
     }
 
-    int ProjectionEquirectangular::tilesY(const int& zoom) const
+    int ProjectionEquirectangular::tilesY(const int zoom) const
     {
         // Return the number of tiles for the y-axis.
         return std::pow(2, zoom);
@@ -51,7 +51,7 @@ namespace qmapcontrol
         return 4326;
     }
 
-    PointWorldPx ProjectionEquirectangular::toPointWorldPx(const PointWorldCoord& point_coord, const int& zoom) const
+    PointWorldPx ProjectionEquirectangular::toPointWorldPx(const PointWorldCoord& point_coord, const int zoom) const
     {
         // Convert from coordinate to pixel by - top/left delta, then ratio of coords per pixel.
         const qreal x_px((point_coord.longitude() + 180.0) * (tilesX(zoom) * ImageManager::get().tileSizePx()) / 360.0);
@@ -61,7 +61,7 @@ namespace qmapcontrol
         return PointWorldPx(x_px, y_px);
     }
 
-    PointWorldCoord ProjectionEquirectangular::toPointWorldCoord(const PointWorldPx& point_px, const int& zoom) const
+    PointWorldCoord ProjectionEquirectangular::toPointWorldCoord(const PointWorldPx& point_px, const int zoom) const
     {
         // Convert pixel into coordinate by * against ratio of pixels per coord, then + top/left delta offset.
         const qreal longitude((point_px.x() * 360.0 / (tilesX(zoom) * ImageManager::get().tileSizePx())) - 180.0);

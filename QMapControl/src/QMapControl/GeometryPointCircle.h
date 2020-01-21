@@ -47,7 +47,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointCircle(const PointWorldCoord& point_coord, const QSizeF& size_px = QSizeF(10.0, 10.0), const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointCircle(const PointWorldCoord& point_coord, const QSizeF& size_px = QSizeF(10.0, 10.0), const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
         GeometryPointCircle(const GeometryPointCircle&) = delete;
@@ -56,7 +56,7 @@ namespace qmapcontrol
         GeometryPointCircle& operator=(const GeometryPointCircle&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointCircle() { }
+        virtual ~GeometryPointCircle() = default;
 
     protected:
         /*!

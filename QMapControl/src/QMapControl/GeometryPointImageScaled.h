@@ -51,7 +51,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointImageScaled(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointImageScaled(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int base_zoom, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -62,18 +62,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointImageScaled(const PointWorldCoord& point_coord, const QPixmap& image, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
-
-        //! Constructor.
-        /*!
-         * This constructor creates a point which will display an image pixmap from the file.
-         * @param point_coord The point to draw the image at (world coordinates).
-         * @param filename The image file to draw.
-         * @param base_size_px The size of the shape (pixels).
-         * @param zoom_minimum The minimum zoom level to show this geometry at.
-         * @param zoom_maximum The maximum zoom level to show this geometry at.
-         */
-        GeometryPointImageScaled(const PointWorldCoord& point_coord, const std::string& filename, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointImageScaled(const PointWorldCoord& point_coord, const QPixmap& image, const int base_zoom, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
         GeometryPointImageScaled(const GeometryPointImageScaled&) = delete;
@@ -82,7 +71,7 @@ namespace qmapcontrol
         GeometryPointImageScaled& operator=(const GeometryPointImageScaled&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointImageScaled() { }
+        virtual ~GeometryPointImageScaled() = default;
 
     public:
         /*!
@@ -96,14 +85,14 @@ namespace qmapcontrol
          * @param new_image The image pixmap to draw.
          * @param update_shape Whether updateShape() should be called at the end of this function.
          */
-        void setImage(const std::shared_ptr<QPixmap>& new_image, const bool& update_shape = true);
+        void setImage(const std::shared_ptr<QPixmap>& new_image, const bool update_shape = true);
 
         /*!
          * Set the image pixmap to draw.
          * @param new_image The image pixmap to draw.
          * @param update_shape Whether updateShape() should be called at the end of this function.
          */
-        void setImage(const QPixmap& new_image, const bool& update_shape = true);
+        void setImage(const QPixmap& new_image, const bool update_shape = true);
 
     protected:
         /*!

@@ -6,14 +6,14 @@
 
 namespace qmapcontrol
 {
-    GeometryPoint::GeometryPoint(const qreal& longitude, const qreal& latitude, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPoint::GeometryPoint(const qreal longitude, const qreal latitude, const int zoom_minimum, const int zoom_maximum)
         : Geometry(Geometry::GeometryType::GeometryPoint, zoom_minimum, zoom_maximum),
           m_point_coord(PointWorldCoord(longitude, latitude))
     {
 
     }
 
-    GeometryPoint::GeometryPoint(const PointWorldCoord& point_coord, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPoint::GeometryPoint(const PointWorldCoord& point_coord, const int zoom_minimum, const int zoom_maximum)
         : Geometry(Geometry::GeometryType::GeometryPoint, zoom_minimum, zoom_maximum),
           m_point_coord(point_coord)
     {
@@ -42,7 +42,7 @@ namespace qmapcontrol
         }
     }
 
-    RectWorldCoord GeometryPoint::boundingBox(const int& controller_zoom) const
+    RectWorldCoord GeometryPoint::boundingBox(const int controller_zoom) const
     {
         // Calculate the world point in pixels.
         const PointWorldPx point_px(projection::get().toPointWorldPx(m_point_coord, controller_zoom));
@@ -61,7 +61,7 @@ namespace qmapcontrol
         return RectWorldCoord(projection::get().toPointWorldCoord(top_left_point_px, controller_zoom), projection::get().toPointWorldCoord(bottom_right_point_px, controller_zoom));
     }
 
-    bool GeometryPoint::touches(const Geometry* geometry, const int& controller_zoom) const
+    bool GeometryPoint::touches(const Geometry* geometry, const int controller_zoom) const
     {
         // Default return success.
         bool return_touches(false);
@@ -118,7 +118,7 @@ namespace qmapcontrol
         return return_touches;
     }
 
-    void GeometryPoint::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)
+    void GeometryPoint::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom)
     {
         // Check the geometry is visible.
         if(isVisible(controller_zoom))

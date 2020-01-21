@@ -27,7 +27,7 @@
 
 namespace qmapcontrol
 {
-    Layer::Layer(const LayerType& layer_type, const std::string& name, const int& zoom_minimum, const int& zoom_maximum, QObject* parent)
+    Layer::Layer(const LayerType layer_type, const std::string& name, const int zoom_minimum, const int zoom_maximum, QObject* parent)
         : QObject(parent),
           m_layer_type(layer_type),
           m_visible(true),
@@ -74,7 +74,7 @@ namespace qmapcontrol
         m_metadata[key] = value;
     }
 
-    bool Layer::isVisible(const int& controller_zoom) const
+    bool Layer::isVisible(const int controller_zoom) const
     {
         // Default visibility.
         bool visibility(m_visible);
@@ -95,7 +95,7 @@ namespace qmapcontrol
         return m_visible;
     }
 
-    void Layer::setVisible(const bool& visible)
+    void Layer::setVisible(const bool visible)
     {
         // Set the visibility.
         m_visible = visible;
@@ -110,7 +110,7 @@ namespace qmapcontrol
         return m_mouse_events_enabled;
     }
 
-    void Layer::setMouseEventsEnabled(const bool& enable)
+    void Layer::setMouseEventsEnabled(const bool enable)
     {
         // Set whether to enable mouse events.
         m_mouse_events_enabled = enable;

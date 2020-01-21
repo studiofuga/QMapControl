@@ -67,7 +67,7 @@ namespace qmapcontrol
          * @param layer_type The Google layer type to display.
          * @param parent QObject parent ownership.
          */
-        MapAdapterGoogle(const GoogleLayerType& layer_type = GoogleLayerType::MAPS, QObject* parent = nullptr);
+        MapAdapterGoogle(const GoogleLayerType layer_type = GoogleLayerType::MAPS, QObject* parent = nullptr);
 
         //! Disable copy constructor.
         MapAdapterGoogle(const MapAdapterGoogle&) = delete;
@@ -76,7 +76,7 @@ namespace qmapcontrol
         MapAdapterGoogle& operator=(const MapAdapterGoogle&) = delete;
 
         //! Destructor.
-        ~MapAdapterGoogle() { }
+        ~MapAdapterGoogle() = default;
 
     private:
         /*!
@@ -84,6 +84,6 @@ namespace qmapcontrol
          * @param layer_type The layer type to convert.
          * @return the 1-character representation.
          */
-        QString layerTypeToString(const MapAdapterGoogle::GoogleLayerType& layer_type);
+        QString layerTypeToString(const MapAdapterGoogle::GoogleLayerType layer_type);
     };
 }

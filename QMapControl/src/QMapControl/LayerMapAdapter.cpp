@@ -35,7 +35,7 @@ namespace qmapcontrol
 {
     const int kPrefetchTileExtent = 1;
 
-    LayerMapAdapter::LayerMapAdapter(const std::string& name, const std::shared_ptr<MapAdapter>& mapadapter, const int& zoom_minimum, const int& zoom_maximum, QObject* parent)
+    LayerMapAdapter::LayerMapAdapter(const std::string& name, const std::shared_ptr<MapAdapter>& mapadapter, const int zoom_minimum, const int zoom_maximum, QObject* parent)
         : Layer(LayerType::LayerMapAdapter, name, zoom_minimum, zoom_maximum, parent),
           m_mapAdapter(mapadapter)
     {
@@ -66,13 +66,13 @@ namespace qmapcontrol
         emit requestRedraw();
     }
 
-    bool LayerMapAdapter::mousePressEvent(const QMouseEvent* /*mouse_event*/, const PointWorldCoord& /*mouse_point_coord*/, const int& /*controller_zoom*/) const
+    bool LayerMapAdapter::mousePressEvent(const QMouseEvent* /*mouse_event*/, const PointWorldCoord& /*mouse_point_coord*/, const int /*controller_zoom*/) const
     {
         // Do nothing.
         return false;
     }
 
-    void LayerMapAdapter::draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const
+    void LayerMapAdapter::draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int controller_zoom) const
     {
         // Gain a read lock to protect the map adapter.
         QReadLocker locker(&m_mapadapter_mutex);

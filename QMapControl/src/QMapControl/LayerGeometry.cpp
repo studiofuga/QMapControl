@@ -34,7 +34,7 @@
 #include <algorithm>
 namespace qmapcontrol
 {
-    LayerGeometry::LayerGeometry(const std::string& name, const int& zoom_minimum, const int& zoom_maximum, QObject* parent)
+    LayerGeometry::LayerGeometry(const std::string& name, const int zoom_minimum, const int zoom_maximum, QObject* parent)
         : Layer(LayerType::LayerGeometry, name, zoom_minimum, zoom_maximum, parent),
           m_geometries(50, RectWorldCoord(PointWorldCoord(-180.0, 90.0), PointWorldCoord(180.0, -90.0))),
           mFuzzyFactorPx(5.0)
@@ -73,7 +73,7 @@ namespace qmapcontrol
         return m_geometry_widgets;
     }
 
-    bool LayerGeometry::containsGeometry(const std::shared_ptr<Geometry>& geometry, const int& controller_zoom) const
+    bool LayerGeometry::containsGeometry(const std::shared_ptr<Geometry>& geometry, const int controller_zoom) const
     {
         // Default return answer.
         bool contains_geometry(false);
@@ -105,7 +105,7 @@ namespace qmapcontrol
         return contains_geometry;
     }
 
-    void LayerGeometry::addGeometry(const std::shared_ptr<Geometry>& geometry, const bool& disable_redraw)
+    void LayerGeometry::addGeometry(const std::shared_ptr<Geometry>& geometry, const bool disable_redraw)
     {
         // Check the geometry is valid.
         if (geometry != nullptr)
@@ -191,7 +191,7 @@ namespace qmapcontrol
         }
     }
 
-    void LayerGeometry::removeGeometry(const std::shared_ptr<Geometry>& geometry, const bool& disable_redraw)
+    void LayerGeometry::removeGeometry(const std::shared_ptr<Geometry>& geometry, const bool disable_redraw)
     {
         // Check the geometry is valid.
         if (geometry != nullptr)
@@ -300,7 +300,7 @@ namespace qmapcontrol
         m_geometry_widgets.clear();
     }
 
-    bool LayerGeometry::mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int& controller_zoom) const
+    bool LayerGeometry::mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int controller_zoom) const
     {
         // Are mouse events enabled, is the layer visible and is it a mouse press event?
         if (isMouseEventsEnabled() && isVisible(controller_zoom) && mouse_event->type() == QEvent::MouseButtonPress)
@@ -337,7 +337,7 @@ namespace qmapcontrol
         return false;
     }
 
-    void LayerGeometry::draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const
+    void LayerGeometry::draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int controller_zoom) const
     {
         // Check the layer is visible.
         if (isVisible(controller_zoom))
@@ -360,7 +360,7 @@ namespace qmapcontrol
         }
     }
 
-    void LayerGeometry::moveGeometryWidgets(const PointPx& offset_px, const int& controller_zoom) const
+    void LayerGeometry::moveGeometryWidgets(const PointPx& offset_px, const int controller_zoom) const
     {
         // Check the layer is visible.
         if (isVisible(controller_zoom))
@@ -378,10 +378,8 @@ namespace qmapcontrol
         return mFuzzyFactorPx;
     }
 
-    void LayerGeometry::setFuzzyFactorPx(const qreal &value)
+    void LayerGeometry::setFuzzyFactorPx(const qreal value)
     {
         mFuzzyFactorPx = value;
     }
-
-
 }

@@ -5,7 +5,7 @@
 
 namespace qmapcontrol
 {
-    GeometryPointShape::GeometryPointShape(const qreal& longitude, const qreal& latitude, const QSizeF& size_px, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPointShape::GeometryPointShape(const qreal longitude, const qreal latitude, const QSizeF& size_px, const int zoom_minimum, const int zoom_maximum)
         : GeometryPoint(PointWorldCoord(longitude, latitude), zoom_minimum, zoom_maximum),
           m_size_px(size_px),
           m_alignment_type(AlignmentType::Middle),
@@ -14,7 +14,7 @@ namespace qmapcontrol
 
     }
 
-    GeometryPointShape::GeometryPointShape(const PointWorldCoord& point_coord, const QSizeF& size_px, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPointShape::GeometryPointShape(const PointWorldCoord& point_coord, const QSizeF& size_px, const int zoom_minimum, const int zoom_maximum)
         : GeometryPoint(point_coord, zoom_minimum, zoom_maximum),
           m_size_px(size_px),
           m_alignment_type(AlignmentType::Middle),
@@ -65,7 +65,7 @@ namespace qmapcontrol
         return m_size_px;
     }
 
-    void GeometryPointShape::setSizePx(const QSizeF& size_px, const bool& update_shape)
+    void GeometryPointShape::setSizePx(const QSizeF& size_px, const bool update_shape)
     {
         // Set the size of the shape (pixels).
         m_size_px = size_px;
@@ -83,13 +83,13 @@ namespace qmapcontrol
         }
     }
 
-    const Geometry::AlignmentType& GeometryPointShape::alignmentType() const
+    Geometry::AlignmentType GeometryPointShape::alignmentType() const
     {
         // Return the alignment type.
         return m_alignment_type;
     }
 
-    void GeometryPointShape::setAlignmentType(const AlignmentType& alignment_type, const bool& update_shape)
+    void GeometryPointShape::setAlignmentType(const AlignmentType alignment_type, const bool update_shape)
     {
         // Set the alignment type.
         m_alignment_type = alignment_type;
@@ -107,13 +107,13 @@ namespace qmapcontrol
         }
     }
 
-    const qreal& GeometryPointShape::rotation() const
+    qreal GeometryPointShape::rotation() const
     {
         // Return the rotation.
         return m_rotation;
     }
 
-    void GeometryPointShape::setRotation(const qreal& rotation, const bool& update_shape)
+    void GeometryPointShape::setRotation(const qreal rotation, const bool update_shape)
     {
         // Set the rotation.
         m_rotation = rotation;
@@ -131,7 +131,7 @@ namespace qmapcontrol
         }
     }
 
-    RectWorldCoord GeometryPointShape::boundingBox(const int& controller_zoom) const
+    RectWorldCoord GeometryPointShape::boundingBox(const int controller_zoom) const
     {
         // Calculate the world point in pixels.
         const PointWorldPx point_px(projection::get().toPointWorldPx(coord(), controller_zoom));

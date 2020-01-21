@@ -112,7 +112,7 @@ namespace qmapcontrol
          * Signal emitted when a resource has been queued for download.
          * @param count The current size of the download queue.
          */
-        void downloadingInProgress(const int& count);
+        void downloadingInProgress(const int count);
 
         /*!
          * Signal emitted when a resource download has finished and the current download queue is empty.

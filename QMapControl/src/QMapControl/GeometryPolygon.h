@@ -50,23 +50,16 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPolygon(const std::vector<PointWorldCoord>& points, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPolygon(const std::vector<PointWorldCoord>& points, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPolygon(const GeometryPolygon&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPolygon(const GeometryPolygon&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPolygon& operator=(const GeometryPolygon&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPolygon& operator=(const GeometryPolygon&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPolygon() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPolygon(const GeometryPolygon&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPolygon& operator=(const GeometryPolygon&); /// @todo remove once MSVC supports default/delete syntax.
+        virtual ~GeometryPolygon()  = default;
 
     public:
 
@@ -81,7 +74,7 @@ namespace qmapcontrol
          * @param points The list of points that form the polygon (world coordinates).
          * @param disable_redraw Whether to disable the redraw that is called internally.
          */
-        void setPoints(const std::vector<PointWorldCoord>& points, const bool& disable_redraw = false);
+        void setPoints(const std::vector<PointWorldCoord>& points, const bool disable_redraw = false);
 
         /*!
          * Fetches the QPolygonF representation of the polygon.
@@ -95,7 +88,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the bounding box.
          */
-        RectWorldCoord boundingBox(const int& controller_zoom) const final;
+        RectWorldCoord boundingBox(const int controller_zoom) const final;
 
         /*!
          * Checks if the geometry touches (intersects) with another geometry.
@@ -103,7 +96,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether the geometries touch (intersects).
          */
-        bool touches(const Geometry* geometry, const int& controller_zoom) const final;
+        bool touches(const Geometry* geometry, const int controller_zoom) const final;
 
         /*!
          * Draws the geometry to a pixmap using the provided painter.
@@ -111,7 +104,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        virtual void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom) override;
+        virtual void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom) override;
 
     private:
         /// The points that the polygon is made up of.

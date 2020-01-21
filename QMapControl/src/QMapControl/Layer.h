@@ -74,17 +74,21 @@ namespace qmapcontrol
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          * @param parent QObject parent ownership.
          */
-        Layer(const LayerType& layer_type, const std::string& name, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom, QObject* parent = 0);
+        Layer(const LayerType layer_type,
+              const std::string& name,
+              const int zoom_minimum = 0,
+              const int zoom_maximum = kDefaultMaxZoom,
+              QObject* parent = nullptr);
 
     public:
         //! Disable copy constructor.
-        ///Layer(const Layer&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        Layer(const Layer&) = delete;
 
         //! Disable copy assignment.
-        ///Layer& operator=(const Layer&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        Layer& operator=(const Layer&) = delete;
 
         //! Destructor.
-        virtual ~Layer() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~Layer() = default;
 
         /*!
          * Fetches the layer type.
@@ -117,7 +121,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether the layer is visible.
          */
-        bool isVisible(const int& controller_zoom) const;
+        bool isVisible(const int controller_zoom) const;
 
         /*!
          * \brief Whether the layer is currently visible, independently from the zoom factor
@@ -129,7 +133,7 @@ namespace qmapcontrol
          * Set the visibility of the layer.
          * @param visible Whether the layer should be visible.
          */
-        void setVisible(const bool& visible);
+        void setVisible(const bool visible);
 
         /*!
          * Whether mouse events are currently enabled.
@@ -141,7 +145,7 @@ namespace qmapcontrol
          * Set whether the layer should handle mouse events.
          * @param enable Whether the layer should handle mouse events.
          */
-        void setMouseEventsEnabled(const bool& enable);
+        void setMouseEventsEnabled(const bool enable);
 
         /*!
          * Handles mouse press events (such as left-clicking an item on the layer).
@@ -150,7 +154,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return true if mouse press was handled by layer.
          */
-        virtual bool mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int& controller_zoom) const = 0;
+        virtual bool mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int controller_zoom) const = 0;
 
         /*!
          * Draws each map adapter and geometry to a pixmap using the provided painter.
@@ -158,20 +162,13 @@ namespace qmapcontrol
          * @param backbuffer_rect_px Only draw map tiles/geometries that are contained in the backbuffer rect (pixels).
          * @param controller_zoom The current controller zoom.
          */
-        virtual void draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const = 0;
+        virtual void draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int controller_zoom) const = 0;
 
     signals:
         /*!
          * Signal emitted when a change has occurred that requires the layer to be redrawn.
          */
         void requestRedraw() const;
-
-    private:
-        //! Disable copy constructor.
-        Layer(const Layer&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        Layer& operator=(const Layer&); /// @todo remove once MSVC supports default/delete syntax.
 
     private:
         /// The layer type.

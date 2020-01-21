@@ -63,7 +63,7 @@ namespace qmapcontrol
         MapAdapter& operator=(const MapAdapter&) = delete;
 
         //! Destructor.
-        virtual ~MapAdapter() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~MapAdapter() = default;
 
         /*!
          * Get the base url.
@@ -84,7 +84,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return whether their would be a valid image tile.
          */
-        bool isTileValid(const int& x, const int& y, const int& controller_zoom) const;
+        bool isTileValid(const int x, const int y, const int controller_zoom) const;
 
         /*!
          * Generates the url required to fetch the image tile for the specified x, y and zoom.
@@ -93,7 +93,7 @@ namespace qmapcontrol
          * @param controller_zoom The current controller zoom.
          * @return the generated url.
          */
-        virtual QUrl tileQuery(const int& x, const int& y, const int& controller_zoom) const = 0;
+        virtual QUrl tileQuery(const int x, const int y, const int controller_zoom) const = 0;
 
     protected:
         //! Constructor.
@@ -108,17 +108,17 @@ namespace qmapcontrol
          */
         MapAdapter(const QUrl& base_url,
                    const std::set<projection::EPSG>& epsg_projections,
-                   const int& adapter_zoom_minimum,
-                   const int& adapter_zoom_maximum,
-                   const int& adapter_zoom_offset,
-                   QObject* parent = 0);
+                   const int adapter_zoom_minimum,
+                   const int adapter_zoom_maximum,
+                   const int adapter_zoom_offset,
+                   QObject* parent = nullptr);
 
         /*!
          * Translates the controller zoom in the map adapters zoom.
          * @param controller_zoom The controller's zoom.
          * @return the map adapters zoom.
          */
-        int toAdapterZoom(const int& controller_zoom) const;
+        int toAdapterZoom(const int controller_zoom) const;
 
     private:
         /// The base url path of the map server.

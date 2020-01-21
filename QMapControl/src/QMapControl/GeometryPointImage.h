@@ -50,7 +50,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointImage(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointImage(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -60,17 +60,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointImage(const PointWorldCoord& point_coord, const QPixmap& image, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
-
-        //! Constructor.
-        /*!
-         * This constructor creates a point which will display an image pixmap from the file.
-         * @param point_coord The point to draw the image at (world coordinates).
-         * @param filename The image file to draw.
-         * @param zoom_minimum The minimum zoom level to show this geometry at.
-         * @param zoom_maximum The maximum zoom level to show this geometry at.
-         */
-        GeometryPointImage(const PointWorldCoord& point_coord, const std::string& filename, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
+        GeometryPointImage(const PointWorldCoord& point_coord, const QPixmap& image, const int zoom_minimum = 0, const int zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
         GeometryPointImage(const GeometryPointImage&) = delete;
@@ -79,7 +69,7 @@ namespace qmapcontrol
         GeometryPointImage& operator=(const GeometryPointImage&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointImage() { }
+        virtual ~GeometryPointImage() = default;
 
     public:
         /*!
@@ -93,14 +83,14 @@ namespace qmapcontrol
          * @param new_image The image pixmap to draw.
          * @param update_shape Whether updateShape() should be called at the end of this function.
          */
-        void setImage(const std::shared_ptr<QPixmap>& new_image, const bool& update_shape = true);
+        void setImage(const std::shared_ptr<QPixmap>& new_image, const bool update_shape = true);
 
         /*!
          * Set the image pixmap to draw.
          * @param new_image The image pixmap to draw.
          * @param update_shape Whether updateShape() should be called at the end of this function.
          */
-        void setImage(const QPixmap& new_image, const bool& update_shape = true);
+        void setImage(const QPixmap& new_image, const bool update_shape = true);
 
     public:
         /*!
@@ -109,7 +99,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_coord Only draw geometries that are contained in the backbuffer rect (world coordinates).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom) final;
+        void draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom) final;
 
     private:
         /// The image pixmap to draw.

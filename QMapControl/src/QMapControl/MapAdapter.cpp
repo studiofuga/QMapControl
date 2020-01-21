@@ -32,9 +32,9 @@ namespace qmapcontrol
 {
     MapAdapter::MapAdapter(const QUrl& base_url,
                            const std::set<projection::EPSG>& epsg_projections,
-                           const int& adapter_zoom_minimum,
-                           const int& adapter_zoom_maximum,
-                           const int& adapter_zoom_offset,
+                           const int adapter_zoom_minimum,
+                           const int adapter_zoom_maximum,
+                           const int adapter_zoom_offset,
                            QObject* parent)
         : QObject(parent),
           m_base_url(base_url),
@@ -58,7 +58,7 @@ namespace qmapcontrol
         m_base_url = base_url;
     }
 
-    bool MapAdapter::isTileValid(const int& x, const int& y, const int& controller_zoom) const
+    bool MapAdapter::isTileValid(const int x, const int y, const int controller_zoom) const
     {
         // Default success.
         bool success(false);
@@ -91,7 +91,7 @@ namespace qmapcontrol
         return success;
     }
 
-    int MapAdapter::toAdapterZoom(const int& controller_zoom) const
+    int MapAdapter::toAdapterZoom(const int controller_zoom) const
     {
         // Default return zoom is minimum + controller - offset.
         int return_zoom(m_adapter_zoom_minimum + controller_zoom - m_adapter_zoom_offset);

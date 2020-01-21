@@ -53,16 +53,16 @@ namespace qmapcontrol
          * @param capacity The number of items this quad tree container can store before it's children are created/used.
          * @param boundary_coord The bounding box area that this quad tree container covers in coordinates.
          */
-        QuadTreeContainer(const size_t& capacity, const RectWorldCoord& boundary_coord);
+        QuadTreeContainer(const size_t capacity, const RectWorldCoord& boundary_coord);
 
         //! Disable copy constructor.
-        ///QuadTreeContainer(const QuadTreeContainer&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        QuadTreeContainer(const QuadTreeContainer&) = delete;
 
         //! Disable copy assignment.
-        ///QuadTreeContainer& operator=(const QuadTreeContainer&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        QuadTreeContainer& operator=(const QuadTreeContainer&) = delete;
 
         //! Destructor.
-        virtual ~QuadTreeContainer() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~QuadTreeContainer() = default;
 
         /*!
          * Fetches objects within the specified bounding box range.
@@ -91,13 +91,7 @@ namespace qmapcontrol
          */
         void clear();
 
-    private:
-        //! Disable copy constructor.
-        QuadTreeContainer(const QuadTreeContainer&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        QuadTreeContainer& operator=(const QuadTreeContainer&); /// @todo remove once MSVC supports default/delete syntax.
-
+    private:  
         /*!
          * Creates the child nodes.
          */

@@ -61,18 +61,18 @@ namespace qmapcontrol
          */
         LayerMapAdapter(const std::string& name,
                         const std::shared_ptr<MapAdapter>& mapadapter = nullptr,
-                        const int& zoom_minimum = 0,
-                        const int& zoom_maximum = kDefaultMaxZoom,
-                        QObject* parent = 0);
+                        const int zoom_minimum = 0,
+                        const int zoom_maximum = kDefaultMaxZoom,
+                        QObject* parent = nullptr);
 
         //! Disable copy constructor.
-        ///LayerMapAdapter(const LayerMapAdapter&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        LayerMapAdapter(const LayerMapAdapter&) = delete;
 
         //! Disable copy assignment.
-        ///LayerMapAdapter& operator=(const LayerMapAdapter&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        LayerMapAdapter& operator=(const LayerMapAdapter&) = delete;
 
         //! Destructor.
-        virtual ~LayerMapAdapter() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~LayerMapAdapter() = default;
 
         /*!
          * Returns the Map Adapter from this Layer
@@ -92,7 +92,7 @@ namespace qmapcontrol
          * @param mouse_point_coord The mouse point on the map in coord.
          * @param controller_zoom The current controller zoom.
          */
-        bool mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int& controller_zoom) const final;
+        bool mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int controller_zoom) const final;
 
         /*!
          * Draws each map adapter and geometry to a pixmap using the provided painter.
@@ -100,7 +100,7 @@ namespace qmapcontrol
          * @param backbuffer_rect_px Only draw map tiles/geometries that are contained in the backbuffer rect (pixels).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const final;
+        void draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int controller_zoom) const final;
 
     private:
         /// The map adapter drawn by this layer.

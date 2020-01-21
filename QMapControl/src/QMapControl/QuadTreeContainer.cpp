@@ -28,7 +28,7 @@
 
 namespace qmapcontrol
 {
-    QuadTreeContainer::QuadTreeContainer(const size_t& capacity, const RectWorldCoord& boundary_coord)
+    QuadTreeContainer::QuadTreeContainer(const size_t capacity, const RectWorldCoord& boundary_coord)
         : m_capacity(capacity),
           m_boundary_coord(boundary_coord)
     {

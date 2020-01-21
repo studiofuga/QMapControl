@@ -64,7 +64,7 @@ namespace qmapcontrol
         m_instance.reset(nullptr);
     }
 
-    ImageManager::ImageManager(const int& tile_size_px, QObject* parent)
+    ImageManager::ImageManager(const int tile_size_px, QObject* parent)
         : QObject(parent),
           m_tile_size_px(tile_size_px),
           m_diskCache(nullptr),
@@ -91,7 +91,7 @@ namespace qmapcontrol
         return m_tile_size_px;
     }
 
-    void ImageManager::setTileSizePx(const int& tile_size_px)
+    void ImageManager::setTileSizePx(const int tile_size_px)
     {
         // Set the new tile size.
         m_tile_size_px = tile_size_px;

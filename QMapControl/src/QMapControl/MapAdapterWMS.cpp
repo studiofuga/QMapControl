@@ -135,7 +135,7 @@ namespace qmapcontrol
         MapAdapter::setBaseUrl(modified_url);
     }
 
-    QUrl MapAdapterWMS::tileQuery(const int& x, const int& y, const int& controller_zoom) const
+    QUrl MapAdapterWMS::tileQuery(const int x, const int y, const int controller_zoom) const
     {
         // Get the url's query details.
         QUrlQuery url_query(getBaseUrl());
@@ -159,7 +159,7 @@ namespace qmapcontrol
         return QUrl(modified_url);
     }
 
-    QString MapAdapterWMS::getBBox(const qreal& x1, const qreal& y1, const qreal& x2, const qreal& y2) const
+    QString MapAdapterWMS::getBBox(const qreal x1, const qreal y1, const qreal x2, const qreal y2) const
     {
         // Return the formatted BBOX values.
         return QString("%1,%2,%3,%4")

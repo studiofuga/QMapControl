@@ -5,7 +5,7 @@
 
 namespace qmapcontrol
 {
-    GeometryPolygon::GeometryPolygon(const std::vector<PointWorldCoord>& points, const int& zoom_minimum, const int& zoom_maximum)
+    GeometryPolygon::GeometryPolygon(const std::vector<PointWorldCoord>& points, const int zoom_minimum, const int zoom_maximum)
         : Geometry(Geometry::GeometryType::GeometryPolygon, zoom_minimum, zoom_maximum),
           m_points(points)
     {
@@ -18,7 +18,7 @@ namespace qmapcontrol
         return m_points;
     }
 
-    void GeometryPolygon::setPoints(const std::vector<PointWorldCoord>& points, const bool& disable_redraw)
+    void GeometryPolygon::setPoints(const std::vector<PointWorldCoord>& points, const bool disable_redraw)
     {
         // Set the new points.
         m_points = points;
@@ -47,7 +47,7 @@ namespace qmapcontrol
         return return_polygon;
     }
 
-    RectWorldCoord GeometryPolygon::boundingBox(const int& /*controller_zoom*/) const
+    RectWorldCoord GeometryPolygon::boundingBox(const int /*controller_zoom*/) const
     {
         // Create a polygon of the points.
         QPolygonF polygon;
@@ -63,7 +63,7 @@ namespace qmapcontrol
         return RectWorldCoord::fromQRectF(polygon.boundingRect());
     }
 
-    bool GeometryPolygon::touches(const Geometry* geometry, const int& controller_zoom) const
+    bool GeometryPolygon::touches(const Geometry* geometry, const int controller_zoom) const
     {
         // Default return success.
         bool return_touches(false);
@@ -120,7 +120,7 @@ namespace qmapcontrol
         return return_touches;
     }
 
-    void GeometryPolygon::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int& controller_zoom)
+    void GeometryPolygon::draw(QPainter& painter, const RectWorldCoord& backbuffer_rect_coord, const int controller_zoom)
     {
         // Check the geometry is visible.
         if(isVisible(controller_zoom))

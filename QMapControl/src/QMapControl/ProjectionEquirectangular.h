@@ -44,10 +44,10 @@ namespace qmapcontrol
         ProjectionEquirectangular() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
 
         //! Disable copy constructor.
-        ///ProjectionEquirectangular(const ProjectionEquirectangular&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        ProjectionEquirectangular(const ProjectionEquirectangular&) = delete;
 
         //! Disable copy assignment.
-        ///ProjectionEquirectangular& operator=(const ProjectionEquirectangular&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        ProjectionEquirectangular& operator=(const ProjectionEquirectangular&) = delete;
 
         //! Destructor.
         ~ProjectionEquirectangular() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
@@ -87,12 +87,5 @@ namespace qmapcontrol
          * @return the converted world coorindate point (longitude/latitude).
          */
         PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int& zoom) const final;
-
-    private:
-        //! Disable copy constructor.
-        ProjectionEquirectangular(const ProjectionEquirectangular&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        ProjectionEquirectangular& operator=(const ProjectionEquirectangular&); /// @todo remove once MSVC supports default/delete syntax.
-    };
+      };
 }

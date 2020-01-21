@@ -114,7 +114,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        Geometry(const GeometryType& geometry_type, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        Geometry(const GeometryType& geometry_type, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
     public:
         //! Disable copy constructor.
@@ -226,7 +226,7 @@ namespace qmapcontrol
         ///
         /// Classes can use this callback function to record a layer pointer, for example
         /// @arg layer pointer to a layer "owning" the geometry.
-        void onAddedToLayer(LayerGeometry *layer) { Q_UNUSED(layer); }
+        void onAddedToLayer(LayerGeometry *layer) { Q_UNUSED(layer) }
 
         /// @brief Callback function when a geometry is removed from the owning LayerGeometry.
         ///

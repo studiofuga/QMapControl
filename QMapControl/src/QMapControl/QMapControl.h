@@ -119,10 +119,10 @@ namespace qmapcontrol
                     Qt::WindowFlags window_flags = 0);
 
         //! Disable copy constructor.
-        ///QMapControl(const QMapControl&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        QMapControl(const QMapControl&) = delete;
 
         //! Disable copy assignment.
-        ///QMapControl& operator=(const QMapControl&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        QMapControl& operator=(const QMapControl&) = delete;
 
         //! Destructor.
         ~QMapControl();
@@ -188,6 +188,11 @@ namespace qmapcontrol
          */
         void enableRedraws(bool enabled);
 
+        /*!
+         * Enables or disabled progress indicator display
+         */
+        void enableProgressIndicator(bool enabled);
+
         // Layer management.
         /*!
          * Fetch the layers (Use this instead of the member variable for thread-safety).
@@ -248,6 +253,9 @@ namespace qmapcontrol
         /*!
          * Check whether all coordinates are visible in the current viewport.
          * @param points_coord The coordinates to check.
+         * @param viewport_contraction Viewport can be contracted(>0)/expanded(<0) for
+         * calculating the fitting of points (e.g. add "padding" so that some points are not too near the edge of viewport,
+         * 0.1 == take out 10% percent of viewport from each side).
          * @return Whether all the coordinates are visible in the viewport.
          */
         bool viewportContainsAll(const std::vector<PointWorldCoord>& points_coord,
@@ -323,13 +331,13 @@ namespace qmapcontrol
          * Set the minimum zoom allowed.
          * @param zoom The minimum zoom allowed.
          */
-        void setZoomMinimum(const int& zoom);
+        void setZoomMinimum(const int zoom);
 
         /*!
          * Set the maximum zoom allowed.
          * @param zoom The maximum zoom allowed.
          */
-        void setZoomMaximum(const int& zoom);
+        void setZoomMaximum(const int zoom);
 
         /*!
          * Fetches the current zoom level.
@@ -577,7 +585,7 @@ namespace qmapcontrol
          * Signal emitted when geometries are selected (see MouseButtonModes).
          * @param selected_geometries The selected geometries in each layer.
          */
-        void geometriesSelected(std::map<std::string, std::vector<std::shared_ptr<Geometry>>> selected_geometries);
+        void geometriesSelected(const std::map<std::string, std::vector<std::shared_ptr<Geometry>>>& selected_geometries);
 
         // Mouse management.
         /*!
@@ -585,7 +593,7 @@ namespace qmapcontrol
          * @param mouse_event The QMouseEvent that occured.
          * @param press_coordinate The corresponding world coordinate of the mouse press.
          */
-        void mouseEventPressCoordinate(QMouseEvent* mouse_event, PointWorldCoord press_coordinate);
+        void mouseEventPressCoordinate(QMouseEvent* mouse_event, const PointWorldCoord& press_coordinate);
 
         /*!
          * Signal emitted on MouseReleaseEvents with the additional map coordinates of the mouse press/release.
@@ -593,7 +601,7 @@ namespace qmapcontrol
          * @param press_coordinate The corresponding world coordinate of the mouse press.
          * @param release_coordinate The corresponding world coordinate of the mouse release.
          */
-        void mouseEventReleaseCoordinate(QMouseEvent* mouse_event, PointWorldCoord press_coordinate, PointWorldCoord release_coordinate);
+        void mouseEventReleaseCoordinate(QMouseEvent* mouse_event, const PointWorldCoord& press_coordinate, const PointWorldCoord& release_coordinate);
 
         /*!
          * Signal emitted on MouseDoubleClickEvents with the additional map coordinates of the mouse press/double press.
@@ -601,7 +609,7 @@ namespace qmapcontrol
          * @param press_coordinate The corresponding world coordinate of the mouse press.
          * @param double_press_coordinate The corresponding world coordinate of the mouse double press.
          */
-        void mouseEventDoubleClickCoordinate(QMouseEvent* mouse_event, PointWorldCoord press_coordinate, PointWorldCoord double_press_coordinate);
+        void mouseEventDoubleClickCoordinate(QMouseEvent* mouse_event, const PointWorldCoord& press_coordinate, const PointWorldCoord& double_press_coordinate);
 
         /*!
          * Signal emitted on MouseMoveEvents with the additional map coordinates of the mouse press/current.
@@ -609,7 +617,7 @@ namespace qmapcontrol
          * @param press_coordinate The corresponding world coordinate of the mouse press.
          * @param current_coordinate The corresponding world coordinate of the current mouse.
          */
-        void mouseEventMoveCoordinate(QMouseEvent* mouse_event, PointWorldCoord press_coordinate, PointWorldCoord current_coordinate);
+        void mouseEventMoveCoordinate(QMouseEvent* mouse_event, const PointWorldCoord& press_coordinate, const PointWorldCoord& current_coordinate);
 
         // Drawing management.
         /*!
@@ -623,7 +631,10 @@ namespace qmapcontrol
         /**
          * Signal emitted when the map foucus has changed
          * */
-        void mapFocusPointChanged(PointWorldCoord);
+        void mapFocusPointChanged(const PointWorldCoord& focusPoint);
+
+        /// Emitted whem zoom level changes
+        void zoomChanged();
     private:
         //! Disable copy constructor.
         QMapControl(const QMapControl&); /// @todo remove once MSVC supports default/delete syntax.
@@ -764,5 +775,6 @@ namespace qmapcontrol
 
         /// Whether the redraws of map backbuffer are enabled
         bool m_redrawsEnabled;
+
     };
 }

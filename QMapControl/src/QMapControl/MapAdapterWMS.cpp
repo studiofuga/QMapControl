@@ -141,8 +141,8 @@ namespace qmapcontrol
         QUrlQuery url_query(getBaseUrl());
 
         // Calculate the number of coordinates per tile.
-        const int coord_per_tile_x = 360.0 / projection::get().tilesX(controller_zoom);
-        const int coord_per_tile_y = 180.0 / projection::get().tilesY(controller_zoom);
+        const int coord_per_tile_x = int(360.0 / projection::get().tilesX(controller_zoom));
+        const int coord_per_tile_y = int(180.0 / projection::get().tilesY(controller_zoom));
 
         // Set BBOX (x1,y1,x2,y2).
         url_query.removeQueryItem("BBOX");

@@ -61,7 +61,7 @@ namespace qmapcontrol
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          * @param parent QObject parent ownership.
          */
-        LayerGeometry(const std::string& name, const int& zoom_minimum = 0, const int& zoom_maximum = 17, QObject* parent = 0);
+        LayerGeometry(const std::string& name, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom, QObject* parent = 0);
 
         //! Disable copy constructor.
         ///LayerGeometry(const LayerGeometry&) = delete; @todo re-add once MSVC supports default/delete syntax.

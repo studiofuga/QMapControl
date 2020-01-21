@@ -26,10 +26,11 @@
 #pragma once
 
 // Qt includes.
-#include <QtCore/QObject>
-#include <QtCore/QMutex>
-#include <QtCore/QUrl>
-#include <QtGui/QPixmap>
+#include <QObject>
+#include <QMutex>
+#include <QUrl>
+#include <QPixmap>
+#include <QTimer>
 #include <QtNetwork/QAuthenticator>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
@@ -53,13 +54,13 @@ namespace qmapcontrol
          * This construct a Network Manager.
          * @param parent QObject parent ownership.
          */
-        explicit NetworkManager(QObject* parent = 0);
+        explicit NetworkManager(QObject* parent = nullptr);
 
         //! Disable copy constructor.
-        ///NetworkManager(const NetworkManager&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        NetworkManager(const NetworkManager&) = delete;
 
         //! Disable copy assignment.
-        ///NetworkManager& operator=(const NetworkManager&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        NetworkManager& operator=(const NetworkManager&) = delete;
 
         //! Destructor.
         ~NetworkManager();
@@ -102,8 +103,9 @@ namespace qmapcontrol
         /*!
          * Downloads an image resource for the given url.
          * @param url The image url to download.
+         * @param cacheOnly If true image is only stored to disk cache and not for display.
          */
-        void downloadImage(const QUrl& url);
+        void downloadImage(const QUrl& url, bool cacheOnly);
 
     signals:
         /*!
@@ -118,11 +120,23 @@ namespace qmapcontrol
         void downloadingFinished();
 
         /*!
-         * Signal emitted when an image has been downloaded.
+         * Signal emitted when an image has been downloaded for display.
          * @param url The url that the image was downloaded from.
          * @param pixmap The image.
          */
         void imageDownloaded(const QUrl& url, const QPixmap& pixmap);
+
+        /*!
+         * Signal emitted when an image has been downloaded to disk cache.
+         * @param url The url that the image was downloaded from.
+         * */
+        void imageCached(const QUrl& url);
+
+        /*!
+         * Signal emitted when image download fails for reasons other than cancellation.
+         * \param The url that the image was downloaded from.
+         */
+        void imageDownloadFailed(const QUrl& url, QNetworkReply::NetworkError error);
 
     private slots:
         /*!
@@ -138,22 +152,23 @@ namespace qmapcontrol
          */
         void downloadFinished(QNetworkReply* reply);
 
-    private:
-        //! Disable copy constructor.
-        NetworkManager(const NetworkManager&); /// @todo remove once MSVC supports default/delete syntax.
+        /*!
+          */
+        void checkReplyTimeouts();
 
-        //! Disable copy assignment.
-        NetworkManager& operator=(const NetworkManager&); /// @todo remove once MSVC supports default/delete syntax.
-
+    private:        
         QNetworkAccessManager m_accessManager;
 
         /// Downloading image queue.
-        QMap<QNetworkReply*, QUrl> m_downloading_image;
+        QMap<QNetworkReply*, QUrl> m_downloadRequests;
 
         /// Mutex protecting downloading image queue.
         mutable QMutex m_mutex_downloading_image;
 
         QString m_proxyUserName;
         QString m_proxyPassword; 
+
+        /// For periodic checks of timeouted requests
+        QTimer m_timeoutTimer;
     };
 }

@@ -56,7 +56,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShapeScaled(const qreal& longitude, const qreal& latitude, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointShapeScaled(const qreal& longitude, const qreal& latitude, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -67,7 +67,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShapeScaled(const PointWorldCoord& point_coord, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointShapeScaled(const PointWorldCoord& point_coord, const QSizeF& base_size_px, const int& base_zoom, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
         ///GeometryPointShapeScaled(const GeometryPointShapeScaled&) = delete; @todo re-add once MSVC supports default/delete syntax.

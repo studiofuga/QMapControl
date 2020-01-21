@@ -50,7 +50,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointImage(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointImage(const PointWorldCoord& point_coord, const std::shared_ptr<QPixmap>& image, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -60,7 +60,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointImage(const PointWorldCoord& point_coord, const QPixmap& image, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointImage(const PointWorldCoord& point_coord, const QPixmap& image, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -70,23 +70,16 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointImage(const PointWorldCoord& point_coord, const std::string& filename, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointImage(const PointWorldCoord& point_coord, const std::string& filename, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPointImage(const GeometryPointImage&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointImage(const GeometryPointImage&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPointImage& operator=(const GeometryPointImage&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointImage& operator=(const GeometryPointImage&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointImage() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPointImage(const GeometryPointImage&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPointImage& operator=(const GeometryPointImage&); /// @todo remove once MSVC supports default/delete syntax.
+        virtual ~GeometryPointImage() { }
 
     public:
         /*!

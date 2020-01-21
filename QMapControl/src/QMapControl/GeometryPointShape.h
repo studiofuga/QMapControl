@@ -49,7 +49,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShape(const qreal& longitude, const qreal& latitude, const QSizeF& size_px, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointShape(const qreal& longitude, const qreal& latitude, const QSizeF& size_px, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -59,7 +59,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointShape(const PointWorldCoord& point_coord, const QSizeF& size_px, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointShape(const PointWorldCoord& point_coord, const QSizeF& size_px, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
     public:
         //! Disable copy constructor.

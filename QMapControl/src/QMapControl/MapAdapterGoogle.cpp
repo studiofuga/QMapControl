@@ -27,26 +27,13 @@
 
 namespace qmapcontrol
 {
-    namespace
-    {
-        /// @todo remove once MSVC supports initializer lists.
-        std::set<projection::EPSG> supportedProjections()
-        {
-            std::set<projection::EPSG> projections;
-            projections.insert(projection::EPSG::SphericalMercator);
-            return projections;
-        }
-    }
+    constexpr char kGoogleMapUrlFormat[] = "http://mt.google.com/vt/hl=en&x=%x&y=%y&z=%zoom&lyrs=";
 
     MapAdapterGoogle::MapAdapterGoogle(const MapAdapterGoogle::GoogleLayerType& layer_type,
                                        QObject* parent)
-        ///: MapAdapterTile("http://mt1.google.com/vt/v=ap.106&hl=en&x=%x&y=%y&zoom=%zoom&lyrs=" +
-        ///layerTypeToString(layer_type), { projection::EPSG::SphericalMercator }, 17, 0, 0, false,
-        ///parent) @todo re-add once MSVC supports initializer lists.
-        : MapAdapterTile("http://mt.google.com/vt/v=ap.116&hl=en&x=%x&y=%y&zoom=%zoom&lyrs=" + layerTypeToString(layer_type),
-                         supportedProjections(), 17, 0, 0, false, parent) /// @todo remove once MSVC supports initializer lists.
+        : MapAdapterTile(QUrl(kGoogleMapUrlFormat + layerTypeToString(layer_type)), { projection::EPSG::SphericalMercator },
+                         0, 19, 0, false, parent)
     {
-
     }
 
     QString MapAdapterGoogle::layerTypeToString(const MapAdapterGoogle::GoogleLayerType& layer_type)
@@ -66,5 +53,5 @@ namespace qmapcontrol
             default:
                 return "m";
         }
-    }
+    }    
 }

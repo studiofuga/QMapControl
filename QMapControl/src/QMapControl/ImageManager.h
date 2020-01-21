@@ -34,6 +34,7 @@
 #include <QtNetwork/QNetworkProxy>
 #include <QCache>
 #include <QNetworkDiskCache>
+#include <QReadWriteLock>
 
 // STL includes.
 #include <chrono>
@@ -64,13 +65,13 @@ namespace qmapcontrol
 
     public:
         //! Disable copy constructor.
-        /// ImageManager(const ImageManager&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        ImageManager(const ImageManager&) = delete;
 
         //! Disable copy assignment.
-        ///ImageManager& operator=(const ImageManager&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        ImageManager& operator=(const ImageManager&) = delete;
 
         //! Destructor.
-        ~ImageManager() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        ~ImageManager() { }
 
         /*!
          * Fetch the tile size in pixels.
@@ -97,10 +98,10 @@ namespace qmapcontrol
         void abortLoading();
 
         /*!
-         * Number of images pending in the load queue.
+         * Number of images pending in the download queue.
          * @return the number of images pending in the load queue.
          */
-        int loadQueueSize() const;
+        int downloadQueueSize() const;
 
         /*!
          * If this component doesn't have the image a network query gets started to load it.
@@ -166,8 +167,9 @@ namespace qmapcontrol
         /*!
          * Signal emitted to schedule an image resource to be downloaded.
          * @param url The image url to download.
+         * @param cacheOnly If true image is only stored to disk cache and not for display.
          */
-        void downloadImage(const QUrl& url);
+        void downloadImage(const QUrl& url, bool cacheOnly);
 
         /*!
          * Signal emitted when a new image has been queued for download.
@@ -191,13 +193,20 @@ namespace qmapcontrol
          */
         void imageCached();
 
+        /*!
+          * Emitted when image download fails for reasons other than cancellation.
+          */
+        void imageDownloadFailed();
+
     private slots:
         /*!
          * Slot to handle an image that has been downloaded.
          * @param url The url that the image was downloaded from.
          * @param pixmap The image.
          */
-        void imageDownloaded(const QUrl& url, const QPixmap& pixmap);
+        void handleImageDownloaded(const QUrl& url, const QPixmap& pixmap);
+
+        void handleImageCached(const QUrl& url);
 
     private:
         //! Constructor.
@@ -206,13 +215,7 @@ namespace qmapcontrol
          * @param tile_size_px The tile size in pixels.
          * @param parent QObject parent ownership.
          */
-        ImageManager(const int& tile_size_px, QObject* parent = 0);
-
-        //! Disable copy constructor.
-        ImageManager(const ImageManager&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        ImageManager& operator=(const ImageManager&); /// @todo remove once MSVC supports default/delete syntax.
+        ImageManager(const int& tile_size_px, QObject* parent = nullptr);
 
         /*!
          * Create a loading pixmap for use.
@@ -229,7 +232,7 @@ namespace qmapcontrol
         void insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap);
         bool findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const;
 
-        QPixmap getImageInternal(const QUrl& url, bool bypassMemChache, bool bypassDiskCache);
+        QPixmap getImageInternal(const QUrl& url, bool bypassMemChache);
 
     private:
         QMutex mMutex;
@@ -242,6 +245,9 @@ namespace qmapcontrol
 
         /// Memory cache for decoded tile images
         QCache<QByteArray, QPixmap> m_memoryCache;
+
+        /// Lock for accessing memory tile cache
+        mutable QReadWriteLock m_tileCacheLock;
 
         /// Local disk cache for tile image files
         QNetworkDiskCache* m_diskCache;
@@ -256,6 +262,6 @@ namespace qmapcontrol
         QSet<QUrl> m_prefetchUrls;
 
         /// A set of image urls being cached
-        QSet<QUrl> m_cacheUrls;
+        QSet<QUrl> m_cacheUrls;        
     };
 }

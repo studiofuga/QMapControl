@@ -44,10 +44,10 @@ namespace qmapcontrol
         ProjectionSphericalMercator() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
 
         //! Disable copy constructor.
-        ///ProjectionSphericalMercator(const ProjectionSphericalMercator&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        ProjectionSphericalMercator(const ProjectionSphericalMercator&) = delete;
 
         //! Disable copy assignment.
-        ///ProjectionSphericalMercator& operator=(const ProjectionSphericalMercator&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        ProjectionSphericalMercator& operator=(const ProjectionSphericalMercator&) = delete;
 
         //! Destructor.
         ~ProjectionSphericalMercator() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
@@ -87,12 +87,5 @@ namespace qmapcontrol
          * @return the converted world coorindate point (longitude/latitude).
          */
         PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int& zoom) const final;
-
-    private:
-        //! Disable copy constructor.
-        ProjectionSphericalMercator(const ProjectionSphericalMercator&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        ProjectionSphericalMercator& operator=(const ProjectionSphericalMercator&); /// @todo remove once MSVC supports default/delete syntax.
-    };
+   };
 }

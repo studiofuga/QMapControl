@@ -52,7 +52,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPolygonImage(const PointWorldCoord& top_left_coord, const PointWorldCoord& bottom_right_coord, const std::string& filename, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPolygonImage(const PointWorldCoord& top_left_coord, const PointWorldCoord& bottom_right_coord, const std::string& filename, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -63,7 +63,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPolygonImage(const PointWorldCoord& point_top_left, const PointWorldCoord& bottom_right_coord, const QPixmap& image, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPolygonImage(const PointWorldCoord& point_top_left, const PointWorldCoord& bottom_right_coord, const QPixmap& image, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
         ///GeometryPointImageFixed(const GeometryPointImageFixed&) = delete; @todo re-add once MSVC supports default/delete syntax.

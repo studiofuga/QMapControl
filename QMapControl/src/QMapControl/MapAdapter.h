@@ -57,10 +57,10 @@ namespace qmapcontrol
         Q_OBJECT
     public:
         //! Disable copy constructor.
-        ///MapAdapter(const MapAdapter&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapter(const MapAdapter&) = delete;
 
         //! Disable copy assignment.
-        ///MapAdapter& operator=(const MapAdapter&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapter& operator=(const MapAdapter&) = delete;
 
         //! Destructor.
         virtual ~MapAdapter() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
@@ -119,13 +119,6 @@ namespace qmapcontrol
          * @return the map adapters zoom.
          */
         int toAdapterZoom(const int& controller_zoom) const;
-
-    private:
-        //! Disable copy constructor.
-        MapAdapter(const MapAdapter&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        MapAdapter& operator=(const MapAdapter&); /// @todo remove once MSVC supports default/delete syntax.
 
     private:
         /// The base url path of the map server.

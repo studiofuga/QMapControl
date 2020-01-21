@@ -49,7 +49,7 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPoint(const qreal& longitude, const qreal& latitude, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPoint(const qreal& longitude, const qreal& latitude, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -58,23 +58,16 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPoint(const PointWorldCoord& point_coord, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPoint(const PointWorldCoord& point_coord, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPoint(const GeometryPoint&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPoint(const GeometryPoint&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPoint& operator=(const GeometryPoint&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPoint& operator=(const GeometryPoint&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPoint() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPoint(const GeometryPoint&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPoint& operator=(const GeometryPoint&); /// @todo remove once MSVC supports default/delete syntax.
+        virtual ~GeometryPoint() { }
 
     public:
         /*!

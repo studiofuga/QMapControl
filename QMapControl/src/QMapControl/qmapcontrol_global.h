@@ -15,3 +15,5 @@
     /// Defines that the specified function, variable or class should be imported.
     #define QMAPCONTROL_EXPORT Q_DECL_IMPORT
 #endif
+
+const int kDefaultMaxZoom = 20;

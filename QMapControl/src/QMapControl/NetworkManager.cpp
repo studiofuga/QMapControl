@@ -32,14 +32,21 @@
 
 namespace qmapcontrol
 {
+    const int kReplyTimeout_s = 30;
+    const int kReplyTimeoutCheckInterval_s = 5;
+
     NetworkManager::NetworkManager(QObject* parent)
         : QObject(parent)
     {
         // Connect signal/slot to handle proxy authentication.
-        QObject::connect(&m_accessManager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &NetworkManager::proxyAuthenticationRequired);
+        connect(&m_accessManager, &QNetworkAccessManager::proxyAuthenticationRequired, this, &NetworkManager::proxyAuthenticationRequired);
 
         // Connect signal/slot to handle finished downloads.
-        QObject::connect(&m_accessManager, &QNetworkAccessManager::finished, this, &NetworkManager::downloadFinished);
+        connect(&m_accessManager, &QNetworkAccessManager::finished, this, &NetworkManager::downloadFinished);
+
+        // Check periodically for timeouted network requests
+        m_timeoutTimer.setInterval(kReplyTimeoutCheckInterval_s * 1000);
+        connect(&m_timeoutTimer, &QTimer::timeout, this, &NetworkManager::checkReplyTimeouts);
     }
 
     NetworkManager::~NetworkManager()
@@ -59,17 +66,21 @@ namespace qmapcontrol
 
     void NetworkManager::abortDownloads()
     {
-        // Loop through each reply to abort and then remove it from the downloading image queue.
-        QMutexLocker lock(&m_mutex_downloading_image);
-        QMutableMapIterator<QNetworkReply*, QUrl> itr(m_downloading_image);
+        m_timeoutTimer.stop();
+
+        QMapIterator<QNetworkReply*, QUrl> itr(m_downloadRequests);
         while (itr.hasNext())
         {
             // Tell the reply to abort.
-            itr.next().key()->abort();
-
-            // Remove it from the queue.
-            itr.remove();
+            QNetworkReply* reply = itr.next().key();
+            if (reply->isRunning())
+            {
+                reply->abort();
+            }
         }
+
+        QMutexLocker lock(&m_mutex_downloading_image);
+        m_downloadRequests.clear();
     }
 
     int NetworkManager::downloadQueueSize() const
@@ -79,7 +90,7 @@ namespace qmapcontrol
 
         // Return the size of the downloading image queue.
         QMutexLocker lock(&m_mutex_downloading_image);
-        return_size += m_downloading_image.size();
+        return_size += m_downloadRequests.size();
 
         // Return the size.
         return return_size;
@@ -89,13 +100,18 @@ namespace qmapcontrol
     {
         // Return whether we requested url is downloading image queue.
         QMutexLocker lock(&m_mutex_downloading_image);
-        return m_downloading_image.values().contains(url);
+        return m_downloadRequests.values().contains(url);
     }
 
-    void NetworkManager::downloadImage(const QUrl& url)
+    void NetworkManager::downloadImage(const QUrl& url, bool cacheOnly)
     {
         // Keep track of our success.
         bool success(false);
+
+        if (!m_timeoutTimer.isActive())
+        {
+            m_timeoutTimer.start();
+        }
 
         // Scope this as we later call "downloadQueueSize()" which also locks all download queue mutexes.
         {
@@ -103,11 +119,15 @@ namespace qmapcontrol
             QMutexLocker lock(&m_mutex_downloading_image);
 
             // Check this is a new request.
-            if (m_downloading_image.values().contains(url) == false)
+            if (m_downloadRequests.values().contains(url) == false)
             {
                 // Generate a new request.
                 QNetworkRequest request(url);
                 request.setRawHeader("User-Agent", "QMapControl");
+
+                // Using pipelining QNAM can put multiple requests in a single packet
+                // (just a suggestion and needs server support).
+                request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
 
                 if (m_accessManager.cache() != nullptr)
                 {
@@ -120,15 +140,20 @@ namespace qmapcontrol
                 // Send the request.
                 QNetworkReply* reply = m_accessManager.get(request);
 
+                reply->setProperty("cacheOnly", cacheOnly);
+                // Time when this request is considered timeouted
+                QDateTime timeout = QDateTime::currentDateTime().addSecs(kReplyTimeout_s);
+                reply->setProperty("timeout", timeout);
+
                 // Store the request into the downloading image queue.
-                m_downloading_image[reply] = url;
+                m_downloadRequests[reply] = url;
 
                 // Mark our success.
                 success = true;
 
                 // Log success.
 #ifdef QMAP_DEBUG
-                qDebug() << "Downloading image '" << url << "'";
+                qDebug() << "Downloading image '" << url << "', queued: " << m_downloadRequests.size();
 #endif
             }
         }
@@ -153,53 +178,68 @@ namespace qmapcontrol
 
     void NetworkManager::downloadFinished(QNetworkReply* reply)
     {
+        QNetworkReply::NetworkError error = reply->error();
+        bool hasReply = false;
+
+        {
+            QMutexLocker lock(&m_mutex_downloading_image);
+            hasReply = m_downloadRequests.contains(reply);
+            if (hasReply)
+            {
+                // Remove it from the downloading image queue.
+                m_downloadRequests.remove(reply);
+            } else {
+                qWarning() << "Unexpected reply for: " << reply->url();
+            }
+        }
+
         // Did the reply return no errors...
-        if (reply->error() != QNetworkReply::NoError)
+        if (error != QNetworkReply::NoError)
         {
 #ifdef QMAP_DEBUG
             // Log error
             qDebug() << "Failed to download '" << reply->url() << "' with error '" << reply->errorString() << "'";
-#endif
-        }
-        else
-        {
-            // Check whether the url has already been processed...
-            bool continue_processing_image(false);
-            {
-                // Is the reply in the downloading image queue?
-                QMutexLocker lock(&m_mutex_downloading_image);
-                continue_processing_image = m_downloading_image.contains(reply);
-                if (continue_processing_image)
-                {
-#ifdef QMAP_DEBUG
-                    // Log success.
-                    qDebug() << "Downloaded image '" << m_downloading_image[reply] << "'";
-#endif
-
-                    // Remove it from the downloading image queue.
-                    m_downloading_image.remove(reply);
-                }
+#endif            
+            // Report failed requests for tracking progress but leave out
+            // cancelations (user-triggered or retries of timeouts)
+            if (error != QNetworkReply::OperationCanceledError) {
+                emit imageDownloadFailed(reply->url(), error);
             }
-
-            // Should we process this as an image download.
-            if (continue_processing_image)
+        }
+        else if (hasReply)
+        {
+#ifdef QMAP_DEBUG
+            qDebug() << "Downloaded image " << reply->url() << ", payload size: " << reply->size();
+#endif
+            bool cacheOnly = reply->property("cacheOnly").toBool();
+            if (cacheOnly)
+            {
+                emit imageCached(reply->url());
+            }
+            else
             {
                 // Emit that we have downloaded an image.
                 QImageReader image_reader(reply);
-                emit imageDownloaded(reply->url(), QPixmap::fromImageReader(&image_reader));
+                QPixmap pixmap= QPixmap::fromImageReader(&image_reader);
+
+                if (pixmap.isNull()) {
+                    qWarning() << "Pixmap is empty for " << reply->url() << ", reply size: " << reply->size();
+                }
+
+                emit imageDownloaded(reply->url(), pixmap);
             }
         }
 
-        // If the reply did not fail due to cancellation... (as cancellation locks our mutexes!)
-        if (reply->error() != QNetworkReply::OperationCanceledError)
+        // Check if the current download queue is empty.
+        if (downloadQueueSize() == 0)
         {
-            // Check if the current download queue is empty.
-            if (downloadQueueSize() == 0)
-            {
-                // Emit that all queued downloads have finished.
-                emit downloadingFinished();
-            }
+            // Emit that all queued downloads have finished.
+            emit downloadingFinished();
         }
+
+        // Free the reply now to keep the memory usage with a lot of downloads in check
+        // (or it would be freed only when QNAM is deleted, easily GB of mem with 10000s tiles downloaded)
+        reply->deleteLater();
     }
 
     void NetworkManager::setCache(QAbstractNetworkCache* cache)
@@ -207,4 +247,31 @@ namespace qmapcontrol
         m_accessManager.setCache(cache);
     }
 
+    void NetworkManager::checkReplyTimeouts()
+    {        
+        QMapIterator<QNetworkReply*, QUrl> itr(m_downloadRequests);
+        const QDateTime currentTime = QDateTime::currentDateTime();
+
+        while (itr.hasNext())
+        {
+            itr.next();
+            QNetworkReply *reply = itr.key();
+            const QUrl url = itr.value();
+            const QDateTime timeout = reply->property("timeout").toDateTime();
+
+            if (currentTime > timeout)
+            {
+                qWarning() << "Request timeout: " << url.toString();
+
+                if (reply->isRunning())
+                {
+                    const bool cacheOnly = reply->property("cacheOnly").toBool();
+                    reply->abort();
+
+                    // Retry the request in a little while
+                    QTimer::singleShot(1000, [=]() { downloadImage(url, cacheOnly); });
+                }
+            }
+        }
+    }
 }

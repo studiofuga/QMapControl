@@ -97,7 +97,7 @@ namespace qmapcontrol
         int return_zoom(m_adapter_zoom_minimum + controller_zoom - m_adapter_zoom_offset);
 
         // Does the map adapter's zoom scale run backwards?
-        if(m_adapter_zoom_minimum > m_adapter_zoom_maximum)
+        if (m_adapter_zoom_minimum > m_adapter_zoom_maximum)
         {
             // Zoom is minimum - controller + offset (as minimum is larger number!).
             return_zoom = m_adapter_zoom_minimum - controller_zoom + m_adapter_zoom_offset;

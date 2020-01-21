@@ -69,7 +69,7 @@ namespace qmapcontrol
           m_animated_steps(0),
           m_animated_interval(0),
           m_zoom_minimum(0),
-          m_zoom_maximum(17),
+          m_zoom_maximum(kDefaultMaxZoom),
           m_current_zoom(m_zoom_minimum),
           m_mouse_left_pressed(false),
           m_mouse_left_mode(MouseButtonMode::Pan),
@@ -78,11 +78,11 @@ namespace qmapcontrol
           m_mouse_right_mode(MouseButtonMode::DrawBox),
           m_mouse_right_origin_center(false),
           m_mouse_position_pressed_px(0.0, 0.0),
-          m_mouse_position_current_px(0.0, 0.0),          
+          m_mouse_position_current_px(0.0, 0.0),
           m_primary_screen_map_focus_point_px(0.0, 0.0),
           m_primary_screen_backbuffer_rect_px(PointWorldPx(0.0, 0.0), PointWorldPx(0.0, 0.0)),
-          m_primary_screen_scaled_enabled(false),          
-          m_primary_screen_scaled_offset(0.0, 0.0),          
+          m_primary_screen_scaled_enabled(false),
+          m_primary_screen_scaled_offset(0.0, 0.0),
           m_progress_indicator(this),
           m_backgroundColor(Qt::transparent),
           m_redrawsEnabled(redrawsEnabled)
@@ -151,6 +151,10 @@ namespace qmapcontrol
     void QMapControl::enableRedraws(bool enabled)
     {
         m_redrawsEnabled = enabled;
+    }
+
+    void QMapControl::enableProgressIndicator(bool enabled) {
+        m_progress_indicator.setVisible(enabled);
     }
 
     // Layer management.
@@ -481,7 +485,7 @@ namespace qmapcontrol
     }
 
     // Zoom management.
-    void QMapControl::setZoomMinimum(const int& zoom)
+    void QMapControl::setZoomMinimum(const int zoom)
     {
         // Set the new zoom minimum.
         m_zoom_minimum = zoom;
@@ -490,7 +494,7 @@ namespace qmapcontrol
         checkZoom();
     }
 
-    void QMapControl::setZoomMaximum(const int& zoom)
+    void QMapControl::setZoomMaximum(const int zoom)
     {
         // Set the new zoom maximum.
         m_zoom_maximum = zoom;
@@ -926,8 +930,9 @@ namespace qmapcontrol
 
             // Increase the zoom!
             m_current_zoom++;
+            emit zoomChanged();
 
-            // Force the primary screen to be redrawn.            
+            // Force the primary screen to be redrawn.
             redrawPrimaryScreen(true);
         }
     }
@@ -961,8 +966,9 @@ namespace qmapcontrol
 
             // Decrease the zoom!
             m_current_zoom--;
+            emit zoomChanged();
 
-            // Force the primary screen to be redrawn.            
+            // Force the primary screen to be redrawn.
             redrawPrimaryScreen(true);
         }
     }
@@ -1095,12 +1101,7 @@ namespace qmapcontrol
     // Zoom management.
     void QMapControl::checkZoom()
     {
-        // Quick check to ensure min <= max.
-        if (m_zoom_maximum < m_zoom_minimum)
-        {
-            // Swap the zooms.
-            std::swap(m_zoom_minimum, m_zoom_maximum);
-        }
+        Q_ASSERT(m_zoom_maximum > m_zoom_minimum);
 
         // Check the current zoom is not outside the zoom range.
         if (m_current_zoom < m_zoom_minimum)
@@ -1132,17 +1133,21 @@ namespace qmapcontrol
         // Create a painter for this QWidget to draw on.
         QPainter painter(this);
 
-        // Ensure antialiasing is enabled (primitives and pixmaps).
-        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
-
         // Background color
         painter.fillRect(QRect(QPoint(0, 0), m_viewport_size_px), m_backgroundColor);
+
+        // Ensure antialiasing is enabled (primitives and pixmaps).
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
         // Draw the current primary screen to the widget.
         drawPrimaryScreen(&painter);
 
         // Draw a box around the edge of the viewport (useful for debugging).
-        painter.drawRect(RectViewportPx(PointViewportPx(0.0, 0.0), PointViewportPx(m_viewport_size_px.width(), m_viewport_size_px.height())).rawRect());
+        painter.save();
+        painter.setRenderHints(QPainter::Antialiasing, false);
+        painter.setPen(QColor(60, 60, 60, 200));
+        painter.drawRect(RectViewportPx(PointViewportPx(0.0, 0.0), PointViewportPx(m_viewport_size_px.width() - 1, m_viewport_size_px.height() - 1)).rawRect());
+        painter.restore();
 
         // Should we draw the scalebar?
         if (m_scalebar_enabled)
@@ -1287,7 +1292,7 @@ namespace qmapcontrol
 
             // Restore the painter's state.
             painter.restore();
-        }        
+        }
     }
 
     void QMapControl::drawPrimaryScreen(QPainter* painter) const
@@ -1464,7 +1469,7 @@ namespace qmapcontrol
 
     // Drawing management.
     void QMapControl::loadingFinished()
-    {        
+    {
         if (m_primary_screen_scaled_enabled)
         {
             // Remove the scaled image, as all new images have been loaded.

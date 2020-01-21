@@ -41,10 +41,10 @@ namespace qmapcontrol
     {
     public:
         //! Disable copy constructor.
-        ///Projection(const Projection&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        Projection(const Projection&) = delete;
 
         //! Disable copy assignment.
-        ///Projection& operator=(const Projection&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        Projection& operator=(const Projection&) = delete;
 
         //! Destructor.
         virtual ~Projection() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
@@ -90,14 +90,7 @@ namespace qmapcontrol
         /*!
          * Projection constructor.
          */
-        Projection() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        Projection(const Projection&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        Projection& operator=(const Projection&); /// @todo remove once MSVC supports default/delete syntax.
+        Projection() { } /// = default; @todo re-add once MSVC supports default/delete syntax.    
     };
 
     namespace projection

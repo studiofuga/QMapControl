@@ -59,19 +59,19 @@ namespace qmapcontrol
         MapAdapterTile(const QUrl& base_url,
                        const std::set<projection::EPSG>& epsg_projections,
                        const int& adapter_zoom_minimum = 0,
-                       const int& adapter_zoom_maximum = 17,
+                       const int& adapter_zoom_maximum = kDefaultMaxZoom,
                        const int& adapter_minimum_offset = 0,
                        const bool& invert_y = false,
                        QObject* parent = 0);
 
         //! Disable copy constructor.
-        ///MapAdapterTile(const MapAdapterTile&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterTile(const MapAdapterTile&) = delete;
 
         //! Disable copy assignment.
-        ///MapAdapterTile& operator=(const MapAdapterTile&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterTile& operator=(const MapAdapterTile&) = delete;
 
         //! Destructor.
-        virtual ~MapAdapterTile() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        virtual ~MapAdapterTile() { }
 
         /*!
          * Generates the url required to fetch the image tile for the specified x, y and zoom.
@@ -83,12 +83,6 @@ namespace qmapcontrol
         virtual QUrl tileQuery(const int& x, const int& y, const int& controller_zoom) const override;
 
     private:
-        //! Disable copy constructor.
-        MapAdapterTile(const MapAdapterTile&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        MapAdapterTile& operator=(const MapAdapterTile&); /// @todo remove once MSVC supports default/delete syntax.
-
         /// Whether the y-axis tile needs to be inverted (ie: y-axis tiles start at bottom-left, instead of top-left).
         const bool m_invert_y;
     };

@@ -74,7 +74,7 @@ namespace qmapcontrol
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          * @param parent QObject parent ownership.
          */
-        Layer(const LayerType& layer_type, const std::string& name, const int& zoom_minimum = 0, const int& zoom_maximum = 17, QObject* parent = 0);
+        Layer(const LayerType& layer_type, const std::string& name, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom, QObject* parent = 0);
 
     public:
         //! Disable copy constructor.

@@ -58,7 +58,7 @@ namespace qmapcontrol
 
         // Find the key.
         const auto find_itr = m_metadata.find(key);
-        if(find_itr != m_metadata.end())
+        if (find_itr != m_metadata.end())
         {
             // Fetch the value.
             return_value = find_itr->second;
@@ -80,7 +80,7 @@ namespace qmapcontrol
         bool visibility(m_visible);
 
         // Check whether the controller zoom is within range.
-        if(m_zoom_minimum > controller_zoom || m_zoom_maximum < controller_zoom)
+        if ((m_zoom_minimum > controller_zoom) || (m_zoom_maximum < controller_zoom))
         {
             // Outside of supported zoom levels.
             visibility = false;

@@ -67,29 +67,23 @@ namespace qmapcontrol
          * @param layer_type The Google layer type to display.
          * @param parent QObject parent ownership.
          */
-        MapAdapterGoogle(const GoogleLayerType& layer_type = GoogleLayerType::MAPS, QObject* parent = 0);
+        MapAdapterGoogle(const GoogleLayerType& layer_type = GoogleLayerType::MAPS, QObject* parent = nullptr);
 
         //! Disable copy constructor.
-        ///MapAdapterGoogle(const MapAdapterGoogle&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterGoogle(const MapAdapterGoogle&) = delete;
 
         //! Disable copy assignment.
-        ///MapAdapterGoogle& operator=(const MapAdapterGoogle&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        MapAdapterGoogle& operator=(const MapAdapterGoogle&) = delete;
 
         //! Destructor.
-        ~MapAdapterGoogle() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
+        ~MapAdapterGoogle() { }
 
+    private:
         /*!
          * Convert the enum to a 1-character representation.
          * @param layer_type The layer type to convert.
          * @return the 1-character representation.
          */
         QString layerTypeToString(const MapAdapterGoogle::GoogleLayerType& layer_type);
-
-    private:
-        //! Disable copy constructor.
-        MapAdapterGoogle(const MapAdapterGoogle&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        MapAdapterGoogle& operator=(const MapAdapterGoogle&); /// @todo remove once MSVC supports default/delete syntax.
     };
 }

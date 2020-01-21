@@ -47,23 +47,16 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this geometry at.
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          */
-        GeometryPointCircle(const PointWorldCoord& point_coord, const QSizeF& size_px = QSizeF(10.0, 10.0), const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryPointCircle(const PointWorldCoord& point_coord, const QSizeF& size_px = QSizeF(10.0, 10.0), const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPointCircle(const GeometryPointCircle&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointCircle(const GeometryPointCircle&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPointCircle& operator=(const GeometryPointCircle&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryPointCircle& operator=(const GeometryPointCircle&) = delete;
 
         //! Destructor.
-        virtual ~GeometryPointCircle() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
-
-    private:
-        //! Disable copy constructor.
-        GeometryPointCircle(const GeometryPointCircle&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryPointCircle& operator=(const GeometryPointCircle&); /// @todo remove once MSVC supports default/delete syntax.
+        virtual ~GeometryPointCircle() { }
 
     protected:
         /*!

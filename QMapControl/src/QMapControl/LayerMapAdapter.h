@@ -59,7 +59,11 @@ namespace qmapcontrol
          * @param zoom_maximum The maximum zoom level to show this geometry at.
          * @param parent QObject parent ownership.
          */
-        LayerMapAdapter(const std::string& name, const std::shared_ptr<MapAdapter>& mapadapter = nullptr, const int& zoom_minimum = 0, const int& zoom_maximum = 17, QObject* parent = 0);
+        LayerMapAdapter(const std::string& name,
+                        const std::shared_ptr<MapAdapter>& mapadapter = nullptr,
+                        const int& zoom_minimum = 0,
+                        const int& zoom_maximum = kDefaultMaxZoom,
+                        QObject* parent = 0);
 
         //! Disable copy constructor.
         ///LayerMapAdapter(const LayerMapAdapter&) = delete; @todo re-add once MSVC supports default/delete syntax.
@@ -100,9 +104,12 @@ namespace qmapcontrol
 
     private:
         /// The map adapter drawn by this layer.
-        std::shared_ptr<MapAdapter> m_mapadapter;
+        std::shared_ptr<MapAdapter> m_mapAdapter;
 
         /// Mutex to protect map adapter.
         mutable QReadWriteLock m_mapadapter_mutex;
+
+        /// Issues prefetch requests for tiles around current view
+        void prefetchTiles(int furthest_tile_left, int furthest_tile_top, int furthest_tile_right, int furthest_tile_bottom, int controller_zoom) const;
     };
 }

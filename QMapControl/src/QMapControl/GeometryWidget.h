@@ -60,7 +60,7 @@ namespace qmapcontrol
         * @param zoom_minimum The minimum zoom level to show this geometry at.
         * @param zoom_maximum The maximum zoom level to show this geometry at.
         */
-        GeometryWidget(const qreal& longitude, const qreal& latitude, QWidget* widget, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryWidget(const qreal& longitude, const qreal& latitude, QWidget* widget, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Constructor.
         /*!
@@ -72,13 +72,13 @@ namespace qmapcontrol
         * @param zoom_minimum The minimum zoom level to show this geometry at.
         * @param zoom_maximum The maximum zoom level to show this geometry at.
         */
-        GeometryWidget(const PointWorldCoord& point_coord, QWidget* widget, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        GeometryWidget(const PointWorldCoord& point_coord, QWidget* widget, const int& zoom_minimum = 0, const int& zoom_maximum = kDefaultMaxZoom);
 
         //! Disable copy constructor.
-        ///GeometryPointWidget(const GeometryPointWidget&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryWidget(const GeometryWidget&) = delete;
 
         //! Disable copy assignment.
-        ///GeometryPointWidget& operator=(const GeometryPointWidget&) = delete; @todo re-add once MSVC supports default/delete syntax.
+        GeometryWidget& operator=(const GeometryWidget&) = delete;
 
         //! Destructor.
         virtual ~GeometryWidget() { } /// = default; @todo re-add once MSVC supports default/delete syntax.
@@ -175,13 +175,6 @@ namespace qmapcontrol
          * @return the geometry size (widget/pixmap) in pixels.
          */
         QSizeF calculateGeometrySizePx(const int& controller_zoom) const;
-
-    private:
-        //! Disable copy constructor.
-        GeometryWidget(const GeometryWidget&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        GeometryWidget& operator=(const GeometryWidget&); /// @todo remove once MSVC supports default/delete syntax.
 
     private:
         /// The x/y coordinate (longitude/latitude).

@@ -1,3 +1,9 @@
+### Fork Info
+
+This fork mainly focuses on offline map support and speedups.
+Samples and qmake project files are not maintained.
+
+
 # What is QMapControl?
 Based on the original QMapControl project (http://www.medieninf.de/qmapcontrol), this is an updated version of QMapControl that support Qt5.
 

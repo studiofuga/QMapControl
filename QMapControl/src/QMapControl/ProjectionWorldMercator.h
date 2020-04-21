@@ -25,49 +25,51 @@
 
 #pragma once
 
-// Qt includes.
-#include <QtCore/QPoint>
-
-// Local includes.
 #include "qmapcontrol_global.h"
-#include "Point.h"
+#include "Projection.h"
 
 /*!
- * @author Chris Stylianou <chris5287@gmail.com>
+ * @author Marek Mauder <marekmauder@gmail.com>
  */
 namespace qmapcontrol
 {
-    class QMAPCONTROL_EXPORT Projection
+    class QMAPCONTROL_EXPORT ProjectionWorldMercator : public Projection
     {
     public:
+        //! Constuctor.
+        /*!
+         * Projection Spherical Mercator (EPSG:3395 - meters) constructor.
+         */
+        ProjectionWorldMercator() { }
+
         //! Disable copy constructor.
-        Projection(const Projection&) = delete;
+        ProjectionWorldMercator(const ProjectionWorldMercator&) = delete;
 
         //! Disable copy assignment.
-        Projection& operator=(const Projection&) = delete;
+        ProjectionWorldMercator& operator=(const ProjectionWorldMercator&) = delete;
 
         //! Destructor.
-        virtual ~Projection() = default;
+        ~ProjectionWorldMercator() = default;
 
         /*!
          * The number of tiles on the x-axis for a given zoom.
          * @param zoom The zoom level.
          * @return number of tiles on the x-axis for a given zoom.
          */
-        virtual int tilesX(const int zoom) const = 0;
+        int tilesX(const int zoom) const final;
 
         /*!
          * The number of tiles on the y-axis for a given zoom.
          * @param zoom The zoom level.
          * @return number of tiles on the y-axis for a given zoom.
          */
-        virtual int tilesY(const int zoom) const = 0;
+        int tilesY(const int zoom) const final;
 
         /*!
          * Fetch the recognised EPSG number for the projection.
          * @return the recognised EPSG number for the projection.
          */
-        virtual int epsg() const = 0;
+        int epsg() const final { return 3395; }
 
         /*!
          * Converts a world coorindate point (longitude/latitude) into the pixel point for a given zoom.
@@ -75,7 +77,7 @@ namespace qmapcontrol
          * @param zoom The zoom level.
          * @return the converted world pixel point.
          */
-        virtual PointWorldPx toPointWorldPx(const PointWorldCoord& point_coord, const int zoom) const = 0;
+        PointWorldPx toPointWorldPx(const PointWorldCoord& point_coord, const int zoom) const final;
 
         /*!
          * Converts a world pixel point into the coorindate point (longitude/latitude) for a given zoom.
@@ -83,41 +85,11 @@ namespace qmapcontrol
          * @param zoom The zoom level.
          * @return the converted world coorindate point (longitude/latitude).
          */
-        virtual PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int zoom) const = 0;
+        PointWorldCoord toPointWorldCoord(const PointWorldPx& point_px, const int zoom) const final;
 
-    protected:
-        //! Constuctor.
-        /*!
-         * Projection constructor.
-         */
-        Projection() = default;
+    private:
+        inline double resolution(int tile_size_px, int zoom) const;
     };
-
-    namespace projection
-    {
-        //! Projection types available.
-        enum class EPSG
-        {
-            /// Equirectangular (EPSG:4326 - lat/long).
-            Equirectangular = 4326,
-            /// SphericalMercator (EPSG:3857 - meters)
-            SphericalMercator = 3857,
-            /// WorldMercator (EPSG:3395 - meters)
-            WorldMercator = 3395
-        };
-
-        constexpr EPSG kDefaultEpsg = EPSG::SphericalMercator;
-
-        /*!
-         * Get the singleton instance of the Projection.
-         * @return the singleton instance.
-         */
-        QMAPCONTROL_EXPORT Projection& get();
-
-        /*!
-         * Set the projection (Creates new singleton instance).
-         * @param type The projection type required.
-         */
-        QMAPCONTROL_EXPORT void set(const EPSG type);
-    }
 }
+
+

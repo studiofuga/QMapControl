@@ -54,8 +54,9 @@ namespace qmapcontrol
     PointWorldPx ProjectionEquirectangular::toPointWorldPx(const PointWorldCoord& point_coord, const int zoom) const
     {
         // Convert from coordinate to pixel by - top/left delta, then ratio of coords per pixel.
-        const qreal x_px((point_coord.longitude() + 180.0) * (tilesX(zoom) * ImageManager::get().tileSizePx()) / 360.0);
-        const qreal y_px(-(point_coord.latitude() - 90.0) * (tilesY(zoom) * ImageManager::get().tileSizePx()) / 180.0);
+        const int tile_size_px = ImageManager::get().tileSizePx();
+        const qreal x_px((point_coord.longitude() + 180.0) * (tilesX(zoom) * tile_size_px) / 360.0);
+        const qreal y_px(-(point_coord.latitude() - 90.0) * (tilesY(zoom) * tile_size_px) / 180.0);
 
         // Return the converted point (x/y pixel point - 0,0 is screen top left).
         return PointWorldPx(x_px, y_px);
@@ -64,8 +65,9 @@ namespace qmapcontrol
     PointWorldCoord ProjectionEquirectangular::toPointWorldCoord(const PointWorldPx& point_px, const int zoom) const
     {
         // Convert pixel into coordinate by * against ratio of pixels per coord, then + top/left delta offset.
-        const qreal longitude((point_px.x() * 360.0 / (tilesX(zoom) * ImageManager::get().tileSizePx())) - 180.0);
-        const qreal latitude(-(point_px.y() * 180.0 / (tilesY(zoom) * ImageManager::get().tileSizePx())) + 90.0);
+        const int tile_size_px = ImageManager::get().tileSizePx();
+        const qreal longitude((point_px.x() * 360.0 / (tilesX(zoom) * tile_size_px)) - 180.0);
+        const qreal latitude(-(point_px.y() * 180.0 / (tilesY(zoom) * tile_size_px)) + 90.0);
 
         // Return the converted coordinate (longitude/latitude coordinate - 0,0 is screen middle).
         return PointWorldCoord(longitude, latitude);

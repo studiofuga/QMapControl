@@ -31,6 +31,7 @@
 // Local includes.
 #include "ProjectionEquirectangular.h"
 #include "ProjectionSphericalMercator.h"
+#include "ProjectionWorldMercator.h"
 
 namespace qmapcontrol
 {
@@ -46,7 +47,7 @@ namespace qmapcontrol
         if (m_instance == nullptr)
         {
             // Create a default instance (Spherical Mercator).
-            set(EPSG::SphericalMercator);
+            set(kDefaultEpsg);
         }
 
         // Return the reference to the instance object.
@@ -55,16 +56,18 @@ namespace qmapcontrol
 
     void projection::set(const EPSG type)
     {
-        // Equirectangular ?
-        if (type == EPSG::Equirectangular)
-        {
-            // Create a Equirectangular instance.
+        switch (type) {
+        case EPSG::Equirectangular:
             m_instance.reset(new ProjectionEquirectangular);
-        }
-        else
-        {
-            // Default to a Spherical Mercator instance.
+            break;
+        case EPSG::SphericalMercator:
             m_instance.reset(new ProjectionSphericalMercator);
+            break;
+        case EPSG::WorldMercator:
+            m_instance.reset(new ProjectionWorldMercator);
+            break;
+        default:
+            qFatal("Unsuported EPSG: %d", static_cast<int>(type));
         }
     }
 }

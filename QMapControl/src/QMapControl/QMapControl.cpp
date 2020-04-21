@@ -98,9 +98,6 @@ namespace qmapcontrol
         QObject::connect(&ImageManager::get(), &ImageManager::imageUpdated, this, &QMapControl::requestRedraw);
         QObject::connect(&ImageManager::get(), &ImageManager::downloadingFinished, this, &QMapControl::loadingFinished);
 
-        // Default - projection as Spherical Mercator.
-        setProjection(projection::EPSG::SphericalMercator);
-
         // Default - allow the map to gain click focus.
         setFocusPolicy(Qt::ClickFocus);
 
@@ -119,12 +116,6 @@ namespace qmapcontrol
 
     /// Public...
     // Settings.
-    void QMapControl::setProjection(const projection::EPSG& epsg)
-    {
-        // Set the projection.
-        projection::set(epsg);
-    }
-
     void QMapControl::setBackgroundColour(const QColor& colour)
     {
         m_backgroundColor = colour;
@@ -151,6 +142,7 @@ namespace qmapcontrol
     void QMapControl::enableRedraws(bool enabled)
     {
         m_redrawsEnabled = enabled;
+        emit requestRedraw();
     }
 
     void QMapControl::enableProgressIndicator(bool enabled) {
@@ -926,7 +918,7 @@ namespace qmapcontrol
             }
 
             // Reset the primary screen, as this is invalid.
-            m_primary_screen.fill(kInitialBufferColor);
+            //m_primary_screen.fill(kInitialBufferColor);
 
             // Increase the zoom!
             m_current_zoom++;
@@ -962,7 +954,7 @@ namespace qmapcontrol
             }
 
             // Reset the primary screen, as this is invalid.
-            m_primary_screen.fill(kInitialBufferColor);
+           // m_primary_screen.fill(kInitialBufferColor);
 
             // Decrease the zoom!
             m_current_zoom--;
@@ -990,22 +982,42 @@ namespace qmapcontrol
         // Check the requested zoom isn't already the current zoom.
         if (m_current_zoom != zoom)
         {
-            // Is the required zoom less than current zoom?
-            if (m_current_zoom > zoom)
+            if (m_redrawsEnabled && m_primary_screen_scaled_enabled)
             {
-                // Keep zooming out until zoom == current zoom.
-                for (int i = m_current_zoom; i > zoom; i--)
+                // Is the required zoom less than current zoom?
+                if (m_current_zoom > zoom)
                 {
-                    zoomOut();
+                    if (m_primary_screen_scaled_enabled) {
+                        // Keep zooming out until zoom == current zoom.
+                        for (int i = m_current_zoom; i > zoom; i--)
+                        {
+                            zoomOut();
+                        }
+                    } else {
+
+                    }
                 }
-            }
-            else
-            {
-                // Keep zooming in until zoom == current zoom.
-                for (int i = m_current_zoom; i < zoom; i++)
+                else
                 {
-                    zoomIn();
+                    // Keep zooming in until zoom == current zoom.
+                    for (int i = m_current_zoom; i < zoom; i++)
+                    {
+                        zoomIn();
+                    }
                 }
+            } else {
+                // Cancel existing image loading.
+                ImageManager::get().abortLoading();
+
+                /// @TODO Could we cancel current layer drawing as well?
+                // Reset the primary screen, as this is invalid.
+                //m_primary_screen.fill(kInitialBufferColor);
+
+                m_current_zoom = zoom;
+                emit zoomChanged();
+
+                // Force the primary screen to be redrawn.
+                redrawPrimaryScreen(true);
             }
         }
     }
@@ -1122,6 +1134,11 @@ namespace qmapcontrol
         const int width = 25;
 
         m_progress_indicator.setGeometry(m_viewport_size_px.width() - width - margin, margin, width, width);
+    }
+
+    void QMapControl::resizeEvent(QResizeEvent* resize_event) {
+        QWidget::resizeEvent(resize_event);
+        emit resized(size());
     }
 
     // Drawing management.

@@ -154,9 +154,9 @@ namespace qmapcontrol
 
         /*!
           */
-        void checkReplyTimeouts();
+        void abortTimeoutedRequests();
 
-    private:        
+    private:
         QNetworkAccessManager m_accessManager;
 
         /// Downloading image queue.
@@ -166,9 +166,11 @@ namespace qmapcontrol
         mutable QMutex m_mutex_downloading_image;
 
         QString m_proxyUserName;
-        QString m_proxyPassword; 
+        QString m_proxyPassword;
 
         /// For periodic checks of timeouted requests
         QTimer m_timeoutTimer;
+
+        void requestDownload(const QUrl& url, bool cacheOnly);
     };
 }

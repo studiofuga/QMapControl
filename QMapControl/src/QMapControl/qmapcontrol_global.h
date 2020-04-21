@@ -8,6 +8,7 @@
  * @author Chris Stylianou <chris5287@gmail.com>
  */
 
+/*
 #ifdef QMAPCONTROL_LIBRARY
     /// Defines that the specified function, variable or class should be exported.
     #define QMAPCONTROL_EXPORT Q_DECL_EXPORT
@@ -15,5 +16,15 @@
     /// Defines that the specified function, variable or class should be imported.
     #define QMAPCONTROL_EXPORT Q_DECL_IMPORT
 #endif
+*/
 
-const int kDefaultMaxZoom = 20;
+//#define QMAP_DEBUG 1
+
+// MSVC does not define M_PI in <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#define QMAPCONTROL_EXPORT
+
+constexpr int kDefaultMaxZoom = 20;

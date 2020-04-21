@@ -35,6 +35,7 @@
 #include <QCache>
 #include <QNetworkDiskCache>
 #include <QReadWriteLock>
+#include <QWaitCondition>
 
 // STL includes.
 #include <chrono>
@@ -50,9 +51,23 @@
  */
 namespace qmapcontrol
 {
+    class ITileProvider {
+    public:
+        virtual bool getTileData(const QUrl& url, QByteArray& data) = 0;
+        virtual ~ITileProvider() { }
+    };
+
     class QMAPCONTROL_EXPORT ImageManager : public QObject
     {
         Q_OBJECT
+    public:
+        enum class CachePolicy {
+            AlwaysNetwork,
+            PreferNetwork,
+            PreferCache,
+            AlwaysCache,
+        };
+
     public:
         /*!
          * Get the singleton instance of the Image Manager.
@@ -116,6 +131,13 @@ namespace qmapcontrol
         QPixmap getImage(const QUrl& url);
 
         /*!
+         * \brief Obtains binary content for a cached url.
+         * \param url The image url.
+         * \return binary content of the url response. Empty if it is not present locally.
+         */
+        QByteArray rawImageFromDiskCache(const QUrl& url) const;
+
+        /*!
          * Fetches the requested image using the getImage function, which has been deemed
          * "offscreen" but may be needed soon.
          * @param url The image url to fetch.
@@ -127,14 +149,27 @@ namespace qmapcontrol
          * for caching some area for later offline use. Cached tiles do not trigger
          * map redraws when received from network nor they are stored in memory cache.
          * \param url
+         * \return true if tile is already in cache, false if network request has spawned and
+         *         caller should wait for "imageCached" signal.
          */
-        void cacheImageToDisk(const QUrl& url);
+        bool cacheImageToDisk(const QUrl& url);
+
+        /*!
+         * \brief clears all tiles stored in the disk cache.
+         */
+        void clearDiskCache();
 
         /*!
          * \brief setLoadingPixmap sets the pixmap displayed when a tile is not yet loaded
          * \param pixmap the pixmap to display
          */
-        void setLoadingPixmap (const QPixmap &pixmap);
+        void setLoadingPixmap(const QPixmap &pixmap);
+
+        /*!
+         * \brief setEmptyPixmap sets the pixmap displayed when a tile is empty/out of bounds
+         * \param pixmap the pixmap to display
+         */
+        void setEmptyPixmap(const QPixmap &pixmap);
 
         /*!
          * Enables the persistent disk cache for tile images (also over application restarts),
@@ -143,8 +178,9 @@ namespace qmapcontrol
          * @param capacityMiB Cache capacity in MiB
          * @return whether the persistent cache was enabled.
          */
-        bool enableDiskCache(const QDir& dir, int capacityMiB);
+        bool configureDiskCache(const QDir& dir, int capacityMiB);
 
+        QString getCacheDir() const { return m_diskCache->cacheDirectory(); }
         /*!
          * Sets capacity of memory cache for decoded tile images.
          * @param capacityMiB Max cache capacity in MiB, when full LRU images are deleted
@@ -152,16 +188,27 @@ namespace qmapcontrol
         void setMemoryCacheCapacity(int capacityMiB);
 
         /*!
-         * When offline mode is enabled tile images are pulled from local disk cache only
-         * (no spawning of network requests etc.). Disk cache must be set (and filled) for offline mode to work.
-         * \param enabled
+         * Sets cache policy (default: AlwaysCache or simply "offline")
+         * AlwaysNetwork: always pulls tiles from network, cache is not activated.
+         * PreferNetwork: tries to pull latesttile from network, othewise goes to cache
+         * PreferCache:   pulls tile from cache before asking over network
+         * AlwaysCache:   pulls tiles only from cache, there are no network requests
+         * \param policy
          */
-        void setOfflineMode(bool enabled);
+        void setCachePolicy(CachePolicy policy);
 
         /*!
-         * Is offline mode enabled right now?
+         * Return active caching policy.
          */
-        bool offlineMode() const { return m_offlineMode; }
+        CachePolicy cachePolicy() const { return m_cachePolicy; }
+
+        /*!
+         * Custom tile provider can be used to bypass internal tile downloads
+         * and provide tiles from user source e.g. database. Memory caching of tiles is
+         * still applied with custom provider.
+         * \param provider New tile provider or null to reset and use internal
+         */
+        void setCustomTileProvider(ITileProvider *provider);
 
     signals:
         /*!
@@ -175,7 +222,7 @@ namespace qmapcontrol
          * Signal emitted when a new image has been queued for download.
          * @param count The current size of the download queue.
          */
-        void downloadingInProgress(const int count);
+        void downloadingInProgress(int count);
 
         /*!
          * Signal emitted when a image download has finished and the download queue is empty.
@@ -192,7 +239,6 @@ namespace qmapcontrol
          * Emited when some image (reuqested by cacheImageToDisk()) has been cached.
          */
         void imageCached();
-
         /*!
           * Emitted when image download fails for reasons other than cancellation.
           */
@@ -216,11 +262,10 @@ namespace qmapcontrol
          * @param parent QObject parent ownership.
          */
         ImageManager(const int tile_size_px, QObject* parent = nullptr);
-
         /*!
          * Create a loading pixmap for use.
          */
-        void setupLoadingPixmap();
+        void setupPlaceholderPixmaps();
 
         /*!
          * Generate a md5 hex for the given url.
@@ -232,7 +277,9 @@ namespace qmapcontrol
         void insertTileToMemoryCache(const QUrl& url, const QPixmap& pixmap);
         bool findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const;
 
-        QPixmap getImageInternal(const QUrl& url, bool bypassMemChache);
+        QPixmap getImageInternal(const QUrl& url);
+
+        QPixmap getImageFromDevice(const QUrl& url, QIODevice* device);
 
     private:
         /// The tile size in pixels.
@@ -250,16 +297,21 @@ namespace qmapcontrol
         /// Local disk cache for tile image files
         QNetworkDiskCache* m_diskCache;
 
-        /// Only use local cache, no spawning of network requests
-        bool m_offlineMode;
+        /// Active cache policy
+        CachePolicy m_cachePolicy;
 
-        /// Pixmap of an empty image with "LOADING..." text.
+        /// Placeholder pixmap for tile being downloaded.
         QPixmap m_pixmapLoading;
+
+        /// Placeholder pixmap for empty tiles (e.g. out of bounds of offline map)
+        QPixmap m_pixmapEmpty;
 
         /// A set of image urls being prefetched.
         QSet<QUrl> m_prefetchUrls;
 
-        /// A set of image urls being cached
-        QSet<QUrl> m_cacheUrls;        
+        /// Custom tile provider
+        ITileProvider *m_tileProvider;
+
+        mutable QMutex m_tileProviderLock;
     };
 }

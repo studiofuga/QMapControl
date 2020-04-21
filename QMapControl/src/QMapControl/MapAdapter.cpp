@@ -67,6 +67,7 @@ namespace qmapcontrol
         if (m_epsg_projections.find(static_cast<projection::EPSG>(projection::get().epsg())) == m_epsg_projections.end())
         {
             // Projection not supported, fail!
+            qWarning("Unsupported EPSG projection: %d", projection::get().epsg());
         }
         // Else check the zoom is supported (if min <= max).
         else if (m_adapter_zoom_minimum <= m_adapter_zoom_maximum &&

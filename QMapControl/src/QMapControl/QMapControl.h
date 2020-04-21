@@ -101,7 +101,7 @@ namespace qmapcontrol
          * @param parent QObject parent ownership.
          * @param window_flags QWidget window flags.
          */
-        QMapControl(QWidget* parent = nullptr, Qt::WindowFlags window_flags = 0);
+        QMapControl(QWidget* parent = nullptr, Qt::WindowFlags window_flags = Qt::Widget);
 
         //! QMapControl constructor.
         /*!
@@ -125,13 +125,7 @@ namespace qmapcontrol
         //! Destructor.
         ~QMapControl();
 
-        // Settings.
-        /*!
-         * Set the displayed projection.
-         * @param epsg The projection required.
-         */
-        void setProjection(const projection::EPSG& epsg = projection::EPSG::SphericalMercator);
-
+        // Settings.       
         /*!
          * Set the background colour of the map control widget.
          * @param colour The background colour to set.
@@ -164,6 +158,7 @@ namespace qmapcontrol
          */
         void enableRedraws(bool enabled);
 
+        bool areRedrawsEnabled() const { return m_redrawsEnabled; }
         /*!
          * Enables or disabled progress indicator display
          */
@@ -506,6 +501,12 @@ namespace qmapcontrol
         void paintEvent(QPaintEvent* paint_event);
 
         /*!
+         * Called by QWidget to resize the current view to the QWidget display.
+         * @param resize_event The resize event.
+         */
+        void resizeEvent(QResizeEvent* resize_event);
+
+        /*!
          * Draw the primary screen and "auto-moving" geometries to the pixmap.
          * @param painter The pixmap painter to draw to.
          */
@@ -622,6 +623,9 @@ namespace qmapcontrol
 
         /// Emitted whem zoom level changes
         void zoomChanged();
+
+        /// Emitted when size is changed
+        void resized(const QSize& size);
 
     private:
         /// Whether the scale should be visible.

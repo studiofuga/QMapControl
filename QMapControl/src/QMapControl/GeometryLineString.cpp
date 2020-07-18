@@ -27,7 +27,7 @@
 
 // Local includes.
 #include "Projection.h"
-#include <LayerGeometry.h>
+#include "LayerGeometry.h"
 
 namespace qmapcontrol
 {
@@ -43,7 +43,7 @@ namespace qmapcontrol
     {
     }
 
-    std::vector<PointWorldCoord> GeometryLineString::points() const
+    const std::vector<PointWorldCoord> &GeometryLineString::points() const
     {
         // Return the points.
         return m_points;
@@ -54,7 +54,7 @@ namespace qmapcontrol
         static const int N=11;
 
         std::vector<PointWorldCoord> coords;
-        int n = m_points.size();
+        auto n = m_points.size();
 
         if (n < 2)
             return m_points;

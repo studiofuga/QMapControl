@@ -125,6 +125,10 @@ namespace qmapcontrol
 
     QMapControl::~QMapControl()
     {
+        mAborted= true;
+        ImageManager::get().abortLoading();
+        QThread::currentThread()->sleep(1);
+
         // Destroy the image manager instance.
         ImageManager::destory();
     }
@@ -349,9 +353,6 @@ namespace qmapcontrol
     // Viewport management.
     void QMapControl::setViewportSize(const QSizeF& size_px)
     {
-        // Set the inherited QWidget maximum size.
-        QWidget::setMaximumSize(size_px.width() + 1, size_px.height() + 1);
-
         // Set the size of the viewpoint (visible-part of the layer) in pixels.
         m_viewport_size_px = size_px;
 
@@ -1484,6 +1485,8 @@ namespace qmapcontrol
             // Loop through each layer and draw it to the backbuffer.
             for(std::shared_ptr<Layer> layer : m_layers)
             {
+                if (mAborted)
+                    return;
                 // Draw the layer to the backbuffer.
                 layer->draw(painter_back_buffer, backbuffer_rect_px, m_current_zoom);
             }
@@ -1576,4 +1579,10 @@ namespace qmapcontrol
         // Schedule a repaint.
         QWidget::update();
     }
+}
+
+
+void qmapcontrol::QMapControl::resizeEvent(QResizeEvent *event)
+{
+    setViewportSize(event->size());
 }

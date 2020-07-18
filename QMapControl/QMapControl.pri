@@ -1,5 +1,5 @@
-# Add support for c++11.
-CONFIG += c++11
+# Add support for c++14.
+CONFIG += c++14
 
 # Hide debug output in release mode.
 CONFIG(release, debug|release) : DEFINES += QT_NO_DEBUG_OUTPUT
@@ -30,12 +30,23 @@ RCC_DIR = resources
 # Build UI directory.
 UI_DIR = ui
 
-# Target install directory.
-isEmpty(DESTDIR) {
-    DESTDIR = lib
-}
-
 # Add Qt modules.
 QT +=                               \
     network                         \
     widgets                         \
+
+# Variables for clients
+
+QMAPCONTROL_LIB=qmapcontrol
+CONFIG(debug,release|debug) {
+    QMAPCONTROL_LIB=qmapcontrold
+}
+
+win32 {
+    QMAPCONTROL_LIB=$${QMAPCONTROL_LIB}1
+    CGAL_LIBS= -lCGAL-vc140-mt-4.9 -lgmp -lboost_system$${BOOST_SUFFIX}
+}
+
+unix {
+    CGAL_LIBS= -lCGAL -lgmp
+}

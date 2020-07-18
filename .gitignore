@@ -43,3 +43,6 @@ html/*
 
 # MacOS garbage
 .DS_Store
+
+cmake-build-*
+.idea

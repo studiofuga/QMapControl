@@ -1,1 +1,2 @@
 add_subdirectory(Mapviewer)
+add_subdirectory(ShapeFilesViewer)

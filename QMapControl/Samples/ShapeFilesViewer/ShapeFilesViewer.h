@@ -8,6 +8,8 @@
 #include "QMapControl/QMapControl.h"
 #include "QMapControl/MapAdapterOSM.h"
 #include "QMapControl/LayerMapAdapter.h"
+#include "QMapControl/ESRIShapefile.h"
+#include "QMapControl/LayerESRIShapefile.h"
 
 #include <QtWidgets/QMainWindow>
 
@@ -19,10 +21,18 @@ class ShapeFilesViewer : public QMainWindow
 
     qmapcontrol::QMapControl *map;
     std::shared_ptr<qmapcontrol::MapAdapterOSM> baseAdapter;
-    std::shared_ptr<qmapcontrol::LayerMapAdapter> baseMap;
+    std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
 
+    std::shared_ptr<qmapcontrol::ESRIShapefile> shpAdapter;
+    std::shared_ptr<qmapcontrol::LayerESRIShapefile> shpLayer;
 public:
     ShapeFilesViewer();
+
+private:
+    void buildMenu();
+
+public slots:
+    void onLoadShapeFile();
 };
 
 #endif // QMAPCONTROL_SHAPEFILESVIEWER_H

@@ -6,6 +6,7 @@ add_executable(ShapeFilesViewer WIN32
 target_include_directories(ShapeFilesViewer
         PRIVATE
         ${CMAKE_SOURCE_DIR}/QMapControl/src
+        ${GDAL_INCLUDE_DIR}
         )
 
 target_link_libraries(ShapeFilesViewer QMapControl)

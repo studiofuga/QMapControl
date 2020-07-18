@@ -233,13 +233,6 @@ namespace qmapcontrol
          */
         void stopFollowingGeometry();
 
-        // Viewport management.
-        /*!
-         * Set the viewport size in pixels.
-         * @param size_px The viewport (visible-part of each layer) size in pixels.
-         */
-        void setViewportSize(const QSizeF& size_px);
-
         /*!
          * Fetches the visible viewport rect in world coordinates.
          * @return the visible viewport rect in world coordinates.
@@ -381,38 +374,38 @@ namespace qmapcontrol
          * Called when a mouse button is pressed down.
          * @param mouse_event The mouse event.
          */
-        void mousePressEvent(QMouseEvent* mouse_event);
+        void mousePressEvent(QMouseEvent* mouse_event) override;
 
         /*!
          * Called when a mouse button is released.
          * @param mouse_event The mouse event.
          */
-        void mouseReleaseEvent(QMouseEvent* mouse_event);
+        void mouseReleaseEvent(QMouseEvent* mouse_event) override;
 
         /*!
          * Called when a mouse button is double clicked.
          * @param mouse_event The mouse event.
          */
-        void mouseDoubleClickEvent(QMouseEvent* mouse_event);
+        void mouseDoubleClickEvent(QMouseEvent* mouse_event) override;
 
         /*!
          * Called when a mouse is moved.
          * @param mouse_event The mouse event.
          */
-        void mouseMoveEvent(QMouseEvent* mouse_event);
+        void mouseMoveEvent(QMouseEvent* mouse_event) override;
 
         /*!
          * Called when a mouse's wheel is scrolled.
          * @param wheel_event The mouse wheel event.
          */
-        void wheelEvent(QWheelEvent* wheel_event);
+        void wheelEvent(QWheelEvent* wheel_event) override;
 
         // Keyboard management.
         /*!
          * Called when a keyboard key is pressed.
          * @param key_event The keyboard key event.
          */
-        void keyPressEvent(QKeyEvent* key_event);
+        void keyPressEvent(QKeyEvent* key_event) override;
 
         // Drawing management.
         /*!
@@ -512,7 +505,7 @@ namespace qmapcontrol
          * Called by QWidget to redraw the current view to the QWidget display.
          * @param paint_event The paint event.
          */
-        void paintEvent(QPaintEvent* paint_event);
+        void paintEvent(QPaintEvent* paint_event) override;
 
         /*!
          * Draw the primary screen and "auto-moving" geometries to the pixmap.
@@ -744,5 +737,18 @@ namespace qmapcontrol
 
         /// Progress indicator to alert user to redrawing progress.
         QProgressIndicator m_progress_indicator;
+
+        QAtomicInt mAborted = false;
+
+        // Viewport management.
+        /*!
+         * Set the viewport size in pixels.
+         * @param size_px The viewport (visible-part of each layer) size in pixels.
+         */
+        void setViewportSize(const QSizeF& size_px);
+
+    protected:
+        void resizeEvent(QResizeEvent *event) override;
+
     };
 }

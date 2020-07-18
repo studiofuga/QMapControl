@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    GDALAllRegister();
+
     ShapeFilesViewer mainWindow;
     mainWindow.resize(800, 600);
     mainWindow.show();

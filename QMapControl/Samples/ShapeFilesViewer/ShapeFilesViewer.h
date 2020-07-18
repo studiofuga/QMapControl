@@ -25,6 +25,8 @@ class ShapeFilesViewer : public QMainWindow
 
     std::shared_ptr<qmapcontrol::ESRIShapefile> shpAdapter;
     std::shared_ptr<qmapcontrol::LayerESRIShapefile> shpLayer;
+
+    GDALDataset *shpDataSet = nullptr;
 public:
     ShapeFilesViewer();
 

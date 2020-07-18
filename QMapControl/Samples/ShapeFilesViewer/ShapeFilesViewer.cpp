@@ -8,8 +8,12 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include <QDebug>
+
+#include <stdexcept>
+#include <sstream>
 
 using namespace qmapcontrol;
 
@@ -25,6 +29,7 @@ ShapeFilesViewer::ShapeFilesViewer()
 
     map->setMapFocusPoint(PointWorldCoord(  -77.042793, -12.046374));
     map->setZoom(9);
+    map->setBackgroundColour(Qt::white);
 
     setCentralWidget(map);
 
@@ -40,20 +45,46 @@ void ShapeFilesViewer::buildMenu() {
 }
 
 void ShapeFilesViewer::onLoadShapeFile() {
-    qDebug() << "Triggered";
-    auto shapefile = QFileDialog::getOpenFileName(this, tr("Select Shapefile to load"),
-                                                  QString(),
-                                                  tr("ShapeFiles (*.shp);;All files (*.*)")
-                                                  );
+    try
+    {
+        qDebug() << "Triggered";
+        auto shapefile
+            = QFileDialog::getOpenFileName(this, tr("Select Shapefile to load"), QString(),
+                                           tr("ShapeFiles (*.shp);;All files (*.*)"));
 
-    qDebug() << "Selected: " << shapefile;
-    if (!shapefile.isEmpty()) {
-        auto stdShapeFileName = shapefile.toStdString();
-        shpAdapter = std::make_shared<ESRIShapefile>(stdShapeFileName, "ShapeFile");
-        shpLayer = std::make_shared<LayerESRIShapefile>("ShapeFile-Layer");
-        shpLayer->addESRIShapefile(shpAdapter);
+        qDebug() << "Selected: " << shapefile;
+        if(!shapefile.isEmpty())
+        {
+            if (shpDataSet != nullptr)
+                delete shpDataSet;
 
-        map->addLayer(shpLayer);
+            shpDataSet = (GDALDataset*)OGROpen(shapefile.toStdString().c_str(), 0, nullptr);
+            if(!shpDataSet)
+            {
+                std::ostringstream  ss;
+                ss << "Can't load shapefile " << shapefile.toStdString() << ": ";
+                throw std::runtime_error(ss.str());
+            }
+
+            auto stdShapeFileName = shapefile.toStdString();
+
+            // NOTE: the second parameter *must* be either nullstring or the name
+            // of a layer present in the shape file! Otherwise nothing will be displayed.
+            shpAdapter = std::make_shared<ESRIShapefile>(shpDataSet, "");
+
+            shpAdapter->setPenPolygon(QPen(Qt::red));
+            QColor col(Qt::yellow);
+            col.setAlpha(64);
+            shpAdapter->setBrushPolygon(QBrush(col));
+
+            shpLayer = std::make_shared<LayerESRIShapefile>("ShapeFile-Layer");
+            shpLayer->addESRIShapefile(shpAdapter);
+
+            map->addLayer(shpLayer);
+            shpLayer->setVisible(true);
+        }
+    } catch (std::exception &x) {
+        QMessageBox::warning(this, "Error loading shapefile", x.what());
     }
 }
 

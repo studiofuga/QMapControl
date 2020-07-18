@@ -1,4 +1,4 @@
-add_executable(ShapeFilesViewer
+add_executable(ShapeFilesViewer WIN32
         ShapeFilesViewer.cpp ShapeFilesViewer.h
         )
 
@@ -10,3 +10,8 @@ target_include_directories(ShapeFilesViewer
 
 target_link_libraries(ShapeFilesViewer QMapControl)
 
+# Set target directory
+install(TARGETS ShapeFilesViewer
+        LIBRARY DESTINATION bin
+        ARCHIVE DESTINATION bin
+        COMPONENT examples)

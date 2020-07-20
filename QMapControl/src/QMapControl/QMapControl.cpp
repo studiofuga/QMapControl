@@ -149,9 +149,8 @@ namespace qmapcontrol
 
     void QMapControl::setBackgroundColour(const QColor& colour)
     {
-        // Update the QWidget background colour.
-        QWidget::setObjectName("QMapControl");
-        QWidget::setStyleSheet("QWidget#QMapControl { background-color: " + colour.name() + " }");
+        mBackgroundColor = colour;
+        requestRedraw();
     }
 
     void QMapControl::enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path)
@@ -1231,16 +1230,14 @@ namespace qmapcontrol
         // Ensure antialiasing is enabled (primitives and pixmaps).
         painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
-        // Apply style sheet options to painter.
-        QStyleOption style_options;
-        style_options.initFrom(this);
-        QWidget::style()->drawPrimitive(QStyle::PE_Widget, &style_options, &painter, this);
+        auto vport = RectViewportPx(PointViewportPx(0.0, 0.0), PointViewportPx(m_viewport_size_px.width(), m_viewport_size_px.height())).rawRect();
+        painter.fillRect(vport, mBackgroundColor);
 
         // Draw the current primary screen to the widget.
         drawPrimaryScreen(&painter);
 
         // Draw a box around the edge of the viewport (useful for debugging).
-        painter.drawRect(RectViewportPx(PointViewportPx(0.0, 0.0), PointViewportPx(m_viewport_size_px.width(), m_viewport_size_px.height())).rawRect());
+        painter.drawRect(vport);
 
         // Should we draw the scalebar?
         if(m_scalebar_enabled)

@@ -11,6 +11,7 @@
 #include <QMessageBox>
 
 #include <QDebug>
+#include <QSettings>
 
 #include <stdexcept>
 #include <sstream>
@@ -36,32 +37,37 @@ ShapeFilesViewer::ShapeFilesViewer()
     buildMenu();
 }
 
-void ShapeFilesViewer::buildMenu() {
+void ShapeFilesViewer::buildMenu()
+{
     auto fileMenu = menuBar()->addMenu(tr("&File"));
     auto actionSelectShapeFile = new QAction("Load Shapefile...");
     fileMenu->addAction(actionSelectShapeFile);
 
     connect(actionSelectShapeFile, &QAction::triggered, this, &ShapeFilesViewer::onLoadShapeFile);
+
+    auto actionSelectTiffFile = new QAction("Load Tiff...");
+    fileMenu->addAction(actionSelectTiffFile);
+
+    connect(actionSelectTiffFile, &QAction::triggered, this, &ShapeFilesViewer::onLoadTiffFile);
 }
 
-void ShapeFilesViewer::onLoadShapeFile() {
-    try
-    {
-        qDebug() << "Triggered";
-        auto shapefile
-            = QFileDialog::getOpenFileName(this, tr("Select Shapefile to load"), QString(),
-                                           tr("ShapeFiles (*.shp);;All files (*.*)"));
+void ShapeFilesViewer::onLoadShapeFile()
+{
+    QSettings settings;
 
-        qDebug() << "Selected: " << shapefile;
-        if(!shapefile.isEmpty())
-        {
-            if (shpDataSet != nullptr)
+    try {
+        auto basedir = settings.value("shapefiledir").toString();
+        auto shapefile = QFileDialog::getOpenFileName(this, tr("Select Shapefile to load"), basedir,
+                                                      tr("ShapeFiles (*.shp);;All files (*.*)"));
+
+        if (!shapefile.isEmpty()) {
+            if (shpDataSet != nullptr) {
                 delete shpDataSet;
+            }
 
-            shpDataSet = (GDALDataset*)OGROpen(shapefile.toStdString().c_str(), 0, nullptr);
-            if(!shpDataSet)
-            {
-                std::ostringstream  ss;
+            shpDataSet = (GDALDataset *) OGROpen(shapefile.toStdString().c_str(), 0, nullptr);
+            if (!shpDataSet) {
+                std::ostringstream ss;
                 ss << "Can't load shapefile " << shapefile.toStdString() << ": ";
                 throw std::runtime_error(ss.str());
             }
@@ -82,9 +88,56 @@ void ShapeFilesViewer::onLoadShapeFile() {
 
             map->addLayer(shpLayer);
             shpLayer->setVisible(true);
+
+            QFileInfo info(shapefile);
+            settings.setValue("shapefiledir", info.absolutePath());
         }
-    } catch (std::exception &x) {
+    }
+    catch (std::exception &x) {
         QMessageBox::warning(this, "Error loading shapefile", x.what());
+    }
+}
+
+void ShapeFilesViewer::onLoadTiffFile()
+{
+    QSettings settings;
+
+    try {
+        auto basedir = settings.value("tifffiledir").toString();
+        auto tiffFileName = QFileDialog::getOpenFileName(this, tr("Select Tiff to load"), basedir,
+                                                         tr("TIFF Files (*.tif);;All files (*.*)"));
+
+        if (!tiffFileName.isEmpty()) {
+            if (tiffDataSet != nullptr) {
+                delete tiffDataSet;
+            }
+
+            tiffDataSet = (GDALDataset *) GDALOpen(tiffFileName.toStdString().c_str(), GA_ReadOnly);
+
+            double adfGeoTransform[6];
+            qDebug() << "Driver: " << tiffDataSet->GetDriver()->GetDescription() << " - "
+                     << tiffDataSet->GetDriver()->GetMetadataItem(GDAL_DMD_LONGNAME);
+            qDebug() << "Size:" << tiffDataSet->GetRasterXSize() << tiffDataSet->GetRasterYSize()
+                     << tiffDataSet->GetRasterCount();
+            if (tiffDataSet->GetProjectionRef() != NULL)
+                qDebug() << "Projection: " << tiffDataSet->GetProjectionRef();
+            if (tiffDataSet->GetGeoTransform(adfGeoTransform) == CE_None) {
+                qDebug() << "Origin = (" << adfGeoTransform[0] << "," << adfGeoTransform[3] << ")";
+                qDebug() << "Pixel Size = (" << adfGeoTransform[1] << "," << adfGeoTransform[5];
+            }
+
+            tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, "");
+            tiffLayer = std::make_shared<LayerRaster>("Tiff-Layer");
+            tiffLayer->addRaster(tiffAdapter);
+
+            map->addLayer(tiffLayer);
+            tiffLayer->setVisible(true);
+
+            QFileInfo info(tiffFileName);
+            settings.setValue("tifffiledir", info.absolutePath());
+        }
+    }
+    catch (std::exception &x) {
     }
 }
 

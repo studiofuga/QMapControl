@@ -49,6 +49,36 @@ void ShapeFilesViewer::buildMenu()
     fileMenu->addAction(actionSelectTiffFile);
 
     connect(actionSelectTiffFile, &QAction::triggered, this, &ShapeFilesViewer::onLoadTiffFile);
+
+    auto layersMenu = menuBar()->addMenu(tr("&Layers"));
+    auto actionLayermap = new QAction("Map");
+    actionLayermap->setCheckable(true);
+    actionLayermap->setChecked(true);
+    layersMenu->addAction(actionLayermap);
+    connect(actionLayermap, &QAction::toggled, this, [this](bool checked) {
+        baseLayer->setVisible(checked);
+    });
+
+    auto actionShpLayer = new QAction("Shapefile");
+    actionShpLayer->setCheckable(true);
+    actionShpLayer->setChecked(true);
+    layersMenu->addAction(actionShpLayer);
+    connect(actionShpLayer, &QAction::toggled, this, [this](bool checked) {
+        if (shpLayer != nullptr) {
+            shpLayer->setVisible(checked);
+        }
+    });
+
+    auto actionTiffLayer = new QAction("Tiff");
+    actionTiffLayer->setCheckable(true);
+    actionTiffLayer->setChecked(true);
+    layersMenu->addAction(actionTiffLayer);
+    connect(actionTiffLayer, &QAction::toggled, this, [this](bool checked) {
+        if (tiffLayer != nullptr) {
+            tiffLayer->setVisible(checked);
+        }
+    });
+
 }
 
 void ShapeFilesViewer::onLoadShapeFile()

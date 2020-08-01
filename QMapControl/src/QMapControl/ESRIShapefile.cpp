@@ -24,11 +24,12 @@
 */
 
 #include "ESRIShapefile.h"
-
-// Local includes.
 #include "Projection.h"
-#include <cmath>
+
 #include <QDebug>
+#include <QPainterPath>
+
+#include <cmath>
 
 namespace qmapcontrol
 {

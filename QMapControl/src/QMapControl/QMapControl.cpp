@@ -849,7 +849,7 @@ namespace qmapcontrol
             if(m_current_zoom < m_zoom_maximum)
             {
                 // Capture the current wheel point at the current zoom level.
-                const PointViewportPx wheel_px(wheel_event->posF().x(), wheel_event->posF().y());
+                const PointViewportPx wheel_px(wheel_event->position().x(), wheel_event->position().y());
                 const PointWorldCoord wheel_coord(toPointWorldCoord(wheel_px));
                 const PointPx wheel_delta(mapFocusPointWorldPx() - toPointWorldPx(wheel_px));
 
@@ -878,7 +878,7 @@ namespace qmapcontrol
             if(m_current_zoom > m_zoom_minimum)
             {
                 // Capture the current wheel point at the current zoom level.
-                const PointViewportPx wheel_px(wheel_event->posF().x(), wheel_event->posF().y());
+                const PointViewportPx wheel_px(wheel_event->position().x(), wheel_event->position().y());
                 const PointWorldCoord wheel_coord(toPointWorldCoord(wheel_px));
                 const PointPx wheel_delta(mapFocusPointWorldPx() - toPointWorldPx(wheel_px));
 

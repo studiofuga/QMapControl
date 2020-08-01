@@ -30,7 +30,7 @@ set(LIBRARIES
 add_library(QMapControl SHARED
         ${SOURCES} ${HEADERS}
         ${UIS} ${QRCS}
-        )
+        QMapControl/src/QMapControl/LayerRaster.cpp QMapControl/src/QMapControl/LayerRaster.h QMapControl/src/QMapControl/AdapterRaster.cpp QMapControl/src/QMapControl/AdapterRaster.h QMapControl/src/QMapControl/utils/spimpl.h)
 
 target_compile_definitions(QMapControl
         PRIVATE

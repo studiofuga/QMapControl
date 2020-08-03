@@ -6,11 +6,18 @@
 #define QMAPCONTROL_ADAPTERRASTER_H
 
 #include "utils/spimpl.h"
+#include "Point.h"
 
-#include <QObject>
 #include <gdal_priv.h>
+#include <QObject>
+
+QT_BEGIN_NAMESPACE
+class QPainter;
+
+QT_END_NAMESPACE
 
 namespace qmapcontrol {
+class RectWorldPx;
 
 class AdapterRaster : public QObject {
 Q_OBJECT
@@ -19,6 +26,12 @@ Q_OBJECT
 public:
 
     explicit AdapterRaster(GDALDataset *datasource, std::string layer_name, QObject *parent = nullptr);
+
+    void setPixmap(QPixmap pixmap);
+
+    void draw(QPainter &painter, RectWorldPx const &backbuffer_rect_px, int controller_zoom);
+
+    PointWorldCoord getOrigin() const;
 };
 
 } // namespace qmapcontrol

@@ -153,10 +153,28 @@ void ShapeFilesViewer::onLoadTiffFile()
                 qDebug() << "Projection: " << tiffDataSet->GetProjectionRef();
             if (tiffDataSet->GetGeoTransform(adfGeoTransform) == CE_None) {
                 qDebug() << "Origin = (" << adfGeoTransform[0] << "," << adfGeoTransform[3] << ")";
-                qDebug() << "Pixel Size = (" << adfGeoTransform[1] << "," << adfGeoTransform[5];
+                qDebug() << "Pixel Size = (" << adfGeoTransform[1] << "," << adfGeoTransform[5] << ")";
             }
 
+            OGRSpatialReference *oSRS = new OGRSpatialReference;
+
+            // TODO ask the user to enter the correct WCG and Projection
+            oSRS->importFromEPSG(3857);
+            if (oSRS->SetProjection("EPSG:32628") != OGRERR_NONE) {
+                throw std::runtime_error("Can't load EPSG::32628");
+            }
+            tiffDataSet->SetSpatialRef(oSRS);
+
             tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, "");
+            map->setMapFocusPoint(tiffAdapter->getOrigin());
+
+            QPixmap pixmap;
+            if (pixmap.load(tiffFileName)) {
+                tiffAdapter->setPixmap(pixmap);
+                qDebug() << "Image: " << pixmap.size();
+            } else
+                qWarning() << "Can't load pixmap!";
+
             tiffLayer = std::make_shared<LayerRaster>("Tiff-Layer");
             tiffLayer->addRaster(tiffAdapter);
 
@@ -168,6 +186,8 @@ void ShapeFilesViewer::onLoadTiffFile()
         }
     }
     catch (std::exception &x) {
+        qWarning() << "Exception: " << x.what();
+        QMessageBox::warning(this, "Import TIFF", QString("Import failed: %1").arg(x.what()));
     }
 }
 

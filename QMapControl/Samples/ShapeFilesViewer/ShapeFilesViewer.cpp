@@ -159,10 +159,7 @@ void ShapeFilesViewer::onLoadTiffFile()
             OGRSpatialReference *oSRS = new OGRSpatialReference;
 
             // TODO ask the user to enter the correct WCG and Projection
-            oSRS->importFromEPSG(3857);
-            if (oSRS->SetProjection("EPSG:32628") != OGRERR_NONE) {
-                throw std::runtime_error("Can't load EPSG::32628");
-            }
+            oSRS->importFromEPSG(32628);
             tiffDataSet->SetSpatialRef(oSRS);
 
             tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, "");

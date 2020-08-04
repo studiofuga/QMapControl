@@ -9,6 +9,8 @@
 #include <QPainter>
 #include <QDebug>
 
+#include <stdexcept>
+
 namespace qmapcontrol {
 
 struct AdapterRaster::Impl {

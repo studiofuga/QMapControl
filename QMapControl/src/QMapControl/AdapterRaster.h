@@ -19,7 +19,7 @@ QT_END_NAMESPACE
 namespace qmapcontrol {
 class RectWorldPx;
 
-class AdapterRaster : public QObject {
+class QMAPCONTROL_EXPORT AdapterRaster : public QObject {
 Q_OBJECT
     struct Impl;
     spimpl::unique_impl_ptr<Impl> p;

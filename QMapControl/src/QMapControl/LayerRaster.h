@@ -13,7 +13,7 @@ namespace qmapcontrol {
 
 class AdapterRaster;
 
-class LayerRaster : public Layer {
+class QMAPCONTROL_EXPORT LayerRaster : public Layer {
     struct Impl;
     spimpl::unique_impl_ptr<Impl> p;
 

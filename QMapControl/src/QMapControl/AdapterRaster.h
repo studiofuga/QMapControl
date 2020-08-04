@@ -25,7 +25,8 @@ Q_OBJECT
     spimpl::unique_impl_ptr<Impl> p;
 public:
 
-    explicit AdapterRaster(GDALDataset *datasource, std::string layer_name, QObject *parent = nullptr);
+    explicit AdapterRaster(GDALDataset *datasource, OGRSpatialReference *spatialReference,
+                           std::string layer_name, QObject *parent = nullptr);
 
     void setPixmap(QPixmap pixmap);
 

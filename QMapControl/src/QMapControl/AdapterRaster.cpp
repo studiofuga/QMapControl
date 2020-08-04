@@ -29,7 +29,8 @@ struct AdapterRaster::Impl {
     int currentZoomFactor = -1;
 };
 
-AdapterRaster::AdapterRaster(GDALDataset *datasource, std::string layer_name, QObject *parent)
+AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatialReference,
+                             std::string layer_name, QObject *parent)
         : QObject(parent), p(spimpl::make_unique_impl<Impl>())
 {
     p->ds = datasource;
@@ -41,14 +42,9 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, std::string layer_name, QO
         throw std::runtime_error("Can't import EPSG");
     }
 
-    auto spatRef = p->ds->GetSpatialRef();
-    if (spatRef == nullptr || spatRef->IsEmpty()) {
-        throw std::runtime_error("invalid Spatial Reference in ds");
-    }
-
     qDebug() << "Source: " << p->ds->GetProjectionRef();
 
-    p->mTransformation = OGRCreateCoordinateTransformation(p->ds->GetSpatialRef(), &destinationWCS);
+    p->mTransformation = OGRCreateCoordinateTransformation(spatialReference, &destinationWCS);
 
     if (p->mTransformation == nullptr) {
         throw std::runtime_error("Coordinate Transformation fail");

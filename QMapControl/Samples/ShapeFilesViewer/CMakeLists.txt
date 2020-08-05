@@ -1,4 +1,4 @@
-add_executable(ShapeFilesViewer WIN32
+add_executable(ShapeFilesViewer
         ShapeFilesViewer.cpp ShapeFilesViewer.h
         )
 
@@ -7,9 +7,10 @@ target_include_directories(ShapeFilesViewer
         PRIVATE
         ${CMAKE_SOURCE_DIR}/QMapControl/src
         ${GDAL_INCLUDE_DIR}
+        ${PROJ4_INCLUDE_DIR}
         )
 
-target_link_libraries(ShapeFilesViewer QMapControl)
+target_link_libraries(ShapeFilesViewer QMapControl  ${PROJ4_LIBRARIES})
 
 # Set target directory
 install(TARGETS ShapeFilesViewer

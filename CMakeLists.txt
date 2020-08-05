@@ -3,9 +3,12 @@ cmake_policy(SET CMP0048 NEW)
 
 project(QMapControl LANGUAGES CXX VERSION 1.0.99)
 
-find_package(GDAL REQUIRED 1.11)
+find_package(GDAL REQUIRED 2.20)
+find_package(PROJ4 REQUIRED)
 message("GDAL library: ${GDAL_LIBRARY}")
 message("GDAL include: ${GDAL_INCLUDE_DIR}")
+message("PROJ4 library: ${PROJ4_LIBRARIES}")
+message("PROJ4 include: ${PROJ4_INCLUDE_DIR}")
 
 find_package(Qt5 5.6 COMPONENTS Widgets Core Concurrent Sql Xml PrintSupport Network REQUIRED)
 

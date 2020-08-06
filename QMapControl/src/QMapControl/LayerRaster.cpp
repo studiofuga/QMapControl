@@ -26,7 +26,9 @@ void LayerRaster::addRaster(std::shared_ptr<AdapterRaster> adapter)
 void LayerRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, const int &controller_zoom) const
 {
     painter.save();
-    p->adapter->draw(painter, backbuffer_rect_px, controller_zoom);
+    if (isVisible()) {
+        p->adapter->draw(painter, backbuffer_rect_px, controller_zoom);
+    }
     painter.restore();
 }
 

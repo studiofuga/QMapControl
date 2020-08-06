@@ -25,7 +25,8 @@ struct AdapterRaster::Impl {
 
     double geoTransformMatrix[6];
     double xPixFactor, yPixFactor;
-    PointWorldCoord extentWorld;
+    int xSize, ySize;
+    PointWorldCoord eW;
     int currentZoomFactor = -1;
 };
 
@@ -54,11 +55,25 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
     }
 
     if (p->ds->GetGeoTransform(p->geoTransformMatrix) == CE_None) {
+        p->xSize = p->ds->GetRasterXSize();
+        p->ySize = p->ds->GetRasterYSize();
         double x = p->geoTransformMatrix[0];
         double y = p->geoTransformMatrix[3];
         p->mTransformation->Transform(1, &x, &y);
+
+        double x2 = p->geoTransformMatrix[0] + p->xSize * p->geoTransformMatrix[1] + p->ySize * p->geoTransformMatrix[2];
+        double y2 =p->geoTransformMatrix[3] + p->xSize * p->geoTransformMatrix[4] + p->ySize * p->geoTransformMatrix[5];
+        p->mTransformation->Transform(1, &x2, &y2);
+
+        if (x2 < x)
+            std::swap(x2,x);
+        if (y2 < y)
+            std::swap(y2,y);
+
         p->originWorld = PointWorldCoord(x, y);
+        p->eW = PointWorldCoord(x2, y2);
         qDebug() << "Origin Set to: " << p->originWorld.rawPoint();
+        qDebug() << "Opposite Point Set to: " << p->eW.rawPoint();
 
         p->xPixFactor = p->geoTransformMatrix[1];
         p->yPixFactor = p->geoTransformMatrix[5];
@@ -76,23 +91,12 @@ PointWorldCoord AdapterRaster::getOrigin() const
 void AdapterRaster::setPixmap(QPixmap pixmap)
 {
     p->mapPixmap = pixmap;
-    double dx = std::abs(pixmap.width() * p->xPixFactor);
-    double dy = std::abs(pixmap.height() * p->yPixFactor);
-    qDebug() << "Raw Extent: " << dx << dy;
-
-    p->mTransformation->Transform(1, &dx, &dy);
-    qDebug() << "TRN Extent: " << dx << dy;
-
-    p->extentWorld = PointWorldCoord{dx, dy};
-
-    qDebug() << "Image has " << pixmap.size() << " pix " << p->extentWorld.rawPoint() << " world ";
+    qDebug() << "Image has " << pixmap.size() << " pix " << p->eW.rawPoint() << " world ";
 }
 
 void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, int controller_zoom)
 {
     // TODO check if the current controller zoom is outside the allowed zoom (min-max). In case, return.
-
-//    qDebug() << "Drawing: " << backbuffer_rect_px.rawRect() << " zoom " << controller_zoom;
 
     if (p->ds == nullptr) {
         return;
@@ -102,20 +106,12 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
     const RectWorldCoord backbuffer_rect_coord(
             projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom),
             projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom));
-//    qDebug() << "Drawing in px: " << backbuffer_rect_coord.rawRect() << " zoom " << controller_zoom;
-/*
-
-    auto topLeftWorld = projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom);
-    auto botRightWorld = projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom);
-    auto topLeftPix = projection::get().toPointWorldPx(topLeftWorld, controller_zoom).rawPoint();
-    auto botRightPix = projection::get().toPointWorldPx(botRightWorld, controller_zoom).rawPoint();
-*/
 
     auto originPix = projection::get().toPointWorldPx(p->originWorld, controller_zoom).rawPoint();
 
     if (p->currentZoomFactor != controller_zoom) {
         // rescale
-        auto extentPix = projection::get().toPointWorldPx(p->extentWorld, controller_zoom);
+        auto extentPix = projection::get().toPointWorldPx(p->eW, controller_zoom);
 
         auto dx = std::abs(extentPix.x() - originPix.x());
         auto dy = std::abs(extentPix.y() - originPix.y());

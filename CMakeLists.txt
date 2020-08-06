@@ -4,7 +4,7 @@ cmake_policy(SET CMP0048 NEW)
 project(QMapControl LANGUAGES CXX VERSION 1.0.99)
 
 find_package(GDAL REQUIRED 2.20)
-find_package(PROJ4 REQUIRED)
+find_package(PROJ4)
 message("GDAL library: ${GDAL_LIBRARY}")
 message("GDAL include: ${GDAL_INCLUDE_DIR}")
 message("PROJ4 library: ${PROJ4_LIBRARIES}")

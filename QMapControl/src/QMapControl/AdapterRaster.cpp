@@ -41,6 +41,9 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
     if (destinationWCS.importFromEPSG(4326) != OGRERR_NONE) {
         throw std::runtime_error("Can't import EPSG");
     }
+#if GDAL_VERSION_MAJOR >= 3
+    destinationWCS.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+#endif
 
     qDebug() << "Source: " << p->ds->GetProjectionRef();
 

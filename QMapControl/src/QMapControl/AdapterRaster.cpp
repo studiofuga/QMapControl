@@ -65,10 +65,12 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
         double y2 =p->geoTransformMatrix[3] + p->xSize * p->geoTransformMatrix[4] + p->ySize * p->geoTransformMatrix[5];
         p->mTransformation->Transform(1, &x2, &y2);
 
-        if (x2 < x)
-            std::swap(x2,x);
-        if (y2 < y)
-            std::swap(y2,y);
+        if (x2 < x) {
+            std::swap(x2, x);
+        }
+        if (y2 > y) {
+            std::swap(y2, y);
+        }
 
         p->originWorld = PointWorldCoord(x, y);
         p->eW = PointWorldCoord(x2, y2);
@@ -113,8 +115,8 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
         // rescale
         auto extentPix = projection::get().toPointWorldPx(p->eW, controller_zoom);
 
-        auto dx = std::abs(extentPix.x() - originPix.x());
-        auto dy = std::abs(extentPix.y() - originPix.y());
+        auto dx = extentPix.x() - originPix.x();
+        auto dy = extentPix.y() - originPix.y();
 
         qDebug() << "Rescaling " << p->mapPixmap.size() << " to " << dx << "x" << dy;
 

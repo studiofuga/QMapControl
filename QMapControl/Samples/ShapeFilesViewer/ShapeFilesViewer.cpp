@@ -46,7 +46,7 @@ void ShapeFilesViewer::buildMenu()
 
     connect(actionSelectShapeFile, &QAction::triggered, this, &ShapeFilesViewer::onLoadShapeFile);
 
-    auto actionSelectTiffFile = new QAction("Load Tiff...");
+    auto actionSelectTiffFile = new QAction("Load Raster...");
     fileMenu->addAction(actionSelectTiffFile);
 
     connect(actionSelectTiffFile, &QAction::triggered, this, &ShapeFilesViewer::onLoadTiffFile);
@@ -70,7 +70,7 @@ void ShapeFilesViewer::buildMenu()
         }
     });
 
-    auto actionTiffLayer = new QAction("Tiff");
+    auto actionTiffLayer = new QAction("Raster");
     actionTiffLayer->setCheckable(true);
     actionTiffLayer->setChecked(true);
     layersMenu->addAction(actionTiffLayer);
@@ -135,8 +135,8 @@ void ShapeFilesViewer::onLoadTiffFile()
 
     try {
         auto basedir = settings.value("tifffiledir").toString();
-        auto tiffFileName = QFileDialog::getOpenFileName(this, tr("Select Tiff to load"), basedir,
-                                                         tr("TIFF Files (*.tif);;All files (*.*)"));
+        auto tiffFileName = QFileDialog::getOpenFileName(this, tr("Select Raster file to load"), basedir,
+                                                         tr("TIFF Files (*.tif;*.ecw);;All files (*.*)"));
 
         if (!tiffFileName.isEmpty()) {
             if (tiffDataSet != nullptr) {

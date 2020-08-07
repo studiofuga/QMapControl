@@ -3,7 +3,7 @@
 //
 
 #include "ShapeFilesViewer.h"
-#include "QMapControl/utils/RasterUtils.h"
+#include "QMapControl/src/QMapControl/RasterUtils.h"
 
 #include <QApplication>
 #include <QMenuBar>

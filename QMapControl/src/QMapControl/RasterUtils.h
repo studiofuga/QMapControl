@@ -5,11 +5,13 @@
 #ifndef QMAPCONTROL_RASTERUTILS_H
 #define QMAPCONTROL_RASTERUTILS_H
 
+#include "qmapcontrol_global.h"
+
 #include <QImage>
 
 class GDALDataset;
 
-class RasterUtils {
+class QMAPCONTROL_EXPORT RasterUtils {
 public:
     QImage imageFromRaster(GDALDataset *datasource);
 };

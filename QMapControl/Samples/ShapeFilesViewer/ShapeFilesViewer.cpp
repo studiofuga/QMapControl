@@ -3,6 +3,7 @@
 //
 
 #include "ShapeFilesViewer.h"
+#include "QMapControl/utils/RasterUtils.h"
 
 #include <QApplication>
 #include <QMenuBar>
@@ -160,17 +161,15 @@ void ShapeFilesViewer::onLoadTiffFile()
 
             // TODO ask the user to enter the correct WCG and Projection
             oSRS->importFromEPSG(32628);
-//            tiffDataSet->SetSpatialRef(oSRS);
 
             tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, oSRS, "");
             map->setMapFocusPoint(tiffAdapter->getOrigin());
 
-            QPixmap pixmap;
-            if (pixmap.load(tiffFileName)) {
-                tiffAdapter->setPixmap(pixmap);
-                qDebug() << "Image: " << pixmap.size();
-            } else
-                qWarning() << "Can't load pixmap!";
+            RasterUtils utils;
+            auto image = utils.imageFromRaster(tiffDataSet);
+            auto pixmap = QPixmap::fromImage(image);
+//            pixmap.save("pixmap.png");
+            tiffAdapter->setPixmap(pixmap);
 
             tiffLayer = std::make_shared<LayerRaster>("Tiff-Layer");
             tiffLayer->addRaster(tiffAdapter);

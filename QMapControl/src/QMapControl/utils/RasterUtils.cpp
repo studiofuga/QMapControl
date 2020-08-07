@@ -15,7 +15,7 @@ QImage RasterUtils::imageFromRaster(GDALDataset *dataset)
 
     qDebug() << "Raster x,y,channels: " << rows << cols << channels;
 
-    int scanlineSize = std::ceil(3.0 * cols / 4.0) * 4;
+    int scanlineSize = std::ceil(static_cast<float>(channels) * cols / 4.0) * 4;
 
     qDebug() << "Scanline: " << scanlineSize;
 
@@ -30,10 +30,10 @@ QImage RasterUtils::imageFromRaster(GDALDataset *dataset)
                                               data,
                                               cols, rows,
                                               GDT_Byte,
-                                              3, bands.data(),
-                                              3,            // pixelspace
+                                              bands.size(), bands.data(),
+                                              bands.size(),            // pixelspace
                                               scanlineSize, // linespace
-                                              1,            // bandspace
+                                              (channels > 1 ? 1 : 0),            // bandspace
                                               nullptr);
 
     if (conversionResult != CE_None) {
@@ -41,7 +41,30 @@ QImage RasterUtils::imageFromRaster(GDALDataset *dataset)
         return QImage{};
     }
 
-    QImage image(reinterpret_cast<uchar *>(data), cols, rows, QImage::Format::Format_RGB888);
+    QImage::Format imageFormat = QImage::Format::Format_RGB888;
+    auto mainBand = dataset->GetRasterBand(1);
+    GDALColorTable *ct;
+    QVector<QRgb> newImageColorTable;
+    if (mainBand && (ct = mainBand->GetColorTable())) {
+        imageFormat = QImage::Format::Format_Indexed8;
+
+        auto n = ct->GetColorEntryCount();
+        qDebug() << "Image has: " << n << " colors as: "
+                 << ct->GetPaletteInterpretation();
+        for (int i = 0; i < n; ++i) {
+            GDALColorEntry entry;
+            ct->GetColorEntryAsRGB(i, &entry);
+//            qDebug() << "Color: " << i << QString("%1").arg(qRgb(entry.c1, entry.c2, entry.c3), 8, 16, QChar('0'));
+            newImageColorTable.push_back(
+                    qRgb(entry.c1, entry.c2, entry.c3)
+            );
+        }
+    }
+
+    QImage image(reinterpret_cast<uchar *>(data), cols, rows, imageFormat);
+    if (!newImageColorTable.empty()) {
+        image.setColorTable(newImageColorTable);
+    }
 
 //    image.save("qimage.png");
     return image;

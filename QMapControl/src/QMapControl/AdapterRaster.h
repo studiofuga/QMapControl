@@ -28,8 +28,6 @@ public:
     explicit AdapterRaster(GDALDataset *datasource, OGRSpatialReference *spatialReference,
                            std::string layer_name, QObject *parent = nullptr);
 
-    void setPixmap(QPixmap pixmap);
-
     void draw(QPainter &painter, RectWorldPx const &backbuffer_rect_px, int controller_zoom);
 
     PointWorldCoord getOrigin() const;

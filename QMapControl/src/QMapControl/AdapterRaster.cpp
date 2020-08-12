@@ -255,16 +255,18 @@ AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t s
     auto mainBand = ds->GetRasterBand(1);
     GDALColorTable *ct;
 
-    if (mainBand && (ct = mainBand->GetColorTable()) && imageColorTable.isEmpty()) {
+    if (mainBand && (ct = mainBand->GetColorTable()) ) {
         imageFormat = QImage::Format::Format_Indexed8;
 
-        auto n = ct->GetColorEntryCount();
-        for (int i = 0; i < n; ++i) {
-            GDALColorEntry entry;
-            ct->GetColorEntryAsRGB(i, &entry);
-            imageColorTable.push_back(
-                    qRgb(entry.c1, entry.c2, entry.c3)
-            );
+        if (imageColorTable.isEmpty())
+        {
+            auto n = ct->GetColorEntryCount();
+            for(int i = 0; i < n; ++i)
+            {
+                GDALColorEntry entry;
+                ct->GetColorEntryAsRGB(i, &entry);
+                imageColorTable.push_back(qRgb(entry.c1, entry.c2, entry.c3));
+            }
         }
     }
 

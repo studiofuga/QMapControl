@@ -275,8 +275,6 @@ AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t s
         image.setColorTable(imageColorTable);
     }
 
-    image.save("SampleSave.png");
-
     return QPixmap::fromImage(image);
 }
 

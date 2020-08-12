@@ -31,33 +31,32 @@
 #include <QtGui/QPainter>
 #include <QPainter>
 #include <QImageReader>
+#include <QScreen>
+#include <QApplication>
 
 // Local includes.
 #include "Projection.h"
 
-namespace qmapcontrol
+namespace qmapcontrol {
+const int kDefaultTileSizePx = 256;
+constexpr size_t minimumCacheSizeMb = 32;
+
+namespace {
+/// Singleton instance of Image Manager.
+std::unique_ptr<ImageManager> m_instance = nullptr;
+}
+
+ImageManager &ImageManager::get()
 {
-    const int kDefaultTileSizePx = 256;
-    const int kDefaultPixmapCacheSizeMiB = 30;
-
-    namespace
-    {
-        /// Singleton instance of Image Manager.
-        std::unique_ptr<ImageManager> m_instance = nullptr;
+    // Does the singleton instance exist?
+    if (m_instance == nullptr) {
+        // Create a default instance
+        m_instance.reset(new ImageManager(kDefaultTileSizePx));
     }
 
-    ImageManager& ImageManager::get()
-    {
-        // Does the singleton instance exist?
-        if(m_instance == nullptr)
-        {
-            // Create a default instance
-            m_instance.reset(new ImageManager(kDefaultTileSizePx));
-        }
-
-        // Return the reference to the instance object.
-        return *(m_instance.get());
-    }
+    // Return the reference to the instance object.
+    return *(m_instance.get());
+}
 
     void ImageManager::destory()
     {
@@ -65,24 +64,36 @@ namespace qmapcontrol
         m_instance.reset(nullptr);
     }
 
-    ImageManager::ImageManager(const int& tile_size_px, QObject* parent)
+ImageManager::ImageManager(const int &tile_size_px, QObject *parent)
         : QObject(parent),
           m_tile_size_px(tile_size_px),
           m_diskCache(nullptr),
           m_offlineMode(false),
           m_pixmapLoading()
-    {        
-        setMemoryCacheCapacity(kDefaultPixmapCacheSizeMiB);
+{
+    size_t pixmapCacheSize;
+    auto screen = QApplication::primaryScreen();
+    auto screensize = screen->size();
+    screensize.setWidth(screensize.width() * screen->devicePixelRatio());
+    screensize.setHeight(screensize.height() * screen->devicePixelRatio());
 
-        // Setup a loading pixmap.
-        setupLoadingPixmap();
+    // set cache 3 times the scren size. This can be improved further.
+    pixmapCacheSize = 3 * screensize.height() * screensize.width() * screen->depth() / 8;
+    auto pixmapCacheSizeMb = pixmapCacheSize / (1024 * 1024);
 
-        // Connect signal/slot for image downloads.
-        QObject::connect(this, &ImageManager::downloadImage, &m_networkManager, &NetworkManager::downloadImage);
-        QObject::connect(&m_networkManager, &NetworkManager::imageDownloaded, this, &ImageManager::imageDownloaded);
-        QObject::connect(&m_networkManager, &NetworkManager::downloadingInProgress, this, &ImageManager::downloadingInProgress);
-        QObject::connect(&m_networkManager, &NetworkManager::downloadingFinished, this, &ImageManager::downloadingFinished);
-    }
+    qDebug() << "Screen Cache Size: " << pixmapCacheSizeMb;
+    setMemoryCacheCapacity(std::max(pixmapCacheSizeMb, minimumCacheSizeMb));
+
+    // Setup a loading pixmap.
+    setupLoadingPixmap();
+
+    // Connect signal/slot for image downloads.
+    QObject::connect(this, &ImageManager::downloadImage, &m_networkManager, &NetworkManager::downloadImage);
+    QObject::connect(&m_networkManager, &NetworkManager::imageDownloaded, this, &ImageManager::imageDownloaded);
+    QObject::connect(&m_networkManager, &NetworkManager::downloadingInProgress, this,
+                     &ImageManager::downloadingInProgress);
+    QObject::connect(&m_networkManager, &NetworkManager::downloadingFinished, this, &ImageManager::downloadingFinished);
+}
 
     int ImageManager::tileSizePx() const
     {
@@ -291,10 +302,8 @@ namespace qmapcontrol
             m_memoryCache.insert(hashTileUrl(url), new QPixmapCacheEntry(pixmap), cost);
         }
 
-#ifdef QMAP_DEBUG
         qDebug() << "ImageManager: pixmap cache -> total size KiB: " << m_memoryCache.totalCost() / 1024
                  << ", now inserted: " << url.toString();
-#endif
     }
 
     bool ImageManager::findTileInMemoryCache(const QUrl& url, QPixmap& pixmap) const

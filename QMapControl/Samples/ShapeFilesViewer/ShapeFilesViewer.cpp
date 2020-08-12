@@ -136,7 +136,7 @@ void ShapeFilesViewer::onLoadTiffFile()
     try {
         auto basedir = settings.value("tifffiledir").toString();
         auto tiffFileName = QFileDialog::getOpenFileName(this, tr("Select Raster file to load"), basedir,
-                                                         tr("TIFF Files (*.tif;*.ecw);;All files (*.*)"));
+                                                         tr("Raster Files (*.tif *.ecw);;All files (*.*)"));
 
         if (!tiffFileName.isEmpty()) {
             if (tiffDataSet != nullptr) {
@@ -164,12 +164,6 @@ void ShapeFilesViewer::onLoadTiffFile()
 
             tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, oSRS, "");
             map->setMapFocusPoint(tiffAdapter->getOrigin());
-
-            RasterUtils utils;
-            auto image = utils.imageFromRaster(tiffDataSet);
-            auto pixmap = QPixmap::fromImage(image);
-//            pixmap.save("pixmap.png");
-            tiffAdapter->setPixmap(pixmap);
 
             tiffLayer = std::make_shared<LayerRaster>("Tiff-Layer");
             tiffLayer->addRaster(tiffAdapter);

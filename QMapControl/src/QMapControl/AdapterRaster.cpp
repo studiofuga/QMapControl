@@ -22,12 +22,48 @@ struct AdapterRaster::Impl {
     PointWorldCoord originWorld;
 
     OGRCoordinateTransformation *mTransformation;
+    OGRCoordinateTransformation *mInvTransformation;
 
     double geoTransformMatrix[6];
     double xPixFactor, yPixFactor;
     int xSize, ySize;
     PointWorldCoord eW;
     int currentZoomFactor = -1;
+
+    int channels = 0;
+    int cols = 0;
+    int rows = 0;
+    int offsetX, offsetY;
+    char *databuf = nullptr;
+    size_t dataSize = 0;
+    QVector<QRgb> imageColorTable;
+
+    QPixmap loadPixmap(size_t offX, size_t offY, size_t szX, size_t szY, size_t dstSx, size_t dstSy);
+
+    QPointF toWorldCoordinates(QPointF rc)
+    {
+        return QPointF{
+                geoTransformMatrix[0] + geoTransformMatrix[1] * rc.x() + geoTransformMatrix[2] * rc.y(),
+                geoTransformMatrix[3] + geoTransformMatrix[4] * rc.x() + geoTransformMatrix[5] * rc.y()
+        };
+    }
+
+    // Simplified version
+    QPointF toRasterCoordinates(QPointF wc)
+    {
+        return QPointF{
+                (wc.x() - geoTransformMatrix[0]) / geoTransformMatrix[1],
+                (wc.y() - geoTransformMatrix[3]) / geoTransformMatrix[5]
+        };
+    }
+
+    QPointF inverseTransform(QPointF pt)
+    {
+        double x = pt.x();
+        double y = pt.y();
+        mInvTransformation->Transform(1, &x, &y);
+        return QPointF{x, y};
+    }
 };
 
 AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatialReference,
@@ -46,11 +82,10 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
     destinationWCS.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
 #endif
 
-    qDebug() << "Source: " << p->ds->GetProjectionRef();
-
     p->mTransformation = OGRCreateCoordinateTransformation(spatialReference, &destinationWCS);
+    p->mInvTransformation = OGRCreateCoordinateTransformation(&destinationWCS, spatialReference);
 
-    if (p->mTransformation == nullptr) {
+    if (p->mTransformation == nullptr || p->mInvTransformation == nullptr) {
         throw std::runtime_error("Coordinate Transformation fail");
     }
 
@@ -104,27 +139,135 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
         return;
     }
 
-    // Calculate the world coordinates.
-    const RectWorldCoord backbuffer_rect_coord(
-            projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom),
-            projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom));
+    auto topLeftWC = projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom).rawPoint();
+    auto botRightWC = projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(),
+                                                          controller_zoom).rawPoint();
+
+
+    auto botRightC = p->toRasterCoordinates(p->inverseTransform(botRightWC));
+    auto topLeftRasterC = p->toRasterCoordinates(p->inverseTransform(topLeftWC));
+
+    qDebug() << "TopLeft WC: " << topLeftWC << " RasterC: " << topLeftRasterC;
+    qDebug() << "BotRigh WC: " << botRightWC << " RasterC: " << botRightC;
 
     auto originPix = projection::get().toPointWorldPx(p->originWorld, controller_zoom).rawPoint();
+    qDebug() << "Origin: " << originPix;
+
+    p->offsetX = topLeftRasterC.x() - originPix.x();
+    p->offsetY = topLeftRasterC.y() - originPix.y();
+
+    if (p->offsetX < 0) { p->offsetX = 0; }
+    if (p->offsetY < 0) { p->offsetY = 0; }
+
+    qDebug() << "Offset: " << p->offsetX << p->offsetY;
+
+    auto extentPix = projection::get().toPointWorldPx(p->eW, controller_zoom);
+
+    qDebug() << "Extent: " << extentPix.rawPoint();
+
+    auto lx = botRightWC.x() - extentPix.x();
+    auto ly = botRightWC.y() - extentPix.y();
+
+    qDebug() << "lx: " << lx << " ly: " << ly;
+
+    if (lx < 0) { lx = 0; }
+    if (ly < 0) { ly = 0; }
 
     if (p->currentZoomFactor != controller_zoom) {
         // rescale
-        auto extentPix = projection::get().toPointWorldPx(p->eW, controller_zoom);
+        auto opsX = p->xSize - p->offsetX - lx;
+        auto opsY = p->ySize - p->offsetY - ly;
+
+        qDebug() << "Size: " << p->xSize << " ds: " << opsX;
+        qDebug() << "Size: " << p->ySize << " ds: " << opsY;
 
         auto dx = extentPix.x() - originPix.x();
         auto dy = extentPix.y() - originPix.y();
 
-        qDebug() << "Rescaling " << p->mapPixmap.size() << " to " << dx << "x" << dy;
-
-        p->scaledPixmap = p->mapPixmap.scaled(dx, dy);
+        p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
+                                        opsX, opsY,
+                                        dx, dy
+        );
         p->currentZoomFactor = controller_zoom;
     }
 
     painter.drawPixmap(originPix, p->scaledPixmap);
+}
+
+QPixmap
+AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t srcSy, size_t dstSx, size_t dstSy)
+{
+    qDebug() << "Loading. Offset: " << srcX << srcY << " sz " << srcSx << srcSy;
+    qDebug() << "Dest Size: " << dstSx << dstSy;
+
+    if (channels == 0) {
+        channels = ds->GetRasterCount();
+    }
+    if (rows == 0) {
+        rows = ds->GetRasterYSize();
+    }
+    if (cols == 0) {
+        cols = ds->GetRasterXSize();
+    }
+
+    int scanlineSize = std::ceil(static_cast<float>(channels) * dstSy / 4.0) * 4;
+
+    qDebug() << "Scanline: " << scanlineSize;
+
+    size_t newdataSize = rows * scanlineSize;
+    if (newdataSize != dataSize) {
+        if (databuf != nullptr) {
+            delete[]databuf;
+        }
+        databuf = new char[newdataSize];
+        dataSize = newdataSize;
+    }
+
+    // Iterate over each channel
+    std::vector<int> bands(channels);
+    std::iota(bands.begin(), bands.end(), 1);
+
+    auto conversionResult = ds->RasterIO(GF_Read, srcX, srcY,
+                                         srcSx, srcSy,
+                                         databuf,
+                                         dstSx, dstSy,
+                                         GDT_Byte,
+                                         bands.size(), bands.data(),
+                                         bands.size(),            // pixelspace
+                                         scanlineSize, // linespace
+                                         (channels > 1 ? 1 : 0),            // bandspace
+                                         nullptr);
+
+    if (conversionResult != CE_None) {
+        qWarning() << "GetRaster returned " << conversionResult;
+        return QPixmap{};
+    }
+
+    QImage::Format imageFormat = QImage::Format::Format_RGB888;
+    auto mainBand = ds->GetRasterBand(1);
+    GDALColorTable *ct;
+
+    if (mainBand && (ct = mainBand->GetColorTable()) && imageColorTable.isEmpty()) {
+        imageFormat = QImage::Format::Format_Indexed8;
+
+        auto n = ct->GetColorEntryCount();
+        for (int i = 0; i < n; ++i) {
+            GDALColorEntry entry;
+            ct->GetColorEntryAsRGB(i, &entry);
+            imageColorTable.push_back(
+                    qRgb(entry.c1, entry.c2, entry.c3)
+            );
+        }
+    }
+
+    QImage image(reinterpret_cast<uchar *>(databuf), dstSx, dstSy, imageFormat);
+    if (!imageColorTable.empty()) {
+        image.setColorTable(imageColorTable);
+    }
+
+    image.save("SampleSave.png");
+
+    return QPixmap::fromImage(image);
 }
 
 }

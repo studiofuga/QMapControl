@@ -17,17 +17,16 @@ struct AdapterRaster::Impl {
     GDALDataset *ds = nullptr;
     std::string layername;
 
-    QPixmap mapPixmap;
     QPixmap scaledPixmap;
     PointWorldCoord originWorld;
+    PointWorldCoord oppositeWorld;
 
-    OGRCoordinateTransformation *mTransformation;
-    OGRCoordinateTransformation *mInvTransformation;
+    OGRCoordinateTransformation *mTransformation;       /**< Transformation from Data Source to World (Local) */
 
+    OGRCoordinateTransformation *mInvTransformation;    /**< Inverse Transformation from World to DS */
     double geoTransformMatrix[6];
     double xPixFactor, yPixFactor;
-    int xSize, ySize;
-    PointWorldCoord eW;
+    int rasterSizeX, rasterSizeY;
     int currentZoomFactor = -1;
 
     int channels = 0;
@@ -40,8 +39,9 @@ struct AdapterRaster::Impl {
 
     QPixmap loadPixmap(size_t offX, size_t offY, size_t szX, size_t szY, size_t dstSx, size_t dstSy);
 
-    QPointF toWorldCoordinates(QPointF rc)
+    QPointF rasterToWorldCoordinates(QPointF rc)
     {
+        rc = dsToWorld(rc);
         return QPointF{
                 geoTransformMatrix[0] + geoTransformMatrix[1] * rc.x() + geoTransformMatrix[2] * rc.y(),
                 geoTransformMatrix[3] + geoTransformMatrix[4] * rc.x() + geoTransformMatrix[5] * rc.y()
@@ -49,20 +49,37 @@ struct AdapterRaster::Impl {
     }
 
     // Simplified version
-    QPointF toRasterCoordinates(QPointF wc)
+    QPointF worldToRasterCoordinates(QPointF wc) const
     {
+        wc = worldToDs(wc);
         return QPointF{
                 (wc.x() - geoTransformMatrix[0]) / geoTransformMatrix[1],
                 (wc.y() - geoTransformMatrix[3]) / geoTransformMatrix[5]
         };
     }
 
-    QPointF inverseTransform(QPointF pt)
+    QPointF worldToDs(QPointF pt) const
     {
         double x = pt.x();
         double y = pt.y();
         mInvTransformation->Transform(1, &x, &y);
         return QPointF{x, y};
+    }
+
+    QPointF dsToWorld(QPointF pt) const
+    {
+        double x = pt.x();
+        double y = pt.y();
+        mTransformation->Transform(1, &x, &y);
+        return QPointF{x, y};
+    }
+
+    QPointF clipToRaster(QPointF ps) const
+    {
+        return QPointF{
+                std::min(std::max(ps.x(), 0.0), static_cast<double>(rasterSizeX)),
+                std::min(std::max(ps.y(), 0.0), static_cast<double>(rasterSizeY))
+        };
     }
 };
 
@@ -90,14 +107,21 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
     }
 
     if (p->ds->GetGeoTransform(p->geoTransformMatrix) == CE_None) {
-        p->xSize = p->ds->GetRasterXSize();
-        p->ySize = p->ds->GetRasterYSize();
+        p->rasterSizeX = p->ds->GetRasterXSize();
+        p->rasterSizeY = p->ds->GetRasterYSize();
         double x = p->geoTransformMatrix[0];
         double y = p->geoTransformMatrix[3];
         p->mTransformation->Transform(1, &x, &y);
 
-        double x2 = p->geoTransformMatrix[0] + p->xSize * p->geoTransformMatrix[1] + p->ySize * p->geoTransformMatrix[2];
-        double y2 =p->geoTransformMatrix[3] + p->xSize * p->geoTransformMatrix[4] + p->ySize * p->geoTransformMatrix[5];
+        qDebug() << "Transform Check: " << p->geoTransformMatrix[0] << p->geoTransformMatrix[3] << " => "
+                 << x << y;
+        qDebug() << "Inv: " << x << y << p->worldToDs(QPointF{x, y});
+
+        double x2 = p->geoTransformMatrix[0] + p->rasterSizeX * p->geoTransformMatrix[1] +
+                    p->rasterSizeY * p->geoTransformMatrix[2];
+        double y2 = p->geoTransformMatrix[3] + p->rasterSizeX * p->geoTransformMatrix[4] +
+                    p->rasterSizeY * p->geoTransformMatrix[5];
+        // (x2,y2) are in ds coordinates
         p->mTransformation->Transform(1, &x2, &y2);
 
         if (x2 < x) {
@@ -108,27 +132,19 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
         }
 
         p->originWorld = PointWorldCoord(x, y);
-        p->eW = PointWorldCoord(x2, y2);
+        p->oppositeWorld = PointWorldCoord(x2, y2);
         qDebug() << "Origin Set to: " << p->originWorld.rawPoint();
-        qDebug() << "Opposite Point Set to: " << p->eW.rawPoint();
+        qDebug() << "Opposite Point Set to: " << p->oppositeWorld.rawPoint();
 
         p->xPixFactor = p->geoTransformMatrix[1];
         p->yPixFactor = p->geoTransformMatrix[5];
         qDebug() << "Pix Factors: " << p->xPixFactor << "x" << p->yPixFactor;
     }
-
-    // here we should import the pixmap.
 }
 
 PointWorldCoord AdapterRaster::getOrigin() const
 {
     return p->originWorld;
-}
-
-void AdapterRaster::setPixmap(QPixmap pixmap)
-{
-    p->mapPixmap = pixmap;
-    qDebug() << "Image has " << pixmap.size() << " pix " << p->eW.rawPoint() << " world ";
 }
 
 void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, int controller_zoom)
@@ -144,52 +160,44 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                                                           controller_zoom).rawPoint();
 
 
-    auto botRightC = p->toRasterCoordinates(p->inverseTransform(botRightWC));
-    auto topLeftRasterC = p->toRasterCoordinates(p->inverseTransform(topLeftWC));
+    auto topLeftRasterC = p->worldToRasterCoordinates(topLeftWC);
+    auto botRightC = p->worldToRasterCoordinates(botRightWC);
 
-    qDebug() << "TopLeft WC: " << topLeftWC << " RasterC: " << topLeftRasterC;
-    qDebug() << "BotRigh WC: " << botRightWC << " RasterC: " << botRightC;
+    qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << p->worldToDs(topLeftWC) << " RasterC: "
+             << topLeftRasterC;
+    qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << p->worldToDs(botRightWC) << " RasterC: "
+             << botRightC;
+
+    topLeftRasterC = p->clipToRaster(topLeftRasterC);
+    botRightC = p->clipToRaster(botRightC);
+
+    /* Check */
 
     auto originPix = projection::get().toPointWorldPx(p->originWorld, controller_zoom).rawPoint();
     qDebug() << "Origin: " << originPix;
 
-    p->offsetX = topLeftRasterC.x() - originPix.x();
-    p->offsetY = topLeftRasterC.y() - originPix.y();
-
-    if (p->offsetX < 0) { p->offsetX = 0; }
-    if (p->offsetY < 0) { p->offsetY = 0; }
+    p->offsetX = topLeftRasterC.x();
+    p->offsetY = topLeftRasterC.y();
 
     qDebug() << "Offset: " << p->offsetX << p->offsetY;
 
-    auto extentPix = projection::get().toPointWorldPx(p->eW, controller_zoom);
+    auto extentPix = projection::get().toPointWorldPx(p->oppositeWorld, controller_zoom);
 
     qDebug() << "Extent: " << extentPix.rawPoint();
 
-    auto lx = botRightWC.x() - extentPix.x();
-    auto ly = botRightWC.y() - extentPix.y();
+//    if (p->currentZoomFactor != controller_zoom) {
+    // rescale
+    auto dx = extentPix.x() - originPix.x();
+    auto dy = extentPix.y() - originPix.y();
 
-    qDebug() << "lx: " << lx << " ly: " << ly;
+    qDebug() << "DSz: " << dx << dy;
 
-    if (lx < 0) { lx = 0; }
-    if (ly < 0) { ly = 0; }
-
-    if (p->currentZoomFactor != controller_zoom) {
-        // rescale
-        auto opsX = p->xSize - p->offsetX - lx;
-        auto opsY = p->ySize - p->offsetY - ly;
-
-        qDebug() << "Size: " << p->xSize << " ds: " << opsX;
-        qDebug() << "Size: " << p->ySize << " ds: " << opsY;
-
-        auto dx = extentPix.x() - originPix.x();
-        auto dy = extentPix.y() - originPix.y();
-
-        p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
-                                        opsX, opsY,
-                                        dx, dy
-        );
-        p->currentZoomFactor = controller_zoom;
-    }
+    p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
+                                    botRightC.x() - p->offsetX, botRightC.y() - p->offsetY,
+                                    dx, dy
+    );
+    p->currentZoomFactor = controller_zoom;
+//    }
 
     painter.drawPixmap(originPix, p->scaledPixmap);
 }
@@ -197,7 +205,7 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
 QPixmap
 AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t srcSy, size_t dstSx, size_t dstSy)
 {
-    qDebug() << "Loading. Offset: " << srcX << srcY << " sz " << srcSx << srcSy;
+    qDebug() << "Resizing: Offset: " << srcX << srcY << " sz " << srcSx << srcSy;
     qDebug() << "Dest Size: " << dstSx << dstSy;
 
     if (channels == 0) {
@@ -210,7 +218,7 @@ AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t s
         cols = ds->GetRasterXSize();
     }
 
-    int scanlineSize = std::ceil(static_cast<float>(channels) * dstSy / 4.0) * 4;
+    int scanlineSize = std::ceil(static_cast<float>(channels) * dstSx / 4.0) * 4;
 
     qDebug() << "Scanline: " << scanlineSize;
 

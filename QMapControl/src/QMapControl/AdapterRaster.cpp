@@ -27,12 +27,13 @@ struct AdapterRaster::Impl {
     double geoTransformMatrix[6];
     double xPixFactor, yPixFactor;
     int rasterSizeX, rasterSizeY;
-    int currentZoomFactor = -1;
 
     int channels = 0;
     int cols = 0;
     int rows = 0;
-    int offsetX, offsetY;
+    int offsetX=-1, offsetY=-1;
+    int srcDx=0, srcDy = 0;
+    int dx =0,dy = 0;
     char *databuf = nullptr;
     size_t dataSize = 0;
     QVector<QRgb> imageColorTable;
@@ -167,42 +168,54 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
     auto topLeftRasterC = p->worldToRasterCoordinates(topLeftWC);
     auto botRightC = p->worldToRasterCoordinates(botRightWC);
 
-    qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << p->worldToDs(topLeftWC) << " RasterC: "
-             << topLeftRasterC;
-    qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << p->worldToDs(botRightWC) << " RasterC: "
-             << botRightC;
-
     topLeftRasterC = p->clipToRaster(topLeftRasterC);
     botRightC = p->clipToRaster(botRightC);
 
     /* Check */
 
     auto originPix = projection::get().toPointWorldPx(p->originWorld, controller_zoom).rawPoint();
-    qDebug() << "Origin: " << originPix;
 
-    p->offsetX = topLeftRasterC.x();
-    p->offsetY = topLeftRasterC.y();
-
-    qDebug() << "Offset: " << p->offsetX << p->offsetY;
+    auto newOffsetX = (int)std::floor(topLeftRasterC.x()+0.5);
+    auto newOffsetY = (int)std::floor(topLeftRasterC.y() +0.5);
 
     auto extentPix = projection::get().toPointWorldPx(p->oppositeWorld, controller_zoom);
 
-    qDebug() << "Extent: " << extentPix.rawPoint();
-
-//    if (p->currentZoomFactor != controller_zoom) {
     // rescale
-    auto dx = extentPix.x() - originPix.x();
-    auto dy = extentPix.y() - originPix.y();
+    auto newDx = (int)std::floor(extentPix.x() - originPix.x() + 0.5);
+    auto newDy = (int)std::floor(extentPix.y() - originPix.y()+0.5);
 
-    qDebug() << "DSz: " << dx << dy;
+    auto newSrcDx =(int)std::floor( botRightC.x() - p->offsetX+0.5);
+    auto newSrcDy =(int)std::floor( botRightC.y() - p->offsetY+0.5);
 
-    p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
-                                    botRightC.x() - p->offsetX, botRightC.y() - p->offsetY,
-                                    dx, dy
-    );
-    p->currentZoomFactor = controller_zoom;
-//    }
+    if (newOffsetX != p->offsetX ||
+       newOffsetY != p->offsetY ||
+       newSrcDx != p->srcDx ||
+       newSrcDy != p->srcDy ||
+       newDx != p->dx ||
+       newDy != p->dy
+       )
+    {
+        p->offsetX = newOffsetX;
+        p->offsetY = newOffsetY;
+        p->srcDx = newSrcDx;
+        p->srcDy = newSrcDy;
+        p->dx = newDx;
+        p->dy = newDy;
 
+        qDebug() << "---";
+        qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << p->worldToDs(topLeftWC) << " RasterC: "
+                 << topLeftRasterC;
+        qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << p->worldToDs(botRightWC) << " RasterC: "
+                 << botRightC;
+        qDebug() << "Origin: " << originPix;
+        qDebug() << "Offset: " << newOffsetX << newOffsetY;
+        qDebug() << "Extent: " << extentPix.rawPoint();
+        qDebug() << "DSz: " << newDx << newDy;
+
+        p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
+                                        p->srcDx,p->srcDy,
+                                        p->dx, p->dy);
+    }
     painter.drawPixmap(originPix, p->scaledPixmap);
 }
 

@@ -37,6 +37,11 @@ struct AdapterRaster::Impl {
     size_t dataSize = 0;
     QVector<QRgb> imageColorTable;
 
+    virtual ~Impl() {
+        if (databuf != nullptr)
+            delete []databuf;
+    }
+
     QPixmap loadPixmap(size_t offX, size_t offY, size_t szX, size_t szY, size_t dstSx, size_t dstSy);
 
     QPointF rasterToWorldCoordinates(QPointF rc)
@@ -73,7 +78,6 @@ struct AdapterRaster::Impl {
         mTransformation->Transform(1, &x, &y);
         return QPointF{x, y};
     }
-
     QPointF clipToRaster(QPointF ps) const
     {
         return QPointF{

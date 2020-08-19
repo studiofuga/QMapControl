@@ -187,6 +187,17 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
     auto newSrcDx =(int)std::floor( botRightC.x() - p->offsetX+0.5);
     auto newSrcDy =(int)std::floor( botRightC.y() - p->offsetY+0.5);
 
+    if (newSrcDx == 0 || newSrcDy == 0) {
+        qDebug() << "--- Zoom: " << controller_zoom;
+        qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << p->worldToDs(topLeftWC) << " RasterC: "
+                 << topLeftRasterC;
+        qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << p->worldToDs(botRightWC) << " RasterC: "
+                 << botRightC;
+        qDebug() << "Offset: " << newOffsetX << newOffsetY;
+        qDebug() << "WARN: Sz: " << newSrcDx << newSrcDy;
+        return;
+    }
+
     if (newOffsetX != p->offsetX ||
        newOffsetY != p->offsetY ||
        newSrcDx != p->srcDx ||
@@ -202,7 +213,7 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
         p->dx = newDx;
         p->dy = newDy;
 
-        qDebug() << "---";
+        qDebug() << "--- Zoom: " << controller_zoom;
         qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << p->worldToDs(topLeftWC) << " RasterC: "
                  << topLeftRasterC;
         qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << p->worldToDs(botRightWC) << " RasterC: "
@@ -212,11 +223,20 @@ void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
         qDebug() << "Extent: " << extentPix.rawPoint();
         qDebug() << "DSz: " << newDx << newDy;
 
+        qDebug() << "BackBuffer: " << backbuffer_rect_px.rawRect();
+        qDebug() << "Viewport: " << painter.viewport();
+
+        // TODO fix this 0.25 factor to a programmable factor deduced from Pixel Device Ratio
+        auto r = 0.25*painter.viewport().width() / p->dx;
+        auto sx = p->dx * r;
+        auto sy = p->dy * r;
+        qDebug() << "Pixmap Size: " << sx << sy;
+
         p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
                                         p->srcDx,p->srcDy,
-                                        p->dx, p->dy);
+                                        sx,sy);
     }
-    painter.drawPixmap(originPix, p->scaledPixmap);
+    painter.drawPixmap(QRect(originPix.x(), originPix.y(), p->dx, p->dy), p->scaledPixmap, QRect());
 }
 
 QPixmap

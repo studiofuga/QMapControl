@@ -161,6 +161,7 @@ void ShapeFilesViewer::onLoadTiffFile()
 
             // TODO ask the user to enter the correct WCG and Projection
             oSRS->importFromEPSG(32628);
+            tiffDataSet->SetSpatialRef(oSRS);
 
             tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, oSRS, "");
             map->setMapFocusPoint(tiffAdapter->getOrigin());

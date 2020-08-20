@@ -22,7 +22,7 @@ using namespace qmapcontrol;
 ShapeFilesViewer::ShapeFilesViewer()
 : QMainWindow(nullptr)
 {
-    map = new QMapControl(QSizeF(800,600),this);
+    map = new QMapControl(QSize(800, 600), this);
 
     baseAdapter = std::make_shared<MapAdapterOSM>();
     baseLayer = std::make_shared<LayerMapAdapter>("OpenStreetMap", baseAdapter);

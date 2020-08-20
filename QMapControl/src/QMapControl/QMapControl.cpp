@@ -110,7 +110,7 @@ namespace qmapcontrol
         setProjection(projection::EPSG::SphericalMercator);
 
         // Default - tile size as 256px.
-        setTileSizePx(256);
+        // setTileSizePx(256);
 
         // Default - zoom controls enabled.
         enableZoomControls(true);
@@ -185,7 +185,7 @@ namespace qmapcontrol
     void QMapControl::enableRedraws(bool enabled) { m_redrawsEnabled = enabled; }
 
     // Layer management.
-    const std::vector<std::shared_ptr<Layer> > &QMapControl::getLayers() const
+    const std::vector<std::shared_ptr<Layer>>& QMapControl::getLayers() const
     {
         // Gain a read lock to protect the layers container.
         QReadLocker locker(&m_layers_mutex);
@@ -370,7 +370,10 @@ namespace qmapcontrol
     RectWorldCoord QMapControl::getViewportRect() const
     {
         // Return the viewport rect converted into the coordinates system.
-        return RectWorldCoord(projection::get().toPointWorldCoord(mapFocusPointWorldPx() - m_viewport_center_px, m_current_zoom), projection::get().toPointWorldCoord(mapFocusPointWorldPx() + m_viewport_center_px, m_current_zoom));
+        return RectWorldCoord(projection::get().toPointWorldCoord(
+                                  mapFocusPointWorldPx() - m_viewport_center_px, m_current_zoom),
+                              projection::get().toPointWorldCoord(
+                                  mapFocusPointWorldPx() + m_viewport_center_px, m_current_zoom));
     }
 
     bool QMapControl::viewportContainsAll(const std::vector<PointWorldCoord>& points_coord,
@@ -382,11 +385,13 @@ namespace qmapcontrol
         // Get the current viewport rect.
         const RectWorldCoord viewport_rect_coord(getViewportRect());
 
-        // Loop through each coordinate and check it is contained by the viewport rect, stop if we find one outside the rect.
+        // Loop through each coordinate and check it is contained by the viewport rect, stop if we
+        // find one outside the rect.
         for(size_t i = 0; return_contains_all == true && i < points_coord.size(); i++)
         {
             // Is the point within the rect.
-            return_contains_all = viewport_rect_coord.rawRect().contains(points_coord.at(i).rawPoint());
+            return_contains_all
+                = viewport_rect_coord.rawRect().contains(points_coord.at(i).rawPoint());
         }
 
         // Return the result.

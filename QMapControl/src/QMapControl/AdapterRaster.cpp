@@ -147,23 +147,32 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
     }
 }
 
-PointWorldCoord AdapterRaster::getOrigin() const
+PointWorldCoord AdapterRaster::getOrigin() const { return p->originWorld; }
+
+PointWorldCoord AdapterRaster::getCenter() const
 {
-    return p->originWorld;
+    return PointWorldCoord((p->originWorld.longitude() + p->oppositeWorld.longitude()) / 2,
+                           (p->originWorld.latitude() + p->oppositeWorld.latitude()) / 2);
 }
 
-void AdapterRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, int controller_zoom)
+void AdapterRaster::draw(QPainter& painter,
+                         const RectWorldPx& backbuffer_rect_px,
+                         int controller_zoom)
 {
-    // TODO check if the current controller zoom is outside the allowed zoom (min-max). In case, return.
+    // TODO check if the current controller zoom is outside the allowed zoom (min-max). In case,
+    // return.
 
-    if (p->ds == nullptr) {
+    if(p->ds == nullptr)
+    {
         return;
     }
 
-    auto topLeftWC = projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom).rawPoint();
-    auto botRightWC = projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(),
-                                                          controller_zoom).rawPoint();
-
+    auto topLeftWC = projection::get()
+                         .toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom)
+                         .rawPoint();
+    auto botRightWC = projection::get()
+                          .toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom)
+                          .rawPoint();
 
     auto topLeftRasterC = p->worldToRasterCoordinates(topLeftWC);
     auto botRightC = p->worldToRasterCoordinates(botRightWC);

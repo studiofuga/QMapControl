@@ -31,6 +31,8 @@ public:
     void draw(QPainter &painter, RectWorldPx const &backbuffer_rect_px, int controller_zoom);
 
     PointWorldCoord getOrigin() const;
+
+    PointWorldCoord getCenter() const;
 };
 
 } // namespace qmapcontrol

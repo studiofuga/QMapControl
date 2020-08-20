@@ -164,7 +164,7 @@ void ShapeFilesViewer::onLoadTiffFile()
             tiffDataSet->SetSpatialRef(oSRS);
 
             tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, oSRS, "");
-            map->setMapFocusPoint(tiffAdapter->getOrigin());
+            map->setMapFocusPoint(tiffAdapter->getCenter());
 
             tiffLayer = std::make_shared<LayerRaster>("Tiff-Layer");
             tiffLayer->addRaster(tiffAdapter);

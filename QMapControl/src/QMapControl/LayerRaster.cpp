@@ -23,18 +23,18 @@ void LayerRaster::addRaster(std::shared_ptr<AdapterRaster> adapter)
     p->adapter = adapter;
 }
 
-void LayerRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, const int &controller_zoom) const
-{
-    painter.save();
-    if (isVisible()) {
-        p->adapter->draw(painter, backbuffer_rect_px, controller_zoom);
-    }
-    painter.restore();
+void LayerRaster::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px,
+                       const int controller_zoom) const {
+  painter.save();
+  if (isVisible()) {
+    p->adapter->draw(painter, backbuffer_rect_px, controller_zoom);
+  }
+  painter.restore();
 }
 
-bool LayerRaster::mousePressEvent(const QMouseEvent *mouse_event, const PointWorldCoord &mouse_point_coord,
-                                  const int &controller_zoom) const
-{
+bool LayerRaster::mousePressEvent(const QMouseEvent *mouse_event,
+                                  const PointWorldCoord &mouse_point_coord,
+                                  const int controller_zoom) const {
     // nothing special to do. Simply return false
     return false;
 }

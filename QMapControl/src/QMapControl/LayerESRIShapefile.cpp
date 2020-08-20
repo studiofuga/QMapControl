@@ -114,24 +114,25 @@ namespace qmapcontrol
         }
     }
 
-    bool LayerESRIShapefile::mousePressEvent(const QMouseEvent* /*mouse_event*/, const PointWorldCoord& /*mouse_point_coord*/, const int& /*controller_zoom*/) const
-    {
-        // Do Nothing...
-        return false;
+    bool LayerESRIShapefile::mousePressEvent(
+        const QMouseEvent * /*mouse_event*/,
+        const PointWorldCoord & /*mouse_point_coord*/,
+        const int /*controller_zoom*/) const {
+      // Do Nothing...
+      return false;
     }
 
-    void LayerESRIShapefile::draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const
-    {
-        // Gain a read lock to protect the ESRI Shapefiles.
-        QReadLocker locker(&m_esri_shapefiles_mutex);
+    void LayerESRIShapefile::draw(QPainter &painter,
+                                  const RectWorldPx &backbuffer_rect_px,
+                                  const int controller_zoom) const {
+      // Gain a read lock to protect the ESRI Shapefiles.
+      QReadLocker locker(&m_esri_shapefiles_mutex);
 
-        // Check the layer is visible.
-        if(isVisible(controller_zoom))
-        {
-            // Loop through each ESRI Shapefile.
-            for(const auto& esri_shapefile : m_esri_shapefiles)
-            {
-                // Save the current painter's state.
+      // Check the layer is visible.
+      if (isVisible(controller_zoom)) {
+        // Loop through each ESRI Shapefile.
+        for (const auto &esri_shapefile : m_esri_shapefiles) {
+          // Save the current painter's state.
                 painter.save();
 
                 // Draw the ESRI Shapefile.

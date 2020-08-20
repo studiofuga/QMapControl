@@ -637,12 +637,6 @@ namespace qmapcontrol
         void zoomChanged();
 
     private:
-        //! Disable copy constructor.
-        QMapControl(const QMapControl&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        QMapControl& operator=(const QMapControl&); /// @todo remove once MSVC supports default/delete syntax.
-
         QColor mBackgroundColor = Qt::white;
 
         /// Whether the scale should be visible.

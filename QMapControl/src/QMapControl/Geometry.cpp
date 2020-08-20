@@ -54,6 +54,7 @@ namespace qmapcontrol
     }
 
     void Geometry::setZIndex(const int z_index) { m_z_index = z_index; }
+
     bool Geometry::selected() const
     {
         return mSelected;

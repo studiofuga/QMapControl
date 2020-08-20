@@ -14,18 +14,20 @@ namespace qmapcontrol {
 class AdapterRaster;
 
 class QMAPCONTROL_EXPORT LayerRaster : public Layer {
-    struct Impl;
-    spimpl::unique_impl_ptr<Impl> p;
+  struct Impl;
+  spimpl::unique_impl_ptr<Impl> p;
 
 public:
-    explicit LayerRaster(std::string layername);
+  explicit LayerRaster(std::string layername);
 
-    void addRaster(std::shared_ptr<AdapterRaster> adapter);
+  void addRaster(std::shared_ptr<AdapterRaster> adapter);
 
-    bool mousePressEvent(const QMouseEvent *mouse_event, const PointWorldCoord &mouse_point_coord,
-                         const int &controller_zoom) const override;
+  bool mousePressEvent(const QMouseEvent *mouse_event,
+                       const PointWorldCoord &mouse_point_coord,
+                       const int controller_zoom) const override;
 
-    void draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, const int &controller_zoom) const override;
+  void draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px,
+            const int controller_zoom) const override;
 };
 
 }

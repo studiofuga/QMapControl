@@ -89,21 +89,26 @@ namespace qmapcontrol
         void clearESRIShapefiles(const bool& disable_redraw = false);
 
         /*!
-         * Handles mouse press events (such as left-clicking an item on the layer).
+         * Handles mouse press events (such as left-clicking an item on the
+         * layer).
          * @param mouse_event The mouse event.
          * @param mouse_point_coord The mouse point on the map in coord.
          * @param controller_zoom The current controller zoom.
          */
-        bool mousePressEvent(const QMouseEvent* mouse_event, const PointWorldCoord& mouse_point_coord, const int& controller_zoom) const final;
+        bool mousePressEvent(const QMouseEvent *mouse_event,
+                             const PointWorldCoord &mouse_point_coord,
+                             const int controller_zoom) const override final;
 
         /*!
-         * Draws each map adapter and geometry to a pixmap using the provided painter.
+         * Draws each map adapter and geometry to a pixmap using the provided
+         * painter.
          * @param painter The painter that will draw to the pixmap.
-         * @param backbuffer_rect_px Only draw map tiles/geometries that are contained in the backbuffer rect (pixels).
+         * @param backbuffer_rect_px Only draw map tiles/geometries that are
+         * contained in the backbuffer rect (pixels).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const final;
-
+        void draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px,
+                  const int controller_zoom) const override final;
 
         auto getShapefileCount() const
         { return m_esri_shapefiles.size(); }

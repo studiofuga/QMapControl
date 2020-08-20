@@ -300,21 +300,13 @@ namespace qmapcontrol
 
         qreal sqr(qreal x) const { return x * x; }
         qreal dist2(qreal vx, qreal vy, qreal wx, qreal wy) const {
-            return sqr(vx - wx) + sqr(vy - wy);
+          return sqr(vx - wx) + sqr(vy - wy);
         }
         qreal dist2(const QPointF &v, const QPointF &w) const {
-            return dist2(v.x(), v.y(), w.x(), w.y());
+          return dist2(v.x(), v.y(), w.x(), w.y());
         }
 
-
-    private:
-        //! Disable copy constructor.
-        Geometry(const Geometry&); /// @todo remove once MSVC supports default/delete syntax.
-
-        //! Disable copy assignment.
-        Geometry& operator=(const Geometry&); /// @todo remove once MSVC supports default/delete syntax.
-
-    private:
+      private:
         /// The geometry type.
         const GeometryType m_geometry_type;
 
@@ -355,5 +347,7 @@ namespace qmapcontrol
 
         bool mSelected;
         Flags mFlags;
+
+        int m_z_index = 0;
     };
 }

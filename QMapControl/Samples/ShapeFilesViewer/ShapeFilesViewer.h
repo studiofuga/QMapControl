@@ -5,6 +5,7 @@
 #ifndef QMAPCONTROL_SHAPEFILESVIEWER_H
 #define QMAPCONTROL_SHAPEFILESVIEWER_H
 
+#include "QMapControl/Projection.h"
 #include "QMapControl/ESRIShapefile.h"
 #include "QMapControl/LayerESRIShapefile.h"
 #include "QMapControl/LayerMapAdapter.h"
@@ -44,6 +45,10 @@ public slots:
     void onLoadShapeFile();
 
     void onLoadTiffFile();
+
+    void mapFocusPointChanged(qmapcontrol::PointWorldCoord);
+
+    void mapMouseMove(QMouseEvent *, qmapcontrol::PointWorldCoord, qmapcontrol::PointWorldCoord);
 };
 
 #endif // QMAPCONTROL_SHAPEFILESVIEWER_H

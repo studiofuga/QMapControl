@@ -10,6 +10,7 @@
 #include <QMenu>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QStatusBar>
 
 #include <QDebug>
 #include <QSettings>
@@ -22,20 +23,25 @@ using namespace qmapcontrol;
 ShapeFilesViewer::ShapeFilesViewer()
 : QMainWindow(nullptr)
 {
-    map = new QMapControl(QSizeF(800,600),this);
+    statusBar()->show();
+
+    map = new QMapControl(QSizeF(800, 600), this);
 
     baseAdapter = std::make_shared<MapAdapterOSM>();
     baseLayer = std::make_shared<LayerMapAdapter>("OpenStreetMap", baseAdapter);
 
     map->addLayer(baseLayer);
 
-    map->setMapFocusPoint(PointWorldCoord(  -77.042793, -12.046374));
+    map->setMapFocusPoint(PointWorldCoord(-77.042793, -12.046374));
     map->setZoom(9);
     map->setBackgroundColour(Qt::white);
 
     setCentralWidget(map);
 
     buildMenu();
+
+    connect(map, &QMapControl::mapFocusPointChanged, this, &ShapeFilesViewer::mapFocusPointChanged);
+    connect(map, &QMapControl::mouseEventMoveCoordinate, this, &ShapeFilesViewer::mapMouseMove);
 }
 
 void ShapeFilesViewer::buildMenu()
@@ -180,6 +186,22 @@ void ShapeFilesViewer::onLoadTiffFile()
         qWarning() << "Exception: " << x.what();
         QMessageBox::warning(this, "Import TIFF", QString("Import failed: %1").arg(x.what()));
     }
+}
+
+void ShapeFilesViewer::mapFocusPointChanged(qmapcontrol::PointWorldCoord focusPoint)
+{
+    statusBar()->showMessage(
+            QString("Map Center Point: (lon %1, lat %2)").arg(focusPoint.longitude()).arg(focusPoint.latitude()));
+}
+
+void ShapeFilesViewer::mapMouseMove(QMouseEvent *mouseEvent, qmapcontrol::PointWorldCoord pressedPos,
+                                    qmapcontrol::PointWorldCoord currentPos)
+{
+    auto focusPoint = map->mapFocusPointCoord();
+    statusBar()->showMessage(
+            QString("Map Center Point: (lon %1, lat %2) - Mouse Point: (lon %3, lat %4)")
+                    .arg(focusPoint.longitude()).arg(focusPoint.latitude())
+                    .arg(currentPos.longitude()).arg(currentPos.latitude()));
 }
 
 int main(int argc, char *argv[])

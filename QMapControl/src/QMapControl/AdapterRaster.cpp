@@ -192,24 +192,11 @@ void AdapterRaster::draw(QPainter& painter,
     auto topLeftRasterC = p->worldToRasterCoordinates(topLeftWC);
     auto botRightC = p->worldToRasterCoordinates(botRightWC);
 
-//    qDebug() << "Top Left RasterC (1): " << topLeftRasterC;
-//    qDebug() << "Bot Rigt RasterC (1): " << botRightC;
-
     auto topLeftDs = p->worldToDs(topLeftWC);
     auto botRightDs = p->worldToDs(botRightWC);
 
-/*
-    auto bbTopLeftClippedX = std::max(backbuffer_rect_px.topLeftPx().x(), p->originDs.x());
-    auto bbTopLeftClippedY = std::max(backbuffer_rect_px.topLeftPx().y(), p->originDs.y());
-    auto bbBotRClippedX = std::min(backbuffer_rect_px.bottomRightPx().x(), p->oppositeDs.x());
-    auto bbBotRClippedY = std::min(backbuffer_rect_px.bottomRightPx().y(), p->oppositeDs.y());
-*/
-
     topLeftRasterC = p->clipToRaster(topLeftRasterC);
     botRightC = p->clipToRaster(botRightC);
-
-//    qDebug() << "Top Left RasterC (2): " << topLeftRasterC;
-//    qDebug() << "Bot Rigt RasterC (2): " << botRightC;
 
     /* Check */
 
@@ -219,16 +206,6 @@ void AdapterRaster::draw(QPainter& painter,
     auto newOffsetY = (int) std::floor(topLeftRasterC.y() + 0.5);
 
     auto extentPix = projection::get().toPointWorldPx(p->oppositeWorld, controller_zoom);
-
-/*
-    auto bbTopLPx = projection::get().toPointWorldPx(PointWorldCoord{bbTopLeftClippedX, bbTopLeftClippedY},
-                                                     controller_zoom);
-    auto bbBotRPx = projection::get().toPointWorldPx(PointWorldCoord{bbBotRClippedX, bbBotRClippedY}, controller_zoom);
-*/
-
-    // rescale
-//    auto newDx = (int) std::floor(botRightWC.x() - topLeftWC.x() + 0.5);
-//    auto newDy = (int) std::floor(topLeftWC.y() - botRightWC.y() + 0.5);
 
     auto bbTopLPx = QPointF{
             std::max(backbuffer_rect_px.topLeftPx().x(), originPix.x()),
@@ -247,11 +224,7 @@ void AdapterRaster::draw(QPainter& painter,
 
     if (newSrcDx == 0 || newSrcDy == 0) {
         qDebug() << "--- Zoom: " << controller_zoom;
-        qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << topLeftDs << " RasterC: "
-                 << topLeftRasterC << " Clipped: " << bbTopLPx;
-        qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << botRightDs << " RasterC: "
-                 << botRightC << " Clipped: " << bbBotRPx;
-        qDebug() << "Offset: " << newOffsetX << newOffsetY;
+        qDebug() << "TopLeft WC: " << topLeftWC;
         qDebug() << "WARN: Sz: " << newSrcDx << newSrcDy;
         return;
     }
@@ -283,25 +256,19 @@ void AdapterRaster::draw(QPainter& painter,
         qDebug() << "BackBuffer: " << backbuffer_rect_px.rawRect();
         qDebug() << "Viewport: " << painter.viewport();
 
-        // TODO fix this 0.25 factor to a programmable factor deduced from Pixel Device Ratio
-        auto r = 1.0;// 0.25 * painter.viewport().width() / p->dx;
-        auto sx = p->dx * r;
-        auto sy = p->dy * r;
-        qDebug() << "Pixmap Size: " << sx << sy;
-
         p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
                                         p->srcDx, p->srcDy,
-                                        sx, sy);
+                                        p->dx, p->dy);
     }
 
     painter.drawPixmap(bbTopLPx, p->scaledPixmap);
-//    painter.drawPixmap(QRect(originPix.x(), originPix.y(), p->dx, p->dy), p->scaledPixmap, QRect());
 
+#if 0
     painter.setPen(QPen(QBrush(Qt::red), 4));
 
     painter.drawEllipse(originPix, 20, 20);
     painter.drawEllipse(extentPix.rawPoint(), 20, 20);
-
+#endif
 }
 
 QPixmap
@@ -333,7 +300,6 @@ AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t s
         dataSize = newdataSize;
     }
 
-    // Iterate over each channel
     std::vector<int> bands(channels);
     std::iota(bands.begin(), bands.end(), 1);
 

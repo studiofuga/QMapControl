@@ -20,6 +20,7 @@ struct AdapterRaster::Impl {
     QPixmap scaledPixmap;
     PointWorldCoord originWorld;
     PointWorldCoord oppositeWorld;
+    QPointF originDs, oppositeDs;
 
     OGRCoordinateTransformation *mTransformation;       /**< Transformation from Data Source to World (Local) */
 
@@ -114,20 +115,14 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
     if (p->ds->GetGeoTransform(p->geoTransformMatrix) == CE_None) {
         p->rasterSizeX = p->ds->GetRasterXSize();
         p->rasterSizeY = p->ds->GetRasterYSize();
+
         double x = p->geoTransformMatrix[0];
         double y = p->geoTransformMatrix[3];
-        p->mTransformation->Transform(1, &x, &y);
-
-        qDebug() << "Transform Check: " << p->geoTransformMatrix[0] << p->geoTransformMatrix[3] << " => "
-                 << x << y;
-        qDebug() << "Inv: " << x << y << p->worldToDs(QPointF{x, y});
 
         double x2 = p->geoTransformMatrix[0] + p->rasterSizeX * p->geoTransformMatrix[1] +
                     p->rasterSizeY * p->geoTransformMatrix[2];
         double y2 = p->geoTransformMatrix[3] + p->rasterSizeX * p->geoTransformMatrix[4] +
                     p->rasterSizeY * p->geoTransformMatrix[5];
-        // (x2,y2) are in ds coordinates
-        p->mTransformation->Transform(1, &x2, &y2);
 
         if (x2 < x) {
             std::swap(x2, x);
@@ -136,14 +131,35 @@ AdapterRaster::AdapterRaster(GDALDataset *datasource, OGRSpatialReference*spatia
             std::swap(y2, y);
         }
 
+        p->originDs = QPointF{x, y};
+        p->mTransformation->Transform(1, &x, &y);
+
+        qDebug() << "Transform Check: " << p->geoTransformMatrix[0] << p->geoTransformMatrix[3] << " => "
+                 << x << y;
+        qDebug() << "Inv: " << x << y << p->worldToDs(QPointF{x, y});
+
+        // (x2,y2) are in ds coordinates
+        p->oppositeDs = QPointF{x2, y2};
+        p->mTransformation->Transform(1, &x2, &y2);
+
         p->originWorld = PointWorldCoord(x, y);
         p->oppositeWorld = PointWorldCoord(x2, y2);
-        qDebug() << "Origin Set to: " << p->originWorld.rawPoint();
-        qDebug() << "Opposite Point Set to: " << p->oppositeWorld.rawPoint();
+        qDebug() << "Origin Set to: " << p->originWorld.rawPoint() << " DS: " << p->originDs;
+        qDebug() << "Opposite Point Set to: " << p->oppositeWorld.rawPoint() << " DS: " << p->oppositeDs;
 
         p->xPixFactor = p->geoTransformMatrix[1];
         p->yPixFactor = p->geoTransformMatrix[5];
         qDebug() << "Pix Factors: " << p->xPixFactor << "x" << p->yPixFactor;
+
+
+        {
+            auto oxt = p->worldToRasterCoordinates(p->originWorld.rawPoint());
+            auto ext = p->worldToRasterCoordinates(p->oppositeWorld.rawPoint());
+            qDebug() << "Testing Origin: " << p->originWorld.rawPoint() << " => raster: " << oxt;
+            qDebug() << "Testing Oppost: " << p->oppositeWorld.rawPoint() << " => raster: " << ext;
+        }
+
+
     }
 }
 
@@ -162,59 +178,91 @@ void AdapterRaster::draw(QPainter& painter,
     // TODO check if the current controller zoom is outside the allowed zoom (min-max). In case,
     // return.
 
-    if(p->ds == nullptr)
-    {
+    if (p->ds == nullptr) {
         return;
     }
 
     auto topLeftWC = projection::get()
-                         .toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom)
-                         .rawPoint();
+            .toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom)
+            .rawPoint();
     auto botRightWC = projection::get()
-                          .toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom)
-                          .rawPoint();
+            .toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom)
+            .rawPoint();
 
     auto topLeftRasterC = p->worldToRasterCoordinates(topLeftWC);
     auto botRightC = p->worldToRasterCoordinates(botRightWC);
 
+//    qDebug() << "Top Left RasterC (1): " << topLeftRasterC;
+//    qDebug() << "Bot Rigt RasterC (1): " << botRightC;
+
+    auto topLeftDs = p->worldToDs(topLeftWC);
+    auto botRightDs = p->worldToDs(botRightWC);
+
+/*
+    auto bbTopLeftClippedX = std::max(backbuffer_rect_px.topLeftPx().x(), p->originDs.x());
+    auto bbTopLeftClippedY = std::max(backbuffer_rect_px.topLeftPx().y(), p->originDs.y());
+    auto bbBotRClippedX = std::min(backbuffer_rect_px.bottomRightPx().x(), p->oppositeDs.x());
+    auto bbBotRClippedY = std::min(backbuffer_rect_px.bottomRightPx().y(), p->oppositeDs.y());
+*/
+
     topLeftRasterC = p->clipToRaster(topLeftRasterC);
     botRightC = p->clipToRaster(botRightC);
+
+//    qDebug() << "Top Left RasterC (2): " << topLeftRasterC;
+//    qDebug() << "Bot Rigt RasterC (2): " << botRightC;
 
     /* Check */
 
     auto originPix = projection::get().toPointWorldPx(p->originWorld, controller_zoom).rawPoint();
 
-    auto newOffsetX = (int)std::floor(topLeftRasterC.x()+0.5);
-    auto newOffsetY = (int)std::floor(topLeftRasterC.y() +0.5);
+    auto newOffsetX = (int) std::floor(topLeftRasterC.x() + 0.5);
+    auto newOffsetY = (int) std::floor(topLeftRasterC.y() + 0.5);
 
     auto extentPix = projection::get().toPointWorldPx(p->oppositeWorld, controller_zoom);
 
-    // rescale
-    auto newDx = (int)std::floor(extentPix.x() - originPix.x() + 0.5);
-    auto newDy = (int)std::floor(extentPix.y() - originPix.y()+0.5);
+/*
+    auto bbTopLPx = projection::get().toPointWorldPx(PointWorldCoord{bbTopLeftClippedX, bbTopLeftClippedY},
+                                                     controller_zoom);
+    auto bbBotRPx = projection::get().toPointWorldPx(PointWorldCoord{bbBotRClippedX, bbBotRClippedY}, controller_zoom);
+*/
 
-    auto newSrcDx =(int)std::floor( botRightC.x() - p->offsetX+0.5);
-    auto newSrcDy =(int)std::floor( botRightC.y() - p->offsetY+0.5);
+    // rescale
+//    auto newDx = (int) std::floor(botRightWC.x() - topLeftWC.x() + 0.5);
+//    auto newDy = (int) std::floor(topLeftWC.y() - botRightWC.y() + 0.5);
+
+    auto bbTopLPx = QPointF{
+            std::max(backbuffer_rect_px.topLeftPx().x(), originPix.x()),
+            std::max(backbuffer_rect_px.topLeftPx().y(), originPix.y())
+    };
+    auto bbBotRPx = QPointF{
+            std::min(backbuffer_rect_px.bottomRightPx().x(), extentPix.x()),
+            std::min(backbuffer_rect_px.bottomRightPx().y(), extentPix.y())
+    };
+
+    auto newDx = (int) std::floor(bbBotRPx.x() - bbTopLPx.x() + 0.5);
+    auto newDy = (int) std::floor(bbBotRPx.y() - bbTopLPx.y() + 0.5);
+
+    auto newSrcDx = (int) std::floor(botRightC.x() - newOffsetX + 0.5);
+    auto newSrcDy = (int) std::floor(botRightC.y() - newOffsetY + 0.5);
 
     if (newSrcDx == 0 || newSrcDy == 0) {
         qDebug() << "--- Zoom: " << controller_zoom;
-        qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << p->worldToDs(topLeftWC) << " RasterC: "
-                 << topLeftRasterC;
-        qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << p->worldToDs(botRightWC) << " RasterC: "
-                 << botRightC;
+        qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << topLeftDs << " RasterC: "
+                 << topLeftRasterC << " Clipped: " << bbTopLPx;
+        qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << botRightDs << " RasterC: "
+                 << botRightC << " Clipped: " << bbBotRPx;
         qDebug() << "Offset: " << newOffsetX << newOffsetY;
         qDebug() << "WARN: Sz: " << newSrcDx << newSrcDy;
         return;
     }
 
     if (newOffsetX != p->offsetX ||
-       newOffsetY != p->offsetY ||
-       newSrcDx != p->srcDx ||
-       newSrcDy != p->srcDy ||
-       newDx != p->dx ||
-       newDy != p->dy
-       )
-    {
+        newOffsetY != p->offsetY ||
+        newSrcDx != p->srcDx ||
+        newSrcDy != p->srcDy ||
+        newDx != p->dx ||
+        newDy != p->dy
+            ) {
         p->offsetX = newOffsetX;
         p->offsetY = newOffsetY;
         p->srcDx = newSrcDx;
@@ -223,10 +271,10 @@ void AdapterRaster::draw(QPainter& painter,
         p->dy = newDy;
 
         qDebug() << "--- Zoom: " << controller_zoom;
-        qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << p->worldToDs(topLeftWC) << " RasterC: "
-                 << topLeftRasterC;
-        qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << p->worldToDs(botRightWC) << " RasterC: "
-                 << botRightC;
+        qDebug() << "TopLeft WC: " << topLeftWC << " Ds: " << topLeftDs << " RasterC: "
+                 << topLeftRasterC << " Clipped: " << bbTopLPx;
+        qDebug() << "BotRigh WC: " << botRightWC << " Ds: " << botRightDs << " RasterC: "
+                 << botRightC << " Clipped: " << bbBotRPx;
         qDebug() << "Origin: " << originPix;
         qDebug() << "Offset: " << newOffsetX << newOffsetY;
         qDebug() << "Extent: " << extentPix.rawPoint();
@@ -236,16 +284,24 @@ void AdapterRaster::draw(QPainter& painter,
         qDebug() << "Viewport: " << painter.viewport();
 
         // TODO fix this 0.25 factor to a programmable factor deduced from Pixel Device Ratio
-        auto r = 0.25*painter.viewport().width() / p->dx;
+        auto r = 1.0;// 0.25 * painter.viewport().width() / p->dx;
         auto sx = p->dx * r;
         auto sy = p->dy * r;
         qDebug() << "Pixmap Size: " << sx << sy;
 
         p->scaledPixmap = p->loadPixmap(p->offsetX, p->offsetY,
-                                        p->srcDx,p->srcDy,
-                                        sx,sy);
+                                        p->srcDx, p->srcDy,
+                                        sx, sy);
     }
-    painter.drawPixmap(QRect(originPix.x(), originPix.y(), p->dx, p->dy), p->scaledPixmap, QRect());
+
+    painter.drawPixmap(bbTopLPx, p->scaledPixmap);
+//    painter.drawPixmap(QRect(originPix.x(), originPix.y(), p->dx, p->dy), p->scaledPixmap, QRect());
+
+    painter.setPen(QPen(QBrush(Qt::red), 4));
+
+    painter.drawEllipse(originPix, 20, 20);
+    painter.drawEllipse(extentPix.rawPoint(), 20, 20);
+
 }
 
 QPixmap

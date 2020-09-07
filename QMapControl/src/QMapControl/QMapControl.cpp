@@ -123,35 +123,49 @@ namespace qmapcontrol
         setViewportSize(size_px);
     }
 
-    QMapControl::~QMapControl()
-    {
-        mAborted= true;
-        ImageManager::get().abortLoading();
-        QThread::currentThread()->sleep(1);
+QMapControl::~QMapControl()
+{
+    mAborted = true;
+    ImageManager::get().abortLoading();
+    QThread::currentThread()->sleep(1);
 
-        // Destroy the image manager instance.
-        ImageManager::destory();
-    }
+    // Destroy the image manager instance.
+    ImageManager::destory();
+}
 
-    /// Public...
-    // Settings.
-    void QMapControl::setProjection(const projection::EPSG& epsg)
-    {
-        // Set the projection.
-        projection::set(epsg);
-    }
+void QMapControl::setMapRotation(qreal rotation)
+{
+    mMapRotation = rotation;
+    mMapTransformation.reset();
+    mMapTransformation.rotate(rotation);
 
-    void QMapControl::setTileSizePx(const int& tile_size_px)
-    {
-        // Set the tile size used by the Image Manager.
-        ImageManager::get().setTileSizePx(tile_size_px);
-    }
+    requestRedraw();
+}
 
-    void QMapControl::setBackgroundColour(const QColor& colour)
-    {
-        mBackgroundColor = colour;
-        requestRedraw();
-    }
+qreal QMapControl::mapRotation() const
+{
+    return mMapRotation;
+}
+
+/// Public...
+// Settings.
+void QMapControl::setProjection(const projection::EPSG &epsg)
+{
+    // Set the projection.
+    projection::set(epsg);
+}
+
+void QMapControl::setTileSizePx(const int &tile_size_px)
+{
+    // Set the tile size used by the Image Manager.
+    ImageManager::get().setTileSizePx(tile_size_px);
+}
+
+void QMapControl::setBackgroundColour(const QColor &colour)
+{
+    mBackgroundColor = colour;
+    requestRedraw();
+}
 
     void QMapControl::enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path)
     {
@@ -1394,17 +1408,37 @@ namespace qmapcontrol
 
     void QMapControl::drawPrimaryScreen(QPainter* painter) const
     {
+        painter->save();
+
         // Is the primary screen scaled enabled?
-        if(m_primary_screen_scaled_enabled)
-        {
+        if (m_primary_screen_scaled_enabled) {
             // Draw the current scaled primary screem image to the pixmap with wheel event offset.
             // Note: m_viewport_center_px is the same as (m_viewport_size_px / 2)
-            painter->drawPixmap(-(m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px - m_primary_screen_scaled_offset).rawPoint(), m_primary_screen_scaled);
+            painter->drawPixmap(-(m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px -
+                                  m_primary_screen_scaled_offset).rawPoint(), m_primary_screen_scaled);
         }
+
+        auto centerPoint = (m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px
+        ).rawPoint();
+
+        QTransform backbufferRotationMatrix;
+        backbufferRotationMatrix.translate(centerPoint.x(),
+                                           centerPoint.y());
+        backbufferRotationMatrix.rotate(mMapRotation);
+
+
+        painter->setTransform(backbufferRotationMatrix);
 
         // Draws the primary screen image to the pixmap.
         // Note: m_viewport_center_px is the same as (m_viewport_size_px / 2)
-        painter->drawPixmap(-(m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px).rawPoint(), m_primary_screen);
+        painter->drawPixmap(-(m_viewport_center_px + m_viewport_center_px).rawPoint(), m_primary_screen);
+
+/*
+        painter->setPen(Qt::red);
+        painter->drawEllipse(QRectF(-50, -50, 100, 100));
+*/
+
+        painter->restore();
     }
 
     bool QMapControl::checkBackbuffer() const

@@ -123,12 +123,24 @@ namespace qmapcontrol
         //! Destructor.
         ~QMapControl();
 
+        /**
+         * @brief Apply a rotation to the graphics representation of the map.
+         * @param rotation the rotation in degrees
+         */
+        void setMapRotation(qreal rotation);
+
+        /**
+         * @brief Gets the actual map rotation
+         * @return map rotation in degrees
+         */
+        qreal mapRotation() const;
+
         // Settings.
         /*!
          * Set the displayed projection.
          * @param epsg The projection required.
          */
-        void setProjection(const projection::EPSG& epsg = projection::EPSG::SphericalMercator);
+        void setProjection(const projection::EPSG &epsg = projection::EPSG::SphericalMercator);
 
         /*!
          * Set the tile size used in pxiels.
@@ -611,18 +623,29 @@ namespace qmapcontrol
          * @param backbuffer_rect_px The updated backbuffer rect in pixels.
          * @param backbuffer_map_focus_px The updated backbuffer map foucs point in pixels.
          */
-        void updatedBackBuffer(QPixmap backbuffer_pixmap, RectWorldPx backbuffer_rect_px, PointWorldPx backbuffer_map_focus_px);
+        void updatedBackBuffer(QPixmap backbuffer_pixmap, RectWorldPx backbuffer_rect_px,
+                               PointWorldPx backbuffer_map_focus_px);
 
         /**
          * Signal emitted when the map foucus has changed
          * */
         void mapFocusPointChanged(PointWorldCoord);
+
     private:
         //! Disable copy constructor.
-        QMapControl(const QMapControl&); /// @todo remove once MSVC supports default/delete syntax.
+        QMapControl(const QMapControl &); /// @todo remove once MSVC supports default/delete syntax.
 
         //! Disable copy assignment.
-        QMapControl& operator=(const QMapControl&); /// @todo remove once MSVC supports default/delete syntax.
+        QMapControl &operator=(const QMapControl &); /// @todo remove once MSVC supports default/delete syntax.
+
+        /**
+         * @brief The actual map rotation as applied through mMapTransformation. Used as cached value.
+         */
+        qreal mMapRotation;
+        /**
+         * @brief The map transformation.
+         */
+        QTransform mMapTransformation;
 
         QColor mBackgroundColor = Qt::white;
 

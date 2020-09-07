@@ -1418,15 +1418,7 @@ void QMapControl::setBackgroundColour(const QColor &colour)
                                   m_primary_screen_scaled_offset).rawPoint(), m_primary_screen_scaled);
         }
 
-        auto centerPoint = (m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px
-        ).rawPoint();
-
-        QTransform backbufferRotationMatrix;
-        backbufferRotationMatrix.translate(centerPoint.x(),
-                                           centerPoint.y());
-        backbufferRotationMatrix.rotate(mMapRotation);
-
-
+        QTransform backbufferRotationMatrix = getMapTransform();
         painter->setTransform(backbufferRotationMatrix);
 
         // Draws the primary screen image to the pixmap.
@@ -1441,20 +1433,32 @@ void QMapControl::setBackgroundColour(const QColor &colour)
         painter->restore();
     }
 
-    bool QMapControl::checkBackbuffer() const
-    {
-        // Default return success.
-        bool return_redraw_required(false);
+QTransform QMapControl::getMapTransform() const
+{
+    auto centerPoint = (m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px
+    ).rawPoint();
 
-        // Calculate required viewport rect.
-        const RectWorldPx required_viewport_rect_px(toPointWorldPx(PointViewportPx(0.0, 0.0)), toPointWorldPx(PointViewportPx(m_viewport_size_px.width(), m_viewport_size_px.height())));
+    QTransform backbufferRotationMatrix;
+    backbufferRotationMatrix.translate(centerPoint.x(),
+                                       centerPoint.y());
+    backbufferRotationMatrix.rotate(mMapRotation);
+    return backbufferRotationMatrix;
+}
 
-        // Does the primary screen's backbuffer rect contain the requried viewport rect?
-        if(m_primary_screen_backbuffer_rect_px.rawRect().contains(required_viewport_rect_px.rawRect()) == false)
-        {
-            // Backbuffer rect does not contain the required viewport rect, therefore we need to redraw the backbuffer.
-            return_redraw_required = true;
-        }
+bool QMapControl::checkBackbuffer() const
+{
+    // Default return success.
+    bool return_redraw_required(false);
+
+    // Calculate required viewport rect.
+    const RectWorldPx required_viewport_rect_px(toPointWorldPx(PointViewportPx(0.0, 0.0)), toPointWorldPx(
+            PointViewportPx(m_viewport_size_px.width(), m_viewport_size_px.height())));
+
+    // Does the primary screen's backbuffer rect contain the requried viewport rect?
+    if (m_primary_screen_backbuffer_rect_px.rawRect().contains(required_viewport_rect_px.rawRect()) == false) {
+        // Backbuffer rect does not contain the required viewport rect, therefore we need to redraw the backbuffer.
+        return_redraw_required = true;
+    }
 
         // Return success.
         return return_redraw_required;

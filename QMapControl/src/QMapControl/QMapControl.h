@@ -775,5 +775,6 @@ namespace qmapcontrol
     protected:
         void resizeEvent(QResizeEvent *event) override;
 
+        QTransform getMapTransform() const;
     };
 }

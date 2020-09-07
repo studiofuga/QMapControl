@@ -102,7 +102,7 @@ void Navigator::buildOnMapControls()
     p->dial->setValue(180);
 
     connect(p->dial, &QDial::valueChanged, this, [this](int value) {
-        onCourseChanged(180.0 - value);
+        onCourseChanged(value - 180.0);
     });
 
     layout_inner->addWidget(p->dial);

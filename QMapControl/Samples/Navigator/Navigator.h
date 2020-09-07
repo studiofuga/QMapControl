@@ -17,17 +17,22 @@
 class Navigator : public QMainWindow {
 Q_OBJECT
 
-    qmapcontrol::QMapControl *map;
-    std::shared_ptr<qmapcontrol::MapAdapterOSM> baseAdapter;
-    std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
-
+    struct Impl;
+    Impl *p;
 public:
     Navigator();
 
+    virtual ~Navigator();
+
 private:
+
     void buildMenu();
 
+    void buildOnMapControls();
+
 public slots:
+
+    void onCourseChanged(qreal newcourse);
 
     void mapFocusPointChanged(qmapcontrol::PointWorldCoord);
 

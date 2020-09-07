@@ -1423,7 +1423,10 @@ void QMapControl::setBackgroundColour(const QColor &colour)
 
         // Draws the primary screen image to the pixmap.
         // Note: m_viewport_center_px is the same as (m_viewport_size_px / 2)
-        painter->drawPixmap(-(m_viewport_center_px + m_viewport_center_px).rawPoint(), m_primary_screen);
+        painter->drawPixmap(
+                -(m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px).rawPoint(),
+                m_primary_screen);
+
 
 /*
         painter->setPen(Qt::red);
@@ -1435,13 +1438,14 @@ void QMapControl::setBackgroundColour(const QColor &colour)
 
 QTransform QMapControl::getMapTransform() const
 {
-    auto centerPoint = (m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px
-    ).rawPoint();
+    auto centerPoint = QPointF(m_viewport_size_px.width() / 2, m_viewport_size_px.height() / 2);
 
     QTransform backbufferRotationMatrix;
     backbufferRotationMatrix.translate(centerPoint.x(),
                                        centerPoint.y());
     backbufferRotationMatrix.rotate(mMapRotation);
+    backbufferRotationMatrix.translate(-centerPoint.x(),
+                                       -centerPoint.y());
     return backbufferRotationMatrix;
 }
 

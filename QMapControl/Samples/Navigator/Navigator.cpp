@@ -12,12 +12,172 @@
 #include <QSettings>
 #include <QVBoxLayout>
 #include <QDial>
+#include <QTimer>
 
 #include <QDebug>
 
 #include <stdexcept>
+#include <cmath>
 
 using namespace qmapcontrol;
+
+struct NavPoint {
+    int zoom;
+    qmapcontrol::PointWorldCoord navPoint;
+};
+
+static double greatCircle(qmapcontrol::PointWorldCoord from, qmapcontrol::PointWorldCoord to)
+{
+    double tolat = M_PI * to.latitude() / 180.0;
+    double tolong = M_PI * to.longitude() / 180.0;
+    double fromlat = M_PI * from.latitude() / 180.0;
+    double fromlong = M_PI * from.longitude() / 180.0;
+
+    int radius = 6371; // 6371km is the radius of the earth
+    double dLat = tolat - fromlat;
+    double dLon = tolong - fromlong;
+    double a = std::pow(std::sin(dLat / 2), 2) +
+               std::cos(fromlat) * std::cos(tolat) * std::pow(std::sin(dLon / 2), 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double d = radius * c;
+
+    return d;
+}
+
+static double cartesianDistance(qmapcontrol::PointWorldCoord from, qmapcontrol::PointWorldCoord to)
+{
+    auto dlat = to.latitude() - from.latitude();
+    auto dlon = to.longitude() - from.longitude();
+    return std::sqrt(dlat * dlat + dlon * dlon);
+}
+
+static double cartesianBearing(qmapcontrol::PointWorldCoord from, qmapcontrol::PointWorldCoord to)
+{
+    auto dlat = to.latitude() - from.latitude();
+    auto dlon = to.longitude() - from.longitude();
+    return std::atan2(dlon, dlat);
+}
+
+class NavigatorAnimation {
+    std::vector<NavPoint> navPoints;
+    double courseSpeed = 0.0;
+    qmapcontrol::PointWorldCoord speed;
+    double currentCourse, targetCourse;
+    qmapcontrol::PointWorldCoord currentPosition;
+    int numSteps = 0, currentStep = 0;
+    int numMicroSteps = 0, currentMicroStep = 0;
+    enum State {
+        Idle, Rotating, Moving
+    };
+    State state = Idle;
+
+    bool calcNextRotation()
+    {
+        auto nextPos = navPoints[currentStep].navPoint;
+        targetCourse = cartesianBearing(nextPos, currentPosition);
+        numMicroSteps = 10;
+        courseSpeed = (targetCourse - currentCourse) / numMicroSteps;
+        qDebug() << "Next Rotation: " << (180.0 * currentCourse / M_PI) << " => "
+                 << (180.0 * targetCourse / M_PI) << " speed " << (180.0 * courseSpeed / M_PI);
+        return true;
+    }
+
+    bool calcNextMovement()
+    {
+        numMicroSteps = 50;
+        auto nextPos = navPoints[currentStep].navPoint;
+        speed = qmapcontrol::PointWorldCoord{
+                (nextPos.longitude() - currentPosition.longitude()) / numMicroSteps,
+                (nextPos.latitude() - currentPosition.latitude()) / numMicroSteps
+        };
+        qDebug() << "Next Movement: " << currentPosition.rawPoint() << " => " << nextPos.rawPoint() << " Speed: "
+                 << speed.rawPoint();
+        return true;
+    }
+
+    void nextStep()
+    {
+        if (state == Rotating) {
+            calcNextMovement();
+            qDebug() << "Moving: " << speed.rawPoint();
+            state = Moving;
+        } else if (state == Moving || state == Idle) {
+
+            if (state == Moving) {
+                ++currentStep;
+            } else {
+                currentStep = 0;
+            }
+            currentMicroStep = 0;
+            calcNextRotation();
+            qDebug() << "Step " << currentStep << "Rotating: " << courseSpeed;
+            if (finished()) {
+                qDebug() << "End";
+                return;
+            }
+            state = Rotating;
+        }
+    }
+
+    bool stepFinished() const
+    {
+        return currentMicroStep >= numMicroSteps;
+    }
+
+public:
+    explicit NavigatorAnimation(const std::vector<NavPoint> &navPoints) : navPoints(navPoints)
+    {
+    }
+
+    void setCurrentCourse(double currentCourse)
+    {
+        NavigatorAnimation::currentCourse = M_PI * currentCourse / 180.0;
+    }
+
+    void setCurrentPosition(const PointWorldCoord &currentPosition)
+    {
+        NavigatorAnimation::currentPosition = currentPosition;
+    }
+
+    void start()
+    {
+        currentStep = 0;
+        nextStep();
+    }
+
+    void animate()
+    {
+        if (state == Moving) {
+            currentPosition = qmapcontrol::PointWorldCoord{
+                    currentPosition.longitude() + speed.longitude(),
+                    currentPosition.latitude() + speed.latitude()
+            };
+        } else if (state == Rotating) {
+            currentCourse = currentCourse + courseSpeed;
+            qDebug() << "Current Course: " << currentCourse;
+        }
+        ++currentMicroStep;
+        if (stepFinished()) {
+            nextStep();
+        }
+    }
+
+    double getCurrentCourse() const
+    {
+        return 180.0 * currentCourse / M_PI;
+    }
+
+    const PointWorldCoord &getCurrentPosition() const
+    {
+        return currentPosition;
+    }
+
+    bool finished() const
+    {
+        return currentStep >= navPoints.size();
+    }
+
+};
 
 struct Navigator::Impl {
     qmapcontrol::QMapControl *map;
@@ -25,6 +185,10 @@ struct Navigator::Impl {
     std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
 
     QDial *dial;
+    QTimer timer;
+
+    std::vector<NavPoint> navPoints;
+    std::unique_ptr<NavigatorAnimation> animation;
 };
 
 Navigator::Navigator()
@@ -51,6 +215,8 @@ Navigator::Navigator()
 
     connect(p->map, &QMapControl::mapFocusPointChanged, this, &Navigator::mapFocusPointChanged);
     connect(p->map, &QMapControl::mouseEventMoveCoordinate, this, &Navigator::mapMouseMove);
+
+    connect(&p->timer, &QTimer::timeout, this, &Navigator::animate);
 }
 
 Navigator::~Navigator()
@@ -60,6 +226,17 @@ Navigator::~Navigator()
 
 void Navigator::buildMenu()
 {
+    auto mapMenu = menuBar()->addMenu(tr("&Map"));
+    auto actionRecordPoint = new QAction(tr("&Record"));
+    auto actionSavePath = new QAction(tr("&Save Path..."));
+    auto actionReplay = new QAction(tr("&Replay"));
+    mapMenu->addAction(actionRecordPoint);
+    mapMenu->addAction(actionSavePath);
+    mapMenu->addAction(actionReplay);
+
+    connect(actionRecordPoint, &QAction::triggered, this, &Navigator::onActionRecordPoint);
+    connect(actionSavePath, &QAction::triggered, this, &Navigator::onActionSavePath);
+    connect(actionReplay, &QAction::triggered, this, &Navigator::onActionPlayPath);
 
     auto layersMenu = menuBar()->addMenu(tr("&Layers"));
     auto actionLayermap = new QAction("Map");
@@ -115,6 +292,45 @@ void Navigator::onCourseChanged(qreal newcourse)
 {
     qDebug() << "New Course: " << newcourse;
     p->map->setMapRotation(newcourse);
+}
+
+void Navigator::onActionRecordPoint()
+{
+    auto point = NavPoint{
+            p->map->getCurrentZoom(),
+            p->map->mapFocusPointCoord()
+    };
+    p->navPoints.push_back(point);
+    statusBar()->showMessage(tr("New Point added, currently %1 point(s) in path").arg(p->navPoints.size()));
+}
+
+void Navigator::onActionSavePath()
+{
+
+}
+
+void Navigator::onActionLoadPath()
+{
+
+}
+
+void Navigator::onActionPlayPath()
+{
+    p->animation = std::make_unique<NavigatorAnimation>(p->navPoints);
+    p->animation->setCurrentPosition(p->map->mapFocusPointCoord());
+    p->animation->setCurrentCourse(p->map->mapRotation());
+    p->animation->start();
+    p->timer.start(100);
+}
+
+void Navigator::animate()
+{
+    p->animation->animate();
+    p->map->setMapRotation(p->animation->getCurrentCourse());
+    p->map->setMapFocusPoint(p->animation->getCurrentPosition());
+    if (p->animation->finished()) {
+        p->timer.stop();
+    }
 }
 
 int main(int argc, char *argv[])

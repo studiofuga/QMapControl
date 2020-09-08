@@ -32,7 +32,18 @@ private:
 
 public slots:
 
+    void onActionRecordPoint();
+
+    void onActionSavePath();
+
+    void onActionLoadPath();
+
+    void onActionPlayPath();
+
     void onCourseChanged(qreal newcourse);
+
+    void animate();
+
 
     void mapFocusPointChanged(qmapcontrol::PointWorldCoord);
 

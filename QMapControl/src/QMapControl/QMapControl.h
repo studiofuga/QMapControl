@@ -641,7 +641,7 @@ namespace qmapcontrol
         /**
          * @brief The actual map rotation as applied through mMapTransformation. Used as cached value.
          */
-        qreal mMapRotation;
+        qreal mMapRotation = 0.0;
         /**
          * @brief The map transformation.
          */

@@ -55,7 +55,7 @@ static double cartesianBearing(qmapcontrol::PointWorldCoord from, qmapcontrol::P
 {
     auto dlat = to.latitude() - from.latitude();
     auto dlon = to.longitude() - from.longitude();
-    return std::atan2(dlon, dlat);
+    return std::atan2(dlat, dlon) - M_PI_2;
 }
 
 class NavigatorAnimation {
@@ -74,7 +74,7 @@ class NavigatorAnimation {
     bool calcNextRotation()
     {
         auto nextPos = navPoints[currentStep].navPoint;
-        targetCourse = cartesianBearing(nextPos, currentPosition);
+        targetCourse = cartesianBearing(currentPosition, nextPos);
         numMicroSteps = 10;
         courseSpeed = (targetCourse - currentCourse) / numMicroSteps;
         qDebug() << "Next Rotation: " << (180.0 * currentCourse / M_PI) << " => "
@@ -154,7 +154,7 @@ public:
             };
         } else if (state == Rotating) {
             currentCourse = currentCourse + courseSpeed;
-            qDebug() << "Current Course: " << currentCourse;
+//            qDebug() << "Current Course: " << (180.0 * currentCourse / M_PI);
         }
         ++currentMicroStep;
         if (stepFinished()) {

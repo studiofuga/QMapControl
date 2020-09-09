@@ -577,25 +577,40 @@ void QMapControl::setBackgroundColour(const QColor &colour)
         updateControls();
     }
 
-    // Mouse management.
-    void QMapControl::enableLayerMouseEvents(const bool& enable)
-    {
-        // Set whether to enable mouse events for layers.
-        m_layer_mouse_events_enabled = enable;
-    }
+void QMapControl::setCenterPixmap(QPixmap pixmap)
+{
+    mCenterPixmap = pixmap;
+}
 
-    QMapControl::MouseButtonMode QMapControl::getMouseButtonLeftMode()
-    {
-        // Return the left mouse button mode.
-        return m_mouse_left_mode;
-    }
+void QMapControl::clearCenterPixmap()
+{
+    mCenterPixmap = QPixmap();
+}
 
-    void QMapControl::setMouseButtonLeft(const MouseButtonMode& mode, const bool& origin_center)
-    {
-        // Set the left mouse button settings.
-        m_mouse_left_mode = mode;
-        m_mouse_left_origin_center = origin_center;
-    }
+QPixmap QMapControl::centerPixmap()
+{
+    return mCenterPixmap;
+}
+
+// Mouse management.
+void QMapControl::enableLayerMouseEvents(const bool &enable)
+{
+    // Set whether to enable mouse events for layers.
+    m_layer_mouse_events_enabled = enable;
+}
+
+QMapControl::MouseButtonMode QMapControl::getMouseButtonLeftMode()
+{
+    // Return the left mouse button mode.
+    return m_mouse_left_mode;
+}
+
+void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &origin_center)
+{
+    // Set the left mouse button settings.
+    m_mouse_left_mode = mode;
+    m_mouse_left_origin_center = origin_center;
+}
 
     QMapControl::MouseButtonMode QMapControl::getMouseButtonRightMode()
     {
@@ -1319,8 +1334,7 @@ void QMapControl::setBackgroundColour(const QColor &colour)
         }
 
         // Should we draw the crosshairs?
-        if(m_crosshairs_enabled)
-        {
+        if (m_crosshairs_enabled) {
             // Draw the crosshair at the viewport center.
             // |
             painter.drawLine(m_viewport_center_px.x(), m_viewport_center_px.y() - 10.0,
@@ -1330,16 +1344,20 @@ void QMapControl::setBackgroundColour(const QColor &colour)
                              m_viewport_center_px.x() + 10.0, m_viewport_center_px.y());
         }
 
+        if (!mCenterPixmap.isNull()) {
+            auto centerRect = mCenterPixmap.rect();
+            centerRect.moveCenter(QPoint{(int) m_viewport_center_px.x(), (int) m_viewport_center_px.y()});
+            painter.drawPixmap(centerRect, mCenterPixmap);
+        }
+
         // Is the mouse pressed?
-        if(m_mouse_left_pressed || m_mouse_right_pressed)
-        {
+        if (m_mouse_left_pressed || m_mouse_right_pressed) {
             // Default to the left mouse button options.
             MouseButtonMode mouse_mode = m_mouse_left_mode;
             bool mouse_origin_center = m_mouse_left_origin_center;
 
             // Has the right mouse button been pressed?
-            if(m_mouse_right_pressed)
-            {
+            if (m_mouse_right_pressed) {
                 // Set to the right mouse button options.
                 mouse_mode = m_mouse_right_mode;
                 mouse_origin_center = m_mouse_right_origin_center;

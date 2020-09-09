@@ -347,14 +347,20 @@ namespace qmapcontrol
          * @param enable Whether the zoom control should be displayed.
          * @param align_left Whether to align the zoom controls to left or right of the widget.
          */
-        void enableZoomControls(const bool& enable, const bool& align_left = true);
+        void enableZoomControls(const bool &enable, const bool &align_left = true);
+
+        void setCenterPixmap(QPixmap);
+
+        void clearCenterPixmap();
+
+        QPixmap centerPixmap();
 
         // Mouse management.
         /*!
          * Set whether the layers should handle mouse events.
          * @param enable Whether the layers should handle mouse events.
          */
-        void enableLayerMouseEvents(const bool& enable);
+        void enableLayerMouseEvents(const bool &enable);
 
         /*!
          * Fetches the left mouse button mode.
@@ -654,6 +660,8 @@ namespace qmapcontrol
 
         /// Whether the crossharis should be visible.
         bool m_crosshairs_enabled;
+
+        QPixmap mCenterPixmap;
 
         /// List of layers (use getLayers() to access this for thread-safe read-only functionality).
         std::vector<std::shared_ptr<Layer>> m_layers;

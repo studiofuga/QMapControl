@@ -211,6 +211,8 @@ struct Navigator::Impl {
     qmapcontrol::QMapControl *map;
     std::shared_ptr<qmapcontrol::MapAdapter> baseAdapter;
     std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
+
+    std::string pathLayerName;
     std::shared_ptr<qmapcontrol::LayerGeometry> pathLayer;
 
     GDALDataset *shpDataSet = nullptr;
@@ -241,7 +243,8 @@ Navigator::Navigator()
 
     p->baseAdapter = std::make_shared<MapAdapterGoogle>();
     p->baseLayer = std::make_shared<LayerMapAdapter>("Google", p->baseAdapter);
-    p->pathLayer = std::make_shared<LayerGeometry>("Paths");
+    p->pathLayerName = "Paths";
+    p->pathLayer = std::make_shared<LayerGeometry>(p->pathLayerName);
 
     p->map->addLayer(p->baseLayer);
     p->map->addLayer(p->pathLayer);
@@ -297,14 +300,6 @@ void Navigator::buildMenu()
     connect(actionReplay, &QAction::triggered, this, &Navigator::onActionPlayPath);
 
     auto layersMenu = menuBar()->addMenu(tr("&Layers"));
-    auto actionLayermap = new QAction("Map");
-    actionLayermap->setCheckable(true);
-    actionLayermap->setChecked(true);
-    layersMenu->addAction(actionLayermap);
-    connect(actionLayermap, &QAction::toggled, this, [this](bool checked) {
-        p->baseLayer->setVisible(checked);
-    });
-
     auto actionLoadShapefile = new QAction("Load &Shapefile");
     connect(actionLoadShapefile, &QAction::triggered, this, &Navigator::onActionLoadShapefile);
     layersMenu->addAction(actionLoadShapefile);
@@ -313,12 +308,38 @@ void Navigator::buildMenu()
     connect(actionLoadTiff, &QAction::triggered, this, &Navigator::onActionLoadTiff);
     layersMenu->addAction(actionLoadTiff);
 
+    layersMenu->addSeparator();
+
+    auto actionLayermap = new QAction("Map");
+    actionLayermap->setCheckable(true);
+    actionLayermap->setChecked(true);
+    layersMenu->addAction(actionLayermap);
+    connect(actionLayermap, &QAction::toggled, this, [this](bool checked) {
+        p->baseLayer->setVisible(checked);
+    });
+
     auto actionLayerPaths = new QAction("Path");
     actionLayerPaths->setCheckable(true);
     actionLayerPaths->setChecked(true);
     layersMenu->addAction(actionLayerPaths);
     connect(actionLayerPaths, &QAction::toggled, this, [this](bool checked) {
         p->pathLayer->setVisible(checked);
+    });
+
+    auto actionShpLayer = new QAction("Shapefile");
+    actionShpLayer->setCheckable(true);
+    actionShpLayer->setChecked(true);
+    layersMenu->addAction(actionShpLayer);
+    connect(actionShpLayer, &QAction::toggled, this, [this](bool checked) {
+        p->shpLayer->setVisible(checked);
+    });
+
+    auto actionTiffLayer = new QAction("TIFF");
+    actionTiffLayer->setCheckable(true);
+    actionTiffLayer->setChecked(true);
+    layersMenu->addAction(actionTiffLayer);
+    connect(actionTiffLayer, &QAction::toggled, this, [this](bool checked) {
+        p->tiffLayer->setVisible(checked);
     });
 }
 
@@ -550,6 +571,9 @@ void Navigator::onActionLoadShapefile()
             p->map->addLayer(p->shpLayer);
             p->shpLayer->setVisible(true);
 
+            p->map->removeLayer(p->pathLayerName);
+            p->map->addLayer(p->pathLayer);
+
             QFileInfo info(shapefile);
             settings.setValue("shapefiledir", info.absolutePath());
         }
@@ -593,6 +617,9 @@ void Navigator::onActionLoadTiff()
 
             p->map->addLayer(p->tiffLayer);
             p->tiffLayer->setVisible(true);
+
+            p->map->removeLayer(p->pathLayerName);
+            p->map->addLayer(p->pathLayer);
 
             QFileInfo info(tiffFileName);
             settings.setValue("tifffiledir", info.absolutePath());

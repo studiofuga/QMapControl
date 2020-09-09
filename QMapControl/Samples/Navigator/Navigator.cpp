@@ -12,6 +12,7 @@
 #include <QSettings>
 #include <QVBoxLayout>
 #include <QDial>
+#include <QLabel>
 #include <QTimer>
 #include <QFileDialog>
 #include <QJsonDocument>
@@ -189,6 +190,9 @@ struct Navigator::Impl {
     std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
 
     QDial *dial;
+    QLabel *labelAirplane;
+    QLabel *labelPosition;
+    QLabel *labelCourse;
     QTimer timer;
 
     std::vector<NavPoint> navPoints;
@@ -271,31 +275,66 @@ void Navigator::mapMouseMove(QMouseEvent *mouseEvent, qmapcontrol::PointWorldCoo
             QString("Map Center Point: (lon %1, lat %2) - Mouse Point: (lon %3, lat %4)")
                     .arg(focusPoint.longitude()).arg(focusPoint.latitude())
                     .arg(currentPos.longitude()).arg(currentPos.latitude()));
+
+    p->labelPosition->setText(tr("Position: lon %1, lat %2").arg(focusPoint.longitude()).arg(focusPoint.latitude()));
 }
 
 void Navigator::mapRotationChanged(qreal courseDegrees)
 {
     p->dial->setValue(courseDegrees + 180);
+    p->labelCourse->setText(tr("Course: %1 deg").arg((360 + (int) courseDegrees) % 360));
 }
 
 void Navigator::buildOnMapControls()
 {
     // Create an inner layout to display buttons/"mini" map control.
-    QVBoxLayout *layout_inner = new QVBoxLayout;
+    auto layout_inner = new QGridLayout;
 
     // Note 0 is south for dial. Add 180degs.
     p->dial = new QDial();
     p->dial->setMinimum(0);
     p->dial->setMaximum(359);
     p->dial->setWrapping(true);
-    p->dial->setMaximumSize(QSize(200, 200));
+    p->dial->setMaximumSize(QSize(100, 100));
     p->dial->setValue(180);
 
     connect(p->dial, &QDial::valueChanged, this, [this](int value) {
         onCourseChanged(value - 180.0);
     });
 
-    layout_inner->addWidget(p->dial);
+    layout_inner->setColumnStretch(0, 0);
+    layout_inner->setColumnStretch(1, 1);
+    layout_inner->setRowStretch(0, 1);
+    layout_inner->setRowStretch(1, 0);
+
+    auto spacer = new QWidget;
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    layout_inner->addWidget(spacer, 0, 0);
+
+    spacer = new QWidget;
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    layout_inner->addWidget(spacer, 0, 1);
+
+    auto frame = new QFrame;
+    frame->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    frame->setFrameShape(QFrame::Shape::StyledPanel);
+    frame->setFrameShadow(QFrame::Shadow::Raised);
+    layout_inner->addWidget(frame, 1, 0);
+
+    auto *vb = new QVBoxLayout;
+    frame->setLayout(vb);
+
+    vb->addWidget(p->dial);
+
+    p->labelAirplane = new QLabel("Airplane: ");
+    p->labelAirplane->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    vb->addWidget(p->labelAirplane);
+    p->labelPosition = new QLabel("Position: ");
+    p->labelPosition->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    vb->addWidget(p->labelPosition);
+    p->labelCourse = new QLabel("Course: ");
+    p->labelCourse->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    vb->addWidget(p->labelCourse);
 
     // Set the main map control to use the inner layout.
     p->map->setLayout(layout_inner);

@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QMenuBar>
 #include <QMenu>
+#include <QToolBar>
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QSettings>
@@ -238,12 +239,16 @@ void Navigator::buildMenu()
     auto mapMenu = menuBar()->addMenu(tr("&Map"));
     auto actionLoadPath = new QAction(tr("&Load Path..."));
     auto actionSavePath = new QAction(tr("&Save Path..."));
-    auto actionRecordPoint = new QAction(tr("&Record"));
-    auto actionReplay = new QAction(tr("&Replay"));
+    auto actionRecordPoint = new QAction(QIcon(":/record.png"), tr("&Record"));
+    auto actionReplay = new QAction(QIcon(":/replay.png"), tr("&Replay"));
     mapMenu->addAction(actionLoadPath);
     mapMenu->addAction(actionSavePath);
     mapMenu->addAction(actionRecordPoint);
     mapMenu->addAction(actionReplay);
+
+    auto toolbar = addToolBar("main");
+    toolbar->addAction(actionRecordPoint);
+    toolbar->addAction(actionReplay);
 
     connect(actionRecordPoint, &QAction::triggered, this, &Navigator::onActionRecordPoint);
     connect(actionSavePath, &QAction::triggered, this, &Navigator::onActionSavePath);

@@ -35,6 +35,10 @@ public slots:
 
     void onActionLoadPath();
 
+    void onActionLoadShapefile();
+
+    void onActionLoadTiff();
+
     void onActionPlayPath();
 
     void onCourseChanged(qreal newcourse);

@@ -10,6 +10,12 @@
 #include "QMapControl/QMapControl.h"
 #include "QMapControl/LayerGeometry.h"
 #include "QMapControl/GeometryLineString.h"
+#include "QMapControl/ESRIShapefile.h"
+#include "QMapControl/AdapterRaster.h"
+#include "QMapControl/LayerESRIShapefile.h"
+#include "QMapControl/LayerRaster.h"
+
+#include <gdal_priv.h>
 
 #include <QApplication>
 #include <QMenuBar>
@@ -31,6 +37,7 @@
 
 #include <stdexcept>
 #include <cmath>
+#include <sstream>
 
 using namespace qmapcontrol;
 
@@ -206,6 +213,14 @@ struct Navigator::Impl {
     std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
     std::shared_ptr<qmapcontrol::LayerGeometry> pathLayer;
 
+    GDALDataset *shpDataSet = nullptr;
+    std::shared_ptr<qmapcontrol::ESRIShapefile> shpAdapter;
+    std::shared_ptr<qmapcontrol::LayerESRIShapefile> shpLayer;
+
+    GDALDataset *tiffDataSet = nullptr;
+    std::shared_ptr<qmapcontrol::AdapterRaster> tiffAdapter;
+    std::shared_ptr<qmapcontrol::LayerRaster> tiffLayer;
+
     QDial *dial;
     QLabel *labelAirplane;
     QLabel *labelPosition;
@@ -289,6 +304,14 @@ void Navigator::buildMenu()
     connect(actionLayermap, &QAction::toggled, this, [this](bool checked) {
         p->baseLayer->setVisible(checked);
     });
+
+    auto actionLoadShapefile = new QAction("Load &Shapefile");
+    connect(actionLoadShapefile, &QAction::triggered, this, &Navigator::onActionLoadShapefile);
+    layersMenu->addAction(actionLoadShapefile);
+
+    auto actionLoadTiff = new QAction("Load &Tiff");
+    connect(actionLoadTiff, &QAction::triggered, this, &Navigator::onActionLoadTiff);
+    layersMenu->addAction(actionLoadTiff);
 
     auto actionLayerPaths = new QAction("Path");
     actionLayerPaths->setCheckable(true);
@@ -489,9 +512,108 @@ void Navigator::animate()
     }
 }
 
+void Navigator::onActionLoadShapefile()
+{
+    QSettings settings;
+
+    try {
+        auto basedir = settings.value("shapefiledir").toString();
+        auto shapefile = QFileDialog::getOpenFileName(this, tr("Select Shapefile to load"), basedir,
+                                                      tr("ShapeFiles (*.shp);;All files (*.*)"));
+
+        if (!shapefile.isEmpty()) {
+            if (p->shpDataSet != nullptr) {
+                delete p->shpDataSet;
+            }
+
+            p->shpDataSet = (GDALDataset *) OGROpen(shapefile.toStdString().c_str(), 0, nullptr);
+            if (!p->shpDataSet) {
+                std::ostringstream ss;
+                ss << "Can't load shapefile " << shapefile.toStdString() << ": ";
+                throw std::runtime_error(ss.str());
+            }
+
+            auto stdShapeFileName = shapefile.toStdString();
+
+            // NOTE: the second parameter *must* be either nullstring or the name
+            // of a layer present in the shape file! Otherwise nothing will be displayed.
+            p->shpAdapter = std::make_shared<ESRIShapefile>(p->shpDataSet, "");
+
+            p->shpAdapter->setPenPolygon(QPen(Qt::red));
+            QColor col(Qt::yellow);
+            col.setAlpha(64);
+            p->shpAdapter->setBrushPolygon(QBrush(col));
+
+            p->shpLayer = std::make_shared<LayerESRIShapefile>("ShapeFile-Layer");
+            p->shpLayer->addESRIShapefile(p->shpAdapter);
+
+            p->map->addLayer(p->shpLayer);
+            p->shpLayer->setVisible(true);
+
+            QFileInfo info(shapefile);
+            settings.setValue("shapefiledir", info.absolutePath());
+        }
+    }
+    catch (std::exception &x) {
+        QMessageBox::warning(this, "Error loading shapefile", x.what());
+    }
+}
+
+void Navigator::onActionLoadTiff()
+{
+    QSettings settings;
+
+    try {
+        auto basedir = settings.value("tifffiledir").toString();
+        auto tiffFileName = QFileDialog::getOpenFileName(this, tr("Select Raster file to load"), basedir,
+                                                         tr("Raster Files (*.tif *.ecw);;All files (*.*)"));
+
+        if (!tiffFileName.isEmpty()) {
+            if (p->tiffDataSet != nullptr) {
+                delete p->tiffDataSet;
+            }
+
+            p->tiffDataSet = (GDALDataset *) GDALOpen(tiffFileName.toStdString().c_str(), GA_ReadOnly);
+            if (p->tiffDataSet == nullptr) {
+                throw std::runtime_error("File not supported or error");
+            }
+
+            double adfGeoTransform[6];
+            OGRSpatialReference *oSRS = new OGRSpatialReference;
+
+            // TODO ask the user to enter the correct WCG and Projection
+            oSRS->importFromEPSG(32628);
+            p->tiffDataSet->SetSpatialRef(oSRS);
+
+            p->tiffAdapter = std::make_shared<AdapterRaster>(p->tiffDataSet, oSRS, "");
+            p->map->setMapFocusPoint(p->tiffAdapter->getCenter());
+
+            p->tiffLayer = std::make_shared<LayerRaster>("Tiff-Layer");
+            p->tiffLayer->addRaster(p->tiffAdapter);
+
+            p->map->addLayer(p->tiffLayer);
+            p->tiffLayer->setVisible(true);
+
+            QFileInfo info(tiffFileName);
+            settings.setValue("tifffiledir", info.absolutePath());
+        }
+    }
+    catch (std::exception &x) {
+        qWarning() << "Exception: " << x.what();
+        QMessageBox::warning(this, "Import TIFF", QString("Import failed: %1").arg(x.what()));
+    }
+
+}
+
 int main(int argc, char *argv[])
 {
+    QCoreApplication::setOrganizationName("QMapControl");
+    QCoreApplication::setOrganizationDomain("qmapcontrol.sample.local");
+    QCoreApplication::setApplicationName("NavigatorSample");
+
     QApplication app(argc, argv);
+
+    GDALAllRegister();
 
     Navigator mainWindow;
     mainWindow.resize(800, 600);

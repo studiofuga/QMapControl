@@ -206,6 +206,9 @@ void ShapeFilesViewer::mapMouseMove(QMouseEvent *mouseEvent, qmapcontrol::PointW
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication::setOrganizationName("QMapControl");
+    QCoreApplication::setOrganizationDomain("qmapcontrol.sample.local");
+    QCoreApplication::setApplicationName("ShapeFileViewerSample");
     QApplication app(argc, argv);
 
     GDALAllRegister();

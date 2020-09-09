@@ -108,7 +108,11 @@ class NavigatorAnimation {
         return true;
     }
 
-    void nextStep()
+    /**
+     * @brief move to the next step in the path
+     * @return true if everything is completed.
+     */
+    bool nextStep()
     {
         if (state == Rotating) {
             calcNextMovement();
@@ -127,10 +131,11 @@ class NavigatorAnimation {
             currentMicroStep = 0;
             calcNextRotation();
             if (finished()) {
-                return;
+                return true;
             }
             state = Rotating;
         }
+        return false;
     }
 
     bool stepFinished() const
@@ -163,7 +168,9 @@ public:
     void animate()
     {
         if (stepFinished()) {
-            nextStep();
+            if (nextStep()) {
+                return;
+            }
         }
         if (state == Moving) {
             currentPosition = qmapcontrol::PointWorldCoord{
@@ -331,14 +338,6 @@ void Navigator::buildOnMapControls()
     layout_inner->setColumnStretch(1, 1);
     layout_inner->setRowStretch(0, 1);
     layout_inner->setRowStretch(1, 0);
-
-    auto spacer = new QWidget;
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    layout_inner->addWidget(spacer, 0, 0);
-
-    spacer = new QWidget;
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    layout_inner->addWidget(spacer, 0, 1);
 
     auto frame = new QFrame;
     frame->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);

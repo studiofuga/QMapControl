@@ -13,6 +13,10 @@
 #include <QVBoxLayout>
 #include <QDial>
 #include <QTimer>
+#include <QFileDialog>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include <QDebug>
 
@@ -227,15 +231,18 @@ Navigator::~Navigator()
 void Navigator::buildMenu()
 {
     auto mapMenu = menuBar()->addMenu(tr("&Map"));
-    auto actionRecordPoint = new QAction(tr("&Record"));
+    auto actionLoadPath = new QAction(tr("&Load Path..."));
     auto actionSavePath = new QAction(tr("&Save Path..."));
+    auto actionRecordPoint = new QAction(tr("&Record"));
     auto actionReplay = new QAction(tr("&Replay"));
-    mapMenu->addAction(actionRecordPoint);
+    mapMenu->addAction(actionLoadPath);
     mapMenu->addAction(actionSavePath);
+    mapMenu->addAction(actionRecordPoint);
     mapMenu->addAction(actionReplay);
 
     connect(actionRecordPoint, &QAction::triggered, this, &Navigator::onActionRecordPoint);
     connect(actionSavePath, &QAction::triggered, this, &Navigator::onActionSavePath);
+    connect(actionLoadPath, &QAction::triggered, this, &Navigator::onActionLoadPath);
     connect(actionReplay, &QAction::triggered, this, &Navigator::onActionPlayPath);
 
     auto layersMenu = menuBar()->addMenu(tr("&Layers"));
@@ -306,12 +313,60 @@ void Navigator::onActionRecordPoint()
 
 void Navigator::onActionSavePath()
 {
+    auto saveFileName = QFileDialog::getSaveFileName(this, tr("Save Path"));
+    if (!saveFileName.isEmpty()) {
+        QJsonObject path;
+        QJsonArray points;
+        for (auto const &point : p->navPoints) {
+            QJsonObject jpoint;
+            jpoint["long"] = point.navPoint.longitude();
+            jpoint["lat"] = point.navPoint.latitude();
+            jpoint["zoom"] = point.zoom;
 
+            points.push_back(jpoint);
+        }
+        path["path"] = points;
+
+        QJsonDocument doc(path);
+
+        QFile saveFile(saveFileName);
+        if (!saveFile.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("Cant save"), tr("Couldn't open save file."));
+            return;
+        }
+
+        saveFile.write(doc.toJson());
+        saveFile.close();
+    }
 }
 
 void Navigator::onActionLoadPath()
 {
+    auto openFileName = QFileDialog::getOpenFileName(this, tr("Open Path"));
+    if (!openFileName.isEmpty()) {
+        QFile openFile(openFileName);
 
+        if (!openFile.open(QIODevice::ReadOnly)) {
+            QMessageBox::warning(this, tr("Can't load"), tr("Couldn't load file."));
+            return;
+        }
+
+        QByteArray data = openFile.readAll();
+
+        QJsonDocument loadDoc(QJsonDocument::fromJson(data));
+
+        auto points = loadDoc["path"].toArray();
+        p->navPoints.clear();
+        for (int i = 0; i < points.size(); ++i) {
+            auto obj = points[i].toObject();
+            NavPoint pt;
+            pt.navPoint.setLatitude(obj["lat"].toDouble());
+            pt.navPoint.setLongitude(obj["long"].toDouble());
+            pt.zoom = obj["zoom"].toInt();
+
+            p->navPoints.push_back(pt);
+        }
+    }
 }
 
 void Navigator::onActionPlayPath()

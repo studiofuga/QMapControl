@@ -1,5 +1,5 @@
 add_executable(Navigator
-        Navigator.cpp Navigator.h
+        Navigator.cpp Navigator.h Navigator.qrc
         )
 
 

@@ -375,6 +375,11 @@ void Navigator::onActionPlayPath()
     p->animation->setCurrentPosition(p->map->mapFocusPointCoord());
     p->animation->setCurrentCourse(p->map->mapRotation());
     p->animation->start();
+    auto pix = QPixmap(":/airplane.png");
+    if (pix.isNull())
+        qWarning() << "Can't load airplane.png";
+    p->map->setCenterPixmap(pix);
+    p->map->enableCrosshairs(false);
     p->timer.start(100);
 }
 
@@ -384,6 +389,8 @@ void Navigator::animate()
     p->map->setMapRotation(p->animation->getCurrentCourse());
     p->map->setMapFocusPoint(p->animation->getCurrentPosition());
     if (p->animation->finished()) {
+        p->map->clearCenterPixmap();
+        p->map->enableCrosshairs(true);
         p->timer.stop();
     }
 }

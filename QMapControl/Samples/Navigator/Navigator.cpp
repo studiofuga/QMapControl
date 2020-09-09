@@ -4,6 +4,9 @@
 
 #include "Navigator.h"
 
+#include "QMapControl/LayerGeometry.h"
+#include "QMapControl/GeometryLineString.h"
+
 #include <QApplication>
 #include <QMenuBar>
 #include <QMenu>
@@ -189,6 +192,7 @@ struct Navigator::Impl {
     qmapcontrol::QMapControl *map;
     std::shared_ptr<qmapcontrol::MapAdapterOSM> baseAdapter;
     std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
+    std::shared_ptr<qmapcontrol::LayerGeometry> pathLayer;
 
     QDial *dial;
     QLabel *labelAirplane;
@@ -210,8 +214,10 @@ Navigator::Navigator()
 
     p->baseAdapter = std::make_shared<MapAdapterOSM>();
     p->baseLayer = std::make_shared<LayerMapAdapter>("OpenStreetMap", p->baseAdapter);
+    p->pathLayer = std::make_shared<LayerGeometry>("Paths");
 
     p->map->addLayer(p->baseLayer);
+    p->map->addLayer(p->pathLayer);
 
     p->map->setMapFocusPoint(PointWorldCoord(-77.042793, -12.046374));
     p->map->setZoom(9);
@@ -264,6 +270,13 @@ void Navigator::buildMenu()
         p->baseLayer->setVisible(checked);
     });
 
+    auto actionLayerPaths = new QAction("Path");
+    actionLayerPaths->setCheckable(true);
+    actionLayerPaths->setChecked(true);
+    layersMenu->addAction(actionLayerPaths);
+    connect(actionLayerPaths, &QAction::toggled, this, [this](bool checked) {
+        p->pathLayer->setVisible(checked);
+    });
 }
 
 void Navigator::mapFocusPointChanged(qmapcontrol::PointWorldCoord focusPoint)
@@ -351,6 +364,7 @@ void Navigator::onActionRecordPoint()
             p->map->mapFocusPointCoord()
     };
     p->navPoints.push_back(point);
+    updatePath();
     statusBar()->showMessage(tr("New Point added, currently %1 point(s) in path").arg(p->navPoints.size()));
 }
 
@@ -410,6 +424,7 @@ void Navigator::onActionLoadPath()
             p->navPoints.push_back(pt);
         }
 
+        updatePath();
         statusBar()->showMessage(tr("File Path loaded, %1 points").arg(p->navPoints.size()));
     }
 }
@@ -428,6 +443,24 @@ void Navigator::onActionPlayPath()
     p->timer.start(100);
 
     statusBar()->showMessage(tr("Trip starting"));
+}
+
+void Navigator::updatePath()
+{
+    QPen pen(QColor(0, 0, 255, 100));
+    pen.setWidth(5);
+
+    // Add the points of the sights tour.
+    std::vector<PointWorldCoord> points;
+    for (auto navPoint : p->navPoints) {
+        points.emplace_back(navPoint.navPoint.longitude(), navPoint.navPoint.latitude());
+    }
+
+    // Create the sights tour as a Line String and add it to the notes layer.
+    p->pathLayer->clearGeometries();
+    auto lines = std::make_shared<GeometryLineString>(points);
+    lines->setPen(pen);
+    p->pathLayer->addGeometry(lines);
 }
 
 void Navigator::animate()

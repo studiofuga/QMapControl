@@ -44,6 +44,7 @@ public slots:
 
     void animate();
 
+    void updatePath();
 
     void mapFocusPointChanged(qmapcontrol::PointWorldCoord);
 

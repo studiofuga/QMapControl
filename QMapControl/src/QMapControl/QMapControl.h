@@ -637,6 +637,7 @@ namespace qmapcontrol
          * */
         void mapFocusPointChanged(PointWorldCoord);
 
+        void mapCourseChanged(qreal courseDegrees);
     private:
         //! Disable copy constructor.
         QMapControl(const QMapControl &); /// @todo remove once MSVC supports default/delete syntax.

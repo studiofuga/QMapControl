@@ -139,6 +139,8 @@ void QMapControl::setMapRotation(qreal rotation)
     mMapTransformation.reset();
     mMapTransformation.rotate(rotation);
 
+    emit mapCourseChanged(rotation);
+
     requestRedraw();
 }
 

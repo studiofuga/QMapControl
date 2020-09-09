@@ -4,6 +4,10 @@
 
 #include "Navigator.h"
 
+#include "QMapControl/LayerMapAdapter.h"
+#include "QMapControl/MapAdapterOSM.h"
+#include "QMapControl/MapAdapterGoogle.h"
+#include "QMapControl/QMapControl.h"
 #include "QMapControl/LayerGeometry.h"
 #include "QMapControl/GeometryLineString.h"
 
@@ -191,7 +195,7 @@ public:
 
 struct Navigator::Impl {
     qmapcontrol::QMapControl *map;
-    std::shared_ptr<qmapcontrol::MapAdapterOSM> baseAdapter;
+    std::shared_ptr<qmapcontrol::MapAdapter> baseAdapter;
     std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
     std::shared_ptr<qmapcontrol::LayerGeometry> pathLayer;
 
@@ -213,8 +217,8 @@ Navigator::Navigator()
 
     p->map = new QMapControl(QSizeF(800, 600), this);
 
-    p->baseAdapter = std::make_shared<MapAdapterOSM>();
-    p->baseLayer = std::make_shared<LayerMapAdapter>("OpenStreetMap", p->baseAdapter);
+    p->baseAdapter = std::make_shared<MapAdapterGoogle>();
+    p->baseLayer = std::make_shared<LayerMapAdapter>("Google", p->baseAdapter);
     p->pathLayer = std::make_shared<LayerGeometry>("Paths");
 
     p->map->addLayer(p->baseLayer);

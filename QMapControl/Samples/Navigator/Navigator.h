@@ -6,9 +6,6 @@
 #define QMAPCONTROL_DEMO_NAVIGATOR_H
 
 #include "QMapControl/Projection.h"
-#include "QMapControl/LayerMapAdapter.h"
-#include "QMapControl/MapAdapterOSM.h"
-#include "QMapControl/QMapControl.h"
 
 #include <QtWidgets/QMainWindow>
 

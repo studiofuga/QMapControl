@@ -242,20 +242,28 @@ Navigator::~Navigator()
 
 void Navigator::buildMenu()
 {
-    auto mapMenu = menuBar()->addMenu(tr("&Map"));
+    auto mapMenu = menuBar()->addMenu(tr("&File"));
     auto actionLoadPath = new QAction(tr("&Load Path..."));
     auto actionSavePath = new QAction(tr("&Save Path..."));
-    auto actionRecordPoint = new QAction(QIcon(":/record.png"), tr("&Record"));
-    auto actionReplay = new QAction(QIcon(":/replay.png"), tr("&Replay"));
     mapMenu->addAction(actionLoadPath);
     mapMenu->addAction(actionSavePath);
-    mapMenu->addAction(actionRecordPoint);
-    mapMenu->addAction(actionReplay);
+
+    auto pathMenu = menuBar()->addMenu(tr("&Path"));
+    auto actionClearPath = new QAction(tr("&Clear Path"));
+    auto actionRecordPoint = new QAction(QIcon(":/record.png"), tr("&Record current Point"));
+    auto actionReplay = new QAction(QIcon(":/replay.png"), tr("&Replay"));
+    pathMenu->addAction(actionClearPath);
+    pathMenu->addAction(actionRecordPoint);
+    pathMenu->addAction(actionReplay);
 
     auto toolbar = addToolBar("main");
     toolbar->addAction(actionRecordPoint);
     toolbar->addAction(actionReplay);
 
+    connect(actionClearPath, &QAction::triggered, this, [this]() {
+        p->navPoints.clear();
+        updatePath();
+    });
     connect(actionRecordPoint, &QAction::triggered, this, &Navigator::onActionRecordPoint);
     connect(actionSavePath, &QAction::triggered, this, &Navigator::onActionSavePath);
     connect(actionLoadPath, &QAction::triggered, this, &Navigator::onActionLoadPath);

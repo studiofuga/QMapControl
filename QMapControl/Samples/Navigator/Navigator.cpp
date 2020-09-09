@@ -219,6 +219,7 @@ Navigator::Navigator()
 
     connect(p->map, &QMapControl::mapFocusPointChanged, this, &Navigator::mapFocusPointChanged);
     connect(p->map, &QMapControl::mouseEventMoveCoordinate, this, &Navigator::mapMouseMove);
+    connect(p->map, &QMapControl::mapCourseChanged, this, &Navigator::mapRotationChanged);
 
     connect(&p->timer, &QTimer::timeout, this, &Navigator::animate);
 }
@@ -270,6 +271,11 @@ void Navigator::mapMouseMove(QMouseEvent *mouseEvent, qmapcontrol::PointWorldCoo
             QString("Map Center Point: (lon %1, lat %2) - Mouse Point: (lon %3, lat %4)")
                     .arg(focusPoint.longitude()).arg(focusPoint.latitude())
                     .arg(currentPos.longitude()).arg(currentPos.latitude()));
+}
+
+void Navigator::mapRotationChanged(qreal courseDegrees)
+{
+    p->dial->setValue(courseDegrees + 180);
 }
 
 void Navigator::buildOnMapControls()

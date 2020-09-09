@@ -48,6 +48,8 @@ public slots:
     void mapFocusPointChanged(qmapcontrol::PointWorldCoord);
 
     void mapMouseMove(QMouseEvent *, qmapcontrol::PointWorldCoord, qmapcontrol::PointWorldCoord);
+
+    void mapRotationChanged(qreal courseDegrees);
 };
 
 #endif // QMAPCONTROL_DEMO_NAVIGATOR_H

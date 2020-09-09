@@ -268,19 +268,13 @@ void Navigator::buildMenu()
 
 void Navigator::mapFocusPointChanged(qmapcontrol::PointWorldCoord focusPoint)
 {
-    statusBar()->showMessage(
-            QString("Map Center Point: (lon %1, lat %2)").arg(focusPoint.longitude()).arg(focusPoint.latitude()));
+    p->labelPosition->setText(tr("Position: lon %1, lat %2").arg(focusPoint.longitude()).arg(focusPoint.latitude()));
 }
 
 void Navigator::mapMouseMove(QMouseEvent *mouseEvent, qmapcontrol::PointWorldCoord pressedPos,
                              qmapcontrol::PointWorldCoord currentPos)
 {
     auto focusPoint = p->map->mapFocusPointCoord();
-    statusBar()->showMessage(
-            QString("Map Center Point: (lon %1, lat %2) - Mouse Point: (lon %3, lat %4)")
-                    .arg(focusPoint.longitude()).arg(focusPoint.latitude())
-                    .arg(currentPos.longitude()).arg(currentPos.latitude()));
-
     p->labelPosition->setText(tr("Position: lon %1, lat %2").arg(focusPoint.longitude()).arg(focusPoint.latitude()));
 }
 
@@ -347,7 +341,6 @@ void Navigator::buildOnMapControls()
 
 void Navigator::onCourseChanged(qreal newcourse)
 {
-    qDebug() << "New Course: " << newcourse;
     p->map->setMapRotation(newcourse);
 }
 
@@ -416,6 +409,8 @@ void Navigator::onActionLoadPath()
 
             p->navPoints.push_back(pt);
         }
+
+        statusBar()->showMessage(tr("File Path loaded, %1 points").arg(p->navPoints.size()));
     }
 }
 
@@ -431,6 +426,8 @@ void Navigator::onActionPlayPath()
     p->map->setCenterPixmap(pix);
     p->map->enableCrosshairs(false);
     p->timer.start(100);
+
+    statusBar()->showMessage(tr("Trip starting"));
 }
 
 void Navigator::animate()
@@ -442,6 +439,7 @@ void Navigator::animate()
         p->map->clearCenterPixmap();
         p->map->enableCrosshairs(true);
         p->timer.stop();
+        statusBar()->showMessage(tr("Trip Completed"));
     }
 }
 

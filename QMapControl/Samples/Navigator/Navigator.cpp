@@ -108,20 +108,21 @@ class NavigatorAnimation {
     {
         if (state == Rotating) {
             calcNextMovement();
-            qDebug() << "Moving: " << speed.rawPoint();
+            qDebug() << "Moving speed " << speed.rawPoint();
             state = Moving;
+            currentMicroStep = 0;
         } else if (state == Moving || state == Idle) {
 
             if (state == Moving) {
                 ++currentStep;
+                qDebug() << "Hit Point " << currentStep << "(" << currentMicroStep << ") Current Position: "
+                         << currentPosition.rawPoint();
             } else {
-                currentStep = 0;
+                currentStep = 1;
             }
             currentMicroStep = 0;
             calcNextRotation();
-            qDebug() << "Step " << currentStep << "Rotating: " << courseSpeed;
             if (finished()) {
-                qDebug() << "End";
                 return;
             }
             state = Rotating;
@@ -151,11 +152,15 @@ public:
     void start()
     {
         currentStep = 0;
+        currentPosition = navPoints[0].navPoint;
         nextStep();
     }
 
     void animate()
     {
+        if (stepFinished()) {
+            nextStep();
+        }
         if (state == Moving) {
             currentPosition = qmapcontrol::PointWorldCoord{
                     currentPosition.longitude() + speed.longitude(),
@@ -163,12 +168,8 @@ public:
             };
         } else if (state == Rotating) {
             currentCourse = currentCourse + courseSpeed;
-//            qDebug() << "Current Course: " << (180.0 * currentCourse / M_PI);
         }
         ++currentMicroStep;
-        if (stepFinished()) {
-            nextStep();
-        }
     }
 
     double getCurrentCourse() const
@@ -432,6 +433,7 @@ void Navigator::onActionLoadPath()
             p->navPoints.push_back(pt);
         }
 
+        p->map->setMapFocusPoint(p->navPoints[0].navPoint);
         updatePath();
         statusBar()->showMessage(tr("File Path loaded, %1 points").arg(p->navPoints.size()));
     }

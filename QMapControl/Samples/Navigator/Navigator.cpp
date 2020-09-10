@@ -96,7 +96,12 @@ class NavigatorAnimation {
         auto nextPos = navPoints[currentStep].navPoint;
         targetCourse = cartesianBearing(currentPosition, nextPos);
         numMicroSteps = 10;
-        courseSpeed = (targetCourse - currentCourse) / numMicroSteps;
+        auto delta = (targetCourse - currentCourse);
+        if (delta > M_PI) {
+            delta = delta - M_2_PI;
+        }
+
+        courseSpeed = (delta) / numMicroSteps;
         qDebug() << "Next Rotation: " << (180.0 * currentCourse / M_PI) << " => "
                  << (180.0 * targetCourse / M_PI) << " speed " << (180.0 * courseSpeed / M_PI);
         return true;

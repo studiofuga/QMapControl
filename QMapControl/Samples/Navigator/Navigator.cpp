@@ -93,12 +93,20 @@ class NavigatorAnimation {
 
     bool calcNextRotation()
     {
+        if (currentCourse > M_PI) {
+            currentCourse = currentCourse - 2.0 * M_PI;
+        } else if (currentCourse < -M_PI) {
+            currentCourse = currentCourse + 2.0 * M_PI;
+        }
+
         auto nextPos = navPoints[currentStep].navPoint;
         targetCourse = cartesianBearing(currentPosition, nextPos);
         numMicroSteps = 10;
         auto delta = (targetCourse - currentCourse);
         if (delta > M_PI) {
-            delta = delta - M_2_PI;
+            delta = delta - 2.0 * M_PI;
+        } else if (delta < -M_PI) {
+            delta = delta + 2.0 * M_PI;
         }
 
         courseSpeed = (delta) / numMicroSteps;

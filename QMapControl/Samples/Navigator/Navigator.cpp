@@ -2,46 +2,49 @@
 // Created by fuga on 18/07/2020.
 //
 
+#define _USE_MATH_DEFINES
 #include "Navigator.h"
 
-#include "QMapControl/LayerMapAdapter.h"
-#include "QMapControl/MapAdapterOSM.h"
-#include "QMapControl/MapAdapterGoogle.h"
-#include "QMapControl/QMapControl.h"
-#include "QMapControl/LayerGeometry.h"
-#include "QMapControl/GeometryLineString.h"
-#include "QMapControl/ESRIShapefile.h"
 #include "QMapControl/AdapterRaster.h"
+#include "QMapControl/ESRIShapefile.h"
+#include "QMapControl/GeometryLineString.h"
 #include "QMapControl/LayerESRIShapefile.h"
+#include "QMapControl/LayerGeometry.h"
+#include "QMapControl/LayerMapAdapter.h"
 #include "QMapControl/LayerRaster.h"
+#include "QMapControl/MapAdapterGoogle.h"
+#include "QMapControl/MapAdapterOSM.h"
+#include "QMapControl/QMapControl.h"
 
 #include <gdal_priv.h>
 
 #include <QApplication>
-#include <QMenuBar>
-#include <QMenu>
-#include <QToolBar>
-#include <QMessageBox>
-#include <QStatusBar>
-#include <QSettings>
-#include <QVBoxLayout>
 #include <QDial>
-#include <QLabel>
-#include <QTimer>
 #include <QFileDialog>
-#include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QSettings>
+#include <QStatusBar>
+#include <QTimer>
+#include <QToolBar>
+#include <QVBoxLayout>
 
 #include <QDebug>
 
 #include <stdexcept>
+
 #include <cmath>
 #include <sstream>
 
 using namespace qmapcontrol;
 
-struct NavPoint {
+struct NavPoint
+{
     int zoom;
     qmapcontrol::PointWorldCoord navPoint;
 };

@@ -277,24 +277,36 @@ AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t s
     qDebug() << "Resizing: Offset: " << srcX << srcY << " sz " << srcSx << srcSy;
     qDebug() << "Dest Size: " << dstSx << dstSy;
 
-    if (channels == 0) {
+    if(channels == 0)
+    {
         channels = ds->GetRasterCount();
     }
-    if (rows == 0) {
+    if(rows == 0)
+    {
         rows = ds->GetRasterYSize();
     }
-    if (cols == 0) {
+    if(cols == 0)
+    {
         cols = ds->GetRasterXSize();
     }
 
-    int scanlineSize = std::ceil(static_cast<float>(channels) * dstSx / 4.0) * 4;
+    int destchannels = channels;
+    if(channels == 3)
+    {
+        // RGB, add an alpha channel
+        destchannels++;
+    }
+
+    int scanlineSize = std::ceil(static_cast<float>(destchannels) * dstSx / 4.0) * 4;
 
     qDebug() << "Scanline: " << scanlineSize;
 
     size_t newdataSize = rows * scanlineSize;
-    if (newdataSize != dataSize) {
-        if (databuf != nullptr) {
-            delete[]databuf;
+    if(newdataSize != dataSize)
+    {
+        if(databuf != nullptr)
+        {
+            delete[] databuf;
         }
         databuf = new char[newdataSize];
         dataSize = newdataSize;
@@ -303,30 +315,46 @@ AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t s
     std::vector<int> bands(channels);
     std::iota(bands.begin(), bands.end(), 1);
 
-    auto conversionResult = ds->RasterIO(GF_Read, srcX, srcY,
-                                         srcSx, srcSy,
-                                         databuf,
-                                         dstSx, dstSy,
-                                         GDT_Byte,
-                                         bands.size(), bands.data(),
-                                         bands.size(),            // pixelspace
-                                         scanlineSize, // linespace
-                                         (channels > 1 ? 1 : 0),            // bandspace
+    bool hasNoData = true;
+    std::vector<uint8_t> noDataValues;
+    for(auto band : bands)
+    {
+        int success;
+        auto nodata = ds->GetRasterBand(band)->GetNoDataValue(&success);
+        if(success == 0)
+        {
+            hasNoData = false;
+            qDebug() << "NoData values are not present.";
+            break;
+        }
+        auto nodataInt
+            = static_cast<uint8_t>(GDALAdjustValueToDataType(GDT_Byte, nodata, nullptr, nullptr));
+        noDataValues.push_back(nodataInt);
+        qDebug() << "NoData value for band " << band << ": " << nodata << nodataInt;
+    }
+
+    auto conversionResult = ds->RasterIO(GF_Read, srcX, srcY, srcSx, srcSy, databuf, dstSx, dstSy,
+                                         GDT_Byte, bands.size(), bands.data(),
+                                         destchannels,           // pixelspace
+                                         scanlineSize,           // linespace
+                                         (channels > 1 ? 1 : 0), // bandspace
                                          nullptr);
 
-    if (conversionResult != CE_None) {
+    if(conversionResult != CE_None)
+    {
         qWarning() << "GetRaster returned " << conversionResult;
         return QPixmap{};
     }
 
-    QImage::Format imageFormat = QImage::Format::Format_RGB888;
+    QImage::Format imageFormat = QImage::Format::Format_RGBA8888;
     auto mainBand = ds->GetRasterBand(1);
-    GDALColorTable *ct;
+    GDALColorTable* ct;
 
-    if (mainBand && (ct = mainBand->GetColorTable()) ) {
+    if(mainBand && (ct = mainBand->GetColorTable()))
+    {
         imageFormat = QImage::Format::Format_Indexed8;
 
-        if (imageColorTable.isEmpty())
+        if(imageColorTable.isEmpty())
         {
             auto n = ct->GetColorEntryCount();
             for(int i = 0; i < n; ++i)
@@ -338,8 +366,25 @@ AdapterRaster::Impl::loadPixmap(size_t srcX, size_t srcY, size_t srcSx, size_t s
         }
     }
 
-    QImage image(reinterpret_cast<uchar *>(databuf), dstSx, dstSy, imageFormat);
-    if (!imageColorTable.empty()) {
+    if(destchannels == 4)
+    { // compute the alpha channel
+        for(size_t idx = 0; idx < newdataSize; idx += destchannels)
+        {
+            if(hasNoData && databuf[idx] == noDataValues[0] && databuf[idx + 1] == noDataValues[1]
+               && databuf[idx + 2] == noDataValues[2])
+            {
+                databuf[idx + 3] = 0x00;
+            }
+            else
+            {
+                databuf[idx + 3] = 0xff;
+            }
+        }
+    }
+
+    QImage image(reinterpret_cast<uchar*>(databuf), dstSx, dstSy, imageFormat);
+    if(!imageColorTable.empty())
+    {
         image.setColorTable(imageColorTable);
     }
 

@@ -676,6 +676,8 @@ namespace qmapcontrol
         /// The current following geometry signal/slot connection.
         QMetaObject::Connection m_following_geometry;
 
+        RectWorldPx backbuffer_rect_px;
+        QSize mBackbufferSize;
         /// The viewport (visible-part of each layer) size in pixels.
         QSizeF m_viewport_size_px;
 

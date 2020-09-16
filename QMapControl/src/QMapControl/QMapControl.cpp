@@ -56,6 +56,7 @@ namespace qmapcontrol
           m_scalebar_enabled(false),
           m_crosshairs_enabled(true),
           m_layer_mouse_events_enabled(true),
+          mBackbufferSize(2 * size_px.toSize()),
           m_viewport_size_px(size_px),
           m_viewport_center_px(size_px.width() / 2.0, size_px.height() / 2.0),
           m_limited_viewport_rect_coord(PointWorldCoord(0.0, 0.0), PointWorldCoord(0.0, 0.0)),
@@ -374,10 +375,13 @@ void QMapControl::setBackgroundColour(const QColor &colour)
         // Calculate the middle point of the viewport (visible-part of the layer) in pixels.
         m_viewport_center_px = PointViewportPx(m_viewport_size_px.width() / 2.0, m_viewport_size_px.height() / 2.0);
 
+        auto sz = std::max(size_px.width(), size_px.height());
+        mBackbufferSize = QSize(2 * sz, 2 * sz);
+
         // Create new pixmaps with the new size required (2 x viewport size to allow for panning backbuffer).
-        m_primary_screen = QPixmap(m_viewport_size_px.toSize() * 2);
+        m_primary_screen = QPixmap(mBackbufferSize);
         m_primary_screen.fill(Qt::transparent);
-        m_primary_screen_scaled = QPixmap(m_viewport_size_px.toSize() * 2);
+        m_primary_screen_scaled = QPixmap(mBackbufferSize);
         m_primary_screen_scaled.fill(Qt::transparent);
         m_primary_screen_scaled_offset = PointPx(0.0, 0.0);
 
@@ -1430,23 +1434,21 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
     {
         painter->save();
 
+        auto px = (m_viewport_center_px.x() - mBackbufferSize.width() / 2);
+        auto py = (m_viewport_center_px.y() - mBackbufferSize.height() / 2);
+
         // Is the primary screen scaled enabled?
         if (m_primary_screen_scaled_enabled) {
             // Draw the current scaled primary screem image to the pixmap with wheel event offset.
-            // Note: m_viewport_center_px is the same as (m_viewport_size_px / 2)
-            painter->drawPixmap(-(m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px -
-                                  m_primary_screen_scaled_offset).rawPoint(), m_primary_screen_scaled);
+            painter->drawPixmap(px, py, m_primary_screen_scaled);
         }
 
         QTransform backbufferRotationMatrix = getMapTransform();
         painter->setTransform(backbufferRotationMatrix);
 
         // Draws the primary screen image to the pixmap.
-        // Note: m_viewport_center_px is the same as (m_viewport_size_px / 2)
-        painter->drawPixmap(
-                -(m_viewport_center_px + mapFocusPointWorldPx() - m_primary_screen_map_focus_point_px).rawPoint(),
-                m_primary_screen);
 
+        painter->drawPixmap(px, py, m_primary_screen);
 
 /*
         painter->setPen(Qt::red);
@@ -1527,7 +1529,7 @@ bool QMapControl::checkBackbuffer() const
             QTimer::singleShot(0, &m_progress_indicator, SLOT(startAnimation()));
 
             // Generate a new backbuffer (2 x viewport size to allow for panning backbuffer).
-            QImage image_backbuffer(m_viewport_size_px.toSize() * 2, QImage::Format_ARGB32);
+            QImage image_backbuffer(mBackbufferSize, QImage::Format_ARGB32);
 
             // Clear the backbuffer.
             image_backbuffer.fill(Qt::transparent);
@@ -1539,10 +1541,12 @@ bool QMapControl::checkBackbuffer() const
             PointWorldPx backbuffer_map_focus_px(mapFocusPointWorldPx());
 
             // Calculate the new backbuffer rect (based on the saved backbuffer map focus point).
-            // Note: m_viewport_center_px is the same as (m_viewport_size_px / 2)
-            const PointPx viewport_offset_px(m_viewport_size_px.width() / 2.0, m_viewport_size_px.height() / 2.0);
-            const RectWorldPx backbuffer_rect_px(toPointWorldPx(PointViewportPx(0, 0) - viewport_offset_px, backbuffer_map_focus_px), toPointWorldPx(PointViewportPx(m_viewport_size_px.width(), m_viewport_size_px.height()) + viewport_offset_px, backbuffer_map_focus_px));
+            QRectF backbufferRect;
+            backbufferRect.setSize(mBackbufferSize);
+            backbufferRect.moveCenter(backbuffer_map_focus_px.rawPoint());
+            backbuffer_rect_px = RectWorldPx(backbufferRect);
 
+            painter_back_buffer.save();
             // Translate to the backbuffer top/left point.
             painter_back_buffer.translate(-backbuffer_rect_px.topLeftPx().rawPoint());
 
@@ -1550,18 +1554,17 @@ bool QMapControl::checkBackbuffer() const
             QReadLocker read_locker(&m_layers_mutex);
 
             // Loop through each layer and draw it to the backbuffer.
-            for(std::shared_ptr<Layer> layer : m_layers)
-            {
-                if (mAborted)
+            for (std::shared_ptr<Layer> layer : m_layers) {
+                if (mAborted) {
                     return;
+                }
                 // Draw the layer to the backbuffer.
                 layer->draw(painter_back_buffer, backbuffer_rect_px, m_current_zoom);
             }
 
             read_locker.unlock();
 
-            // Undo the backbuffer top/left point translation.
-            painter_back_buffer.translate(backbuffer_rect_px.topLeftPx().rawPoint());
+            painter_back_buffer.restore();
 
             // Inform the main thread that we have a new backbuffer.
             emit updatedBackBuffer(QPixmap::fromImage(image_backbuffer), backbuffer_rect_px, backbuffer_map_focus_px);

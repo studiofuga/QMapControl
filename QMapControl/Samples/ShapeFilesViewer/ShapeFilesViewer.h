@@ -5,11 +5,11 @@
 #ifndef QMAPCONTROL_SHAPEFILESVIEWER_H
 #define QMAPCONTROL_SHAPEFILESVIEWER_H
 
-#include "QMapControl/Projection.h"
 #include "QMapControl/ESRIShapefile.h"
 #include "QMapControl/LayerESRIShapefile.h"
 #include "QMapControl/LayerMapAdapter.h"
-#include "QMapControl/MapAdapterOSM.h"
+#include "QMapControl/MapAdapterGoogle.h"
+#include "QMapControl/Projection.h"
 #include "QMapControl/QMapControl.h"
 
 #include "QMapControl/AdapterRaster.h"
@@ -22,11 +22,11 @@
 class ShapeFilesViewer : public QMainWindow {
 Q_OBJECT
 
-    qmapcontrol::QMapControl *map;
-    std::shared_ptr<qmapcontrol::MapAdapterOSM> baseAdapter;
-    std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
+qmapcontrol::QMapControl* map;
+std::shared_ptr<qmapcontrol::MapAdapterGoogle> baseAdapter;
+std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
 
-    GDALDataset *shpDataSet = nullptr;
+GDALDataset *shpDataSet = nullptr;
     std::shared_ptr<qmapcontrol::ESRIShapefile> shpAdapter;
     std::shared_ptr<qmapcontrol::LayerESRIShapefile> shpLayer;
 

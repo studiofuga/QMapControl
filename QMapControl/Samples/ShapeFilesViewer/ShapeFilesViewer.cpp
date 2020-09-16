@@ -27,8 +27,8 @@ ShapeFilesViewer::ShapeFilesViewer()
 
     map = new QMapControl(QSizeF(800, 600), this);
 
-    baseAdapter = std::make_shared<MapAdapterOSM>();
-    baseLayer = std::make_shared<LayerMapAdapter>("OpenStreetMap", baseAdapter);
+    baseAdapter = std::make_shared<MapAdapterGoogle>();
+    baseLayer = std::make_shared<LayerMapAdapter>("Map Layer", baseAdapter);
 
     map->addLayer(baseLayer);
 

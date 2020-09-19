@@ -1434,8 +1434,12 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
     {
         painter->save();
 
-        auto px = (m_viewport_center_px.x() - mBackbufferSize.width() / 2);
-        auto py = (m_viewport_center_px.y() - mBackbufferSize.height() / 2);
+        auto px = (m_viewport_center_px.x()
+                   - mapFocusPointWorldPx().x() + m_primary_screen_map_focus_point_px.x()
+                   - mBackbufferSize.width() / 2);
+        auto py = (m_viewport_center_px.y()
+                   - mapFocusPointWorldPx().y() + m_primary_screen_map_focus_point_px.y()
+                   - mBackbufferSize.height() / 2);
 
         // Is the primary screen scaled enabled?
         if (m_primary_screen_scaled_enabled) {

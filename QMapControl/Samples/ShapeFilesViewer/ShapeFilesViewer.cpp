@@ -66,26 +66,8 @@ void ShapeFilesViewer::buildMenu()
         baseLayer->setVisible(checked);
     });
 
-    auto actionShpLayer = new QAction("Shapefile");
-    actionShpLayer->setCheckable(true);
-    actionShpLayer->setChecked(true);
-    layersMenu->addAction(actionShpLayer);
-    connect(actionShpLayer, &QAction::toggled, this, [this](bool checked) {
-        if (shpLayer != nullptr) {
-            shpLayer->setVisible(checked);
-        }
-    });
-
-    auto actionTiffLayer = new QAction("Raster");
-    actionTiffLayer->setCheckable(true);
-    actionTiffLayer->setChecked(true);
-    layersMenu->addAction(actionTiffLayer);
-    connect(actionTiffLayer, &QAction::toggled, this, [this](bool checked) {
-        if (tiffLayer != nullptr) {
-            tiffLayer->setVisible(checked);
-        }
-    });
-
+    displayMenu = layersMenu->addMenu("&Display");
+    layerDeleteMenu = layersMenu->addMenu("Delete");
 }
 
 void ShapeFilesViewer::onLoadShapeFile()
@@ -93,17 +75,17 @@ void ShapeFilesViewer::onLoadShapeFile()
     QSettings settings;
 
     try {
+        auto shp = std::make_shared<Shapefile>();
+
         auto basedir = settings.value("shapefiledir").toString();
         auto shapefile = QFileDialog::getOpenFileName(this, tr("Select Shapefile to load"), basedir,
                                                       tr("ShapeFiles (*.shp);;All files (*.*)"));
 
         if (!shapefile.isEmpty()) {
-            if (shpDataSet != nullptr) {
-                delete shpDataSet;
-            }
+            QFileInfo info(shapefile);
 
-            shpDataSet = (GDALDataset *) OGROpen(shapefile.toStdString().c_str(), 0, nullptr);
-            if (!shpDataSet) {
+            shp->dataset = (GDALDataset *) OGROpen(shapefile.toStdString().c_str(), 0, nullptr);
+            if (!shp->dataset) {
                 std::ostringstream ss;
                 ss << "Can't load shapefile " << shapefile.toStdString() << ": ";
                 throw std::runtime_error(ss.str());
@@ -113,21 +95,24 @@ void ShapeFilesViewer::onLoadShapeFile()
 
             // NOTE: the second parameter *must* be either nullstring or the name
             // of a layer present in the shape file! Otherwise nothing will be displayed.
-            shpAdapter = std::make_shared<ESRIShapefile>(shpDataSet, "");
+            shp->adapter = std::make_shared<ESRIShapefile>(shp->dataset, "");
 
-            shpAdapter->setPenPolygon(QPen(Qt::red));
+            shp->adapter->setPenPolygon(QPen(Qt::red));
             QColor col(Qt::yellow);
             col.setAlpha(64);
-            shpAdapter->setBrushPolygon(QBrush(col));
+            shp->adapter->setBrushPolygon(QBrush(col));
 
-            shpLayer = std::make_shared<LayerESRIShapefile>("ShapeFile-Layer");
-            shpLayer->addESRIShapefile(shpAdapter);
+            shp->name = info.fileName().toStdString();
+            shp->layer = std::make_shared<LayerESRIShapefile>(shp->name);
+            shp->layer->addESRIShapefile(shp->adapter);
 
-            map->addLayer(shpLayer);
-            shpLayer->setVisible(true);
+            map->addLayer(shp->layer);
+            shp->layer->setVisible(true);
 
-            QFileInfo info(shapefile);
             settings.setValue("shapefiledir", info.absolutePath());
+
+            shapefiles.push_back(shp);
+            updateLayersMenu();
         }
     }
     catch (std::exception &x) {
@@ -140,25 +125,25 @@ void ShapeFilesViewer::onLoadTiffFile()
     QSettings settings;
 
     try {
+        auto rst = std::make_shared<Rasterfile>();
+
         auto basedir = settings.value("tifffiledir").toString();
         auto tiffFileName = QFileDialog::getOpenFileName(this, tr("Select Raster file to load"), basedir,
                                                          tr("Raster Files (*.tif *.ecw);;All files (*.*)"));
 
         if (!tiffFileName.isEmpty()) {
-            if (tiffDataSet != nullptr) {
-                delete tiffDataSet;
-            }
+            QFileInfo info(tiffFileName);
 
-            tiffDataSet = (GDALDataset *) GDALOpen(tiffFileName.toStdString().c_str(), GA_ReadOnly);
+            rst->dataset = (GDALDataset *) GDALOpen(tiffFileName.toStdString().c_str(), GA_ReadOnly);
 
             double adfGeoTransform[6];
-            qDebug() << "Driver: " << tiffDataSet->GetDriver()->GetDescription() << " - "
-                     << tiffDataSet->GetDriver()->GetMetadataItem(GDAL_DMD_LONGNAME);
-            qDebug() << "Size:" << tiffDataSet->GetRasterXSize() << tiffDataSet->GetRasterYSize()
-                     << tiffDataSet->GetRasterCount();
-            if (tiffDataSet->GetProjectionRef() != NULL)
-                qDebug() << "Projection: " << tiffDataSet->GetProjectionRef();
-            if (tiffDataSet->GetGeoTransform(adfGeoTransform) == CE_None) {
+            qDebug() << "Driver: " << rst->dataset->GetDriver()->GetDescription() << " - "
+                     << rst->dataset->GetDriver()->GetMetadataItem(GDAL_DMD_LONGNAME);
+            qDebug() << "Size:" << rst->dataset->GetRasterXSize() << rst->dataset->GetRasterYSize()
+                     << rst->dataset->GetRasterCount();
+            if (rst->dataset->GetProjectionRef() != NULL)
+                qDebug() << "Projection: " << rst->dataset->GetProjectionRef();
+            if (rst->dataset->GetGeoTransform(adfGeoTransform) == CE_None) {
                 qDebug() << "Origin = (" << adfGeoTransform[0] << "," << adfGeoTransform[3] << ")";
                 qDebug() << "Pixel Size = (" << adfGeoTransform[1] << "," << adfGeoTransform[5] << ")";
             }
@@ -167,19 +152,22 @@ void ShapeFilesViewer::onLoadTiffFile()
 
             // TODO ask the user to enter the correct WCG and Projection
             oSRS->importFromEPSG(32628);
-            tiffDataSet->SetSpatialRef(oSRS);
+            rst->dataset->SetSpatialRef(oSRS);
 
-            tiffAdapter = std::make_shared<AdapterRaster>(tiffDataSet, oSRS, "");
-            map->setMapFocusPoint(tiffAdapter->getCenter());
+            rst->adapter = std::make_shared<AdapterRaster>(rst->dataset, oSRS, "");
+            map->setMapFocusPoint(rst->adapter->getCenter());
 
-            tiffLayer = std::make_shared<LayerRaster>("Tiff-Layer");
-            tiffLayer->addRaster(tiffAdapter);
+            rst->name = info.fileName().toStdString();
+            rst->layer = std::make_shared<LayerRaster>(rst->name);
+            rst->layer->addRaster(rst->adapter);
 
-            map->addLayer(tiffLayer);
-            tiffLayer->setVisible(true);
+            map->addLayer(rst->layer);
+            rst->layer->setVisible(true);
 
-            QFileInfo info(tiffFileName);
             settings.setValue("tifffiledir", info.absolutePath());
+
+            rasterfiles.push_back(rst);
+            updateLayersMenu();
         }
     }
     catch (std::exception &x) {
@@ -202,6 +190,50 @@ void ShapeFilesViewer::mapMouseMove(QMouseEvent *mouseEvent, qmapcontrol::PointW
             QString("Map Center Point: (lon %1, lat %2) - Mouse Point: (lon %3, lat %4)")
                     .arg(focusPoint.longitude()).arg(focusPoint.latitude())
                     .arg(currentPos.longitude()).arg(currentPos.latitude()));
+}
+
+void ShapeFilesViewer::updateLayersMenu()
+{
+    layerDeleteMenu->clear();
+    displayMenu->clear();
+
+    for (auto shp : shapefiles) {
+        auto displayAct = displayMenu->addAction(QString::fromStdString(shp->name));
+        displayAct->setCheckable(true);
+        displayAct->setChecked(true);
+        connect(displayAct, qOverload<bool>(&QAction::triggered), this, [this, shp](bool visible) {
+            map->getLayer(shp->name)->setVisible(visible);
+        });
+
+        auto deleteAct = layerDeleteMenu->addAction(QString::fromStdString(shp->name));
+        connect(deleteAct, qOverload<bool>(&QAction::triggered), this, [this, shp](bool visible) {
+            map->removeLayer(shp->name);
+
+            shapefiles.erase(
+                    std::remove_if(shapefiles.begin(), shapefiles.end(), [shp](std::shared_ptr<Shapefile> r) {
+                        return r->name == shp->name;
+                    }));
+            updateLayersMenu();
+        });
+    }
+    for (auto rasterfile : rasterfiles) {
+        auto displayAct = displayMenu->addAction(QString::fromStdString(rasterfile->name));
+        displayAct->setCheckable(true);
+        displayAct->setChecked(true);
+        connect(displayAct, qOverload<bool>(&QAction::triggered), this, [this, rasterfile](bool visible) {
+            map->getLayer(rasterfile->name)->setVisible(visible);
+        });
+
+        auto deleteAct = layerDeleteMenu->addAction(QString::fromStdString(rasterfile->name));
+        connect(deleteAct, qOverload<bool>(&QAction::triggered), this, [this, rasterfile](bool visible) {
+            map->removeLayer(rasterfile->name);
+            rasterfiles.erase(
+                    std::remove_if(rasterfiles.begin(), rasterfiles.end(), [rasterfile](std::shared_ptr<Rasterfile> r) {
+                        return r->name == rasterfile->name;
+                    }));
+            updateLayersMenu();
+        });
+    }
 }
 
 int main(int argc, char *argv[])

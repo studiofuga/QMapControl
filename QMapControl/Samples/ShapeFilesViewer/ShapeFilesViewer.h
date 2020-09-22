@@ -18,27 +18,46 @@
 #include <QtWidgets/QMainWindow>
 
 #include <memory>
+#include <vector>
 
 class ShapeFilesViewer : public QMainWindow {
 Q_OBJECT
 
-qmapcontrol::QMapControl* map;
-std::shared_ptr<qmapcontrol::MapAdapterGoogle> baseAdapter;
-std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
+    qmapcontrol::QMapControl *map;
+    std::shared_ptr<qmapcontrol::MapAdapterGoogle> baseAdapter;
+    std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
 
-GDALDataset *shpDataSet = nullptr;
-    std::shared_ptr<qmapcontrol::ESRIShapefile> shpAdapter;
-    std::shared_ptr<qmapcontrol::LayerESRIShapefile> shpLayer;
+    struct Shapefile {
+        GDALDataset *dataset = nullptr;
+        std::string name;
+        std::shared_ptr<qmapcontrol::ESRIShapefile> adapter;
+        std::shared_ptr<qmapcontrol::LayerESRIShapefile> layer;
 
-    GDALDataset *tiffDataSet = nullptr;
-    std::shared_ptr<qmapcontrol::AdapterRaster> tiffAdapter;
-    std::shared_ptr<qmapcontrol::LayerRaster> tiffLayer;
+        ~Shapefile()
+        { if (dataset != nullptr) { delete dataset; }}
+    };
 
+    struct Rasterfile {
+        GDALDataset *dataset = nullptr;
+        std::string name;
+        std::shared_ptr<qmapcontrol::AdapterRaster> adapter;
+        std::shared_ptr<qmapcontrol::LayerRaster> layer;
+
+        ~Rasterfile()
+        { if (dataset != nullptr) { delete dataset; }}
+    };
+
+    std::vector<std::shared_ptr<Shapefile>> shapefiles;
+    std::vector<std::shared_ptr<Rasterfile>> rasterfiles;
+
+    QMenu *displayMenu, *layerDeleteMenu;
 public:
     ShapeFilesViewer();
 
 private:
     void buildMenu();
+
+    void updateLayersMenu();
 
 public slots:
 

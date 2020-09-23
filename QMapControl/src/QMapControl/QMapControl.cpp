@@ -506,26 +506,38 @@ void QMapControl::setBackgroundColour(const QColor &colour)
 
     void QMapControl::scrollViewLeft(const double& delta_px)
     {
+        auto tr = QTransform().rotate(-mMapRotation);
         // Scroll the view left by required pixels.
-        scrollView(PointPx(-delta_px, 0.0));
+        auto delta = tr.map(QPointF(-delta_px, 0.0));
+        qDebug() << "Left " << delta;
+        scrollView(PointPx(delta.x(), delta.y()));
     }
 
     void QMapControl::scrollViewRight(const double& delta_px)
     {
+        auto tr = QTransform().rotate(-mMapRotation);
         // Scroll the view right by required pixels.
-        scrollView(PointPx(delta_px, 0.0));
+        auto delta = tr.map(QPointF(delta_px, 0.0));
+        qDebug() << "Right " << delta;
+        scrollView(PointPx(delta.x(), delta.y()));
     }
 
     void QMapControl::scrollViewUp(const double& delta_px)
     {
+        auto tr = QTransform().rotate(-mMapRotation);
         // Scroll the view up by required pixels.
-        scrollView(PointPx(0.0, -delta_px));
+        auto delta = tr.map(QPointF(0.0, -delta_px));
+        qDebug() << "Up " << delta;
+        scrollView(PointPx(delta.x(), delta.y()));
     }
 
     void QMapControl::scrollViewDown(const double& delta_px)
     {
+        auto tr = QTransform().rotate(-mMapRotation);
         // Scroll the view down by required pixels.
-        scrollView(PointPx(0.0, delta_px));
+        auto delta = tr.map(QPointF(0.0, delta_px));
+        qDebug() << "Down " << delta;
+        scrollView(PointPx(delta.x(), delta.y()));
     }
 
     // Zoom management.
@@ -633,19 +645,20 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
 
     void QMapControl::mousePressEvent(QMouseEvent* mouse_event)
     {
+        auto local = localToRotatedPoint(mouse_event->localPos());
         // Store the mouse location of the current/starting mouse click.
-        m_mouse_position_current_px = PointViewportPx(mouse_event->localPos().x(), mouse_event->localPos().y());
+        m_mouse_position_current_px = PointViewportPx(local.x(), local.y());
         m_mouse_position_pressed_px = m_mouse_position_current_px;
 
         // Are mouse events enabled for all layers?
-        if(m_layer_mouse_events_enabled)
-        {
+        if (m_layer_mouse_events_enabled) {
             // Loop through each layer and pass the mouse event on.
             std::vector<std::shared_ptr<Layer> >::const_reverse_iterator rit = getLayers().rbegin();
             while (rit != getLayers().rend()) {
                 bool handled;
                 // Send the mouse press event to the layer.
-                handled = (*rit)->mousePressEvent(mouse_event, toPointWorldCoord(m_mouse_position_current_px), m_current_zoom);
+                handled = (*rit)->mousePressEvent(mouse_event, toPointWorldCoord(m_mouse_position_current_px),
+                                                  m_current_zoom);
 
                 if (handled) {
                     break;
@@ -673,8 +686,9 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
 
     void QMapControl::mouseReleaseEvent(QMouseEvent* mouse_event)
     {
+        auto local = localToRotatedPoint(mouse_event->localPos());
         // Store the mouse location of the current mouse click.
-        m_mouse_position_current_px = PointViewportPx(mouse_event->localPos().x(), mouse_event->localPos().y());
+        m_mouse_position_current_px = PointViewportPx(local.x(), local.y());
 
         // Default mouse mode.
         QMapControl::MouseButtonMode mouse_mode = QMapControl::MouseButtonMode::None;
@@ -830,8 +844,9 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
 
     void QMapControl::mouseDoubleClickEvent(QMouseEvent* mouse_event)
     {
+        auto local = localToRotatedPoint(mouse_event->localPos());
         // Store the mouse location of the current mouse click.
-        m_mouse_position_current_px = PointViewportPx(mouse_event->localPos().x(), mouse_event->localPos().y());
+        m_mouse_position_current_px = PointViewportPx(local.x(), local.y());
 
         // Emit the double click mouse event with the press and current mouse coordinate.
         emit mouseEventDoubleClickCoordinate(mouse_event, toPointWorldCoord(m_mouse_position_pressed_px), toPointWorldCoord(m_mouse_position_current_px));
@@ -839,8 +854,9 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
 
     void QMapControl::mouseMoveEvent(QMouseEvent* mouse_event)
     {
+        auto local = localToRotatedPoint(mouse_event->localPos());
         // Update the current mouse position.
-        m_mouse_position_current_px = PointViewportPx(mouse_event->localPos().x(), mouse_event->localPos().y());
+        m_mouse_position_current_px = PointViewportPx(local.x(), local.y());
 
         // Default mouse mode.
         QMapControl::MouseButtonMode mouse_mode = QMapControl::MouseButtonMode::None;
@@ -1154,23 +1170,32 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
         return map_focus_point_px + (click_point_px - m_viewport_center_px);
     }
 
-    PointWorldCoord QMapControl::toPointWorldCoord(const PointViewportPx& click_point_px) const
-    {
-        // Return the point converted into the coordinates system (uses the current map focus point).
-        return projection::get().toPointWorldCoord(toPointWorldPx(click_point_px, mapFocusPointWorldPx()), m_current_zoom);
-    }
+QPointF QMapControl::localToRotatedPoint(QPointF point)
+{
+    auto p = (PointViewportPx{point.x(), point.y()} - m_viewport_center_px);
+    auto tr = getMapTransform().inverted();
+    auto pt = tr.map(p.rawPoint());
+    return pt;
+}
 
-    PointWorldCoord QMapControl::toPointWorldCoord(const PointViewportPx& click_point_px, const PointWorldPx& map_focus_point_px) const
-    {
-        // Return the point converted into the coordinates system.
-        return projection::get().toPointWorldCoord(toPointWorldPx(click_point_px, map_focus_point_px), m_current_zoom);
-    }
+PointWorldCoord QMapControl::toPointWorldCoord(const PointViewportPx &click_point_px) const
+{
+    // Return the point converted into the coordinates system (uses the current map focus point).
+    return projection::get().toPointWorldCoord(toPointWorldPx(click_point_px, mapFocusPointWorldPx()), m_current_zoom);
+}
 
-    PointWorldPx QMapControl::mapFocusPointWorldPx() const
-    {
-        // Return the current map focus point in pixels.
-        return projection::get().toPointWorldPx(m_map_focus_coord, m_current_zoom);
-    }
+PointWorldCoord
+QMapControl::toPointWorldCoord(const PointViewportPx &click_point_px, const PointWorldPx &map_focus_point_px) const
+{
+    // Return the point converted into the coordinates system.
+    return projection::get().toPointWorldCoord(toPointWorldPx(click_point_px, map_focus_point_px), m_current_zoom);
+}
+
+PointWorldPx QMapControl::mapFocusPointWorldPx() const
+{
+    // Return the current map focus point in pixels.
+    return projection::get().toPointWorldPx(m_map_focus_coord, m_current_zoom);
+}
 
     PointWorldCoord QMapControl::calculateMapFocusPoint(const std::vector<PointWorldCoord>& points_coord)
     {

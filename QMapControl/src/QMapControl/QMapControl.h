@@ -471,14 +471,17 @@ namespace qmapcontrol
          * @param map_focus_point_px The map focus point in pixels to use.
          * @return the map point in pixels.
          */
-        PointWorldPx toPointWorldPx(const PointViewportPx& click_point_px, const PointWorldPx& map_focus_point_px) const;
+        PointWorldPx
+        toPointWorldPx(const PointViewportPx &click_point_px, const PointWorldPx &map_focus_point_px) const;
 
         /*!
          * Converts a mouse click point in pixels to map point in coordinates (uses the current map focus point).
          * @param click_point_px The mouse click point in pixels to convert.
          * @return the map point in coordinates.
          */
-        PointWorldCoord toPointWorldCoord(const PointViewportPx& click_point_px) const;
+        PointWorldCoord toPointWorldCoord(const PointViewportPx &click_point_px) const;
+
+        QPointF localToRotatedPoint(QPointF point);
 
         /*!
          * Converts a mouse click point in pixels to map point in coordinates.
@@ -486,7 +489,8 @@ namespace qmapcontrol
          * @param map_focus_point_px The map focus point in pixels to use.
          * @return the map point in coordinates.
          */
-        PointWorldCoord toPointWorldCoord(const PointViewportPx& click_point_px, const PointWorldPx& map_focus_point_px) const;
+        PointWorldCoord
+        toPointWorldCoord(const PointViewportPx &click_point_px, const PointWorldPx &map_focus_point_px) const;
 
         /*!
          * Fetches the map focus point in pixels (location on map in relation to the center of the screen).

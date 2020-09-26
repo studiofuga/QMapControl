@@ -69,7 +69,7 @@ namespace qmapcontrol
         inline PointWorldCoord bottomRightCoord() const { return PointWorldCoord(m_raw_rect.right(), m_raw_rect.bottom()); }
         inline PointWorldCoord bottomLeftCoord() const { return PointWorldCoord(m_raw_rect.left(), m_raw_rect.bottom()); }
 
-        inline std::vector<PointWorldCoord> toStdVector()
+        inline std::vector<PointWorldCoord> toStdVector() const
         {
             // Create a vector to return the points.
             std::vector<PointWorldCoord> return_points;

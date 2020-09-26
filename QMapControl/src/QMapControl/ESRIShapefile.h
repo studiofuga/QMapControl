@@ -139,9 +139,14 @@ namespace qmapcontrol
          * @param painter The painter that will draw to the pixmap.
          * @param controller_zoom The current controller zoom.
          */
-        virtual void drawFeature(OGRFeature* ogr_feature, QPainter& painter, const int& controller_zoom) const;
+        virtual void drawFeature(OGRFeature *ogr_feature, QPainter &painter, const int &controller_zoom) const;
+
+        void createProjections(OGRSpatialReference *) const;
+
+        void toWorldCoords(OGRPoint &ogr) const;
 
     signals:
+
         /*!
          * Signal emitted when a change has occurred that requires the layer to be redrawn.
          */
@@ -150,6 +155,8 @@ namespace qmapcontrol
     private:
         /// The OGR data set of the ESRI Shapefile.
         GDALDataset *m_ogr_data_set;
+        mutable OGRCoordinateTransformation *mTransformation = nullptr;       /**< Transformation from Data Source to World (Local) */
+        mutable OGRCoordinateTransformation *mInvTransformation = nullptr;       /**< Transformation from World (Local) to Data Source */
 
         /// The layer name.
         std::string m_layer_name;

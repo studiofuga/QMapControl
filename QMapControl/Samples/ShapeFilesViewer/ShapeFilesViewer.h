@@ -28,13 +28,11 @@ Q_OBJECT
     std::shared_ptr<qmapcontrol::LayerMapAdapter> baseLayer;
 
     struct Shapefile {
+        // GDALDataset must not be deleted, ESRI adapter takes owenership of the dataset.
         GDALDataset *dataset = nullptr;
         std::string name;
         std::shared_ptr<qmapcontrol::ESRIShapefile> adapter;
         std::shared_ptr<qmapcontrol::LayerESRIShapefile> layer;
-
-        ~Shapefile()
-        { if (dataset != nullptr) { delete dataset; }}
     };
 
     struct Rasterfile {
@@ -42,9 +40,6 @@ Q_OBJECT
         std::string name;
         std::shared_ptr<qmapcontrol::AdapterRaster> adapter;
         std::shared_ptr<qmapcontrol::LayerRaster> layer;
-
-        ~Rasterfile()
-        { if (dataset != nullptr) { delete dataset; }}
     };
 
     std::vector<std::shared_ptr<Shapefile>> shapefiles;

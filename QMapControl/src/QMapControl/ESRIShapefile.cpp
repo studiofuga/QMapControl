@@ -458,6 +458,24 @@ const QPen &ESRIShapefile::getPenPolygon() const
 
             // Draw the polygon line.
             painter.drawPolyline(polygon_line_px);
+        } else if (wkbFlatten(ogr_geometry->getGeometryType()) == wkbPoint) {
+            auto ogr_point(static_cast<OGRPoint *>(ogr_geometry));
+            toWorldCoords(*ogr_point);
+            auto point = projection::get().toPointWorldPx(PointWorldCoord(ogr_point->getX(), ogr_point->getY()),
+                                                          controller_zoom).rawPoint().toPoint();
+
+            QRect pointRect;
+            // TODO this could be made user-customizable.
+            pointRect.setSize(QSize{10, 10});
+            pointRect.moveCenter(point);
+
+            // Set the pen to use.
+            painter.setPen(getPenPolygon());
+
+            // Set the brush to use.
+            painter.setBrush(getBrushPolygon());
+
+            painter.drawEllipse(pointRect);
         } else {
 //            qDebug() << "Unsupported feature: " << ogr_geometry->getGeometryType();
         }

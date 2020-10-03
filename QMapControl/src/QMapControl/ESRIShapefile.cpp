@@ -62,6 +62,10 @@ void ESRIShapefile::createProjections(OGRSpatialReference *spatialReference) con
     destinationWCS.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
 #endif
 
+    if (spatialReference == nullptr) {
+        spatialReference = &destinationWCS;
+    }
+
     mTransformation = OGRCreateCoordinateTransformation(spatialReference, &destinationWCS);
     mInvTransformation = OGRCreateCoordinateTransformation(&destinationWCS, spatialReference);
 }

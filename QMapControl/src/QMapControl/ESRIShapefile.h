@@ -121,7 +121,7 @@ namespace qmapcontrol
          * Sets the pen to draw the linestring with (outline).
          * @param pen The QPen to used for drawing.
          */
-        void setPenLineString(const QPen& pen);
+        void setPenLineString(const QPen &pen);
 
         /*!
          * Draws ESRI Shapefiles to a pixmap using the provided painter.
@@ -129,7 +129,11 @@ namespace qmapcontrol
          * @param backbuffer_rect_px Only draw geometries that are contained in the backbuffer rect (pixels).
          * @param controller_zoom The current controller zoom.
          */
-        void draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const;
+        void draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, const int &controller_zoom) const;
+
+        void setAttributeFilter(std::string filter);
+
+        void clearAttributeFilter();
 
     protected:
 
@@ -175,5 +179,7 @@ namespace qmapcontrol
 
         /// The pen to use when drawing a linestring.
         mutable std::shared_ptr<QPen> m_pen_linestring;
+
+        std::string attributeFilter;
     };
 }

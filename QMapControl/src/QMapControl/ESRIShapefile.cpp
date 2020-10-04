@@ -275,6 +275,10 @@ const QPen &ESRIShapefile::getPenPolygon() const
                                                             xs[2],
                                                             ys[2]);
 
+                            if (!attributeFilter.empty()) {
+                                ogr_layer->SetAttributeFilter(attributeFilter.c_str());
+                            }
+
                             // Loop through features.
                             OGRFeature *ogr_feature;
                             while ((ogr_feature = ogr_layer->GetNextFeature()) != nullptr) {
@@ -493,6 +497,18 @@ void ESRIShapefile::toWorldCoords(OGRPoint &ogr) const
     mTransformation->Transform(1, &x, &y);
     ogr.setX(x);
     ogr.setY(y);
+}
+
+void ESRIShapefile::setAttributeFilter(std::string filter)
+{
+    attributeFilter = std::move(filter);
+    emit requestRedraw();
+}
+
+void ESRIShapefile::clearAttributeFilter()
+{
+    attributeFilter.clear();
+    emit requestRedraw();
 }
 
 }

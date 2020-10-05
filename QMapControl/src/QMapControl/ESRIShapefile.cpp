@@ -72,10 +72,7 @@ void ESRIShapefile::createProjections(OGRSpatialReference *spatialReference) con
 
 ESRIShapefile::~ESRIShapefile()
 {
-    // Do we have a dataset open?
-    if (m_ogr_data_set != nullptr) {
-        // Close the data set.
-        //OGRDataSource::DestroyDataSource(m_ogr_data_set);
+    if (m_ogr_data_set != nullptr && hasDatasetOwnership) {
         GDALClose(m_ogr_data_set);
     }
 }

@@ -62,18 +62,30 @@ namespace qmapcontrol
          * @param zoom_minimum The minimum zoom level to show this ESRI Shapefile at.
          * @param zoom_maximum The maximum zoom level to show this ESRI Shapefile at.
          */
-        explicit ESRIShapefile(const std::string& file_path, const std::string& layer_name, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        explicit ESRIShapefile(const std::string &file_path, const std::string &layer_name, const int &zoom_minimum = 0,
+                               const int &zoom_maximum = 17);
 
-        explicit ESRIShapefile(GDALDataset *datasource, const std::string& layer_name, const int& zoom_minimum = 0, const int& zoom_maximum = 17);
+        explicit ESRIShapefile(GDALDataset *datasource, const std::string &layer_name, const int &zoom_minimum = 0,
+                               const int &zoom_maximum = 17);
 
         //! Destructor.
         virtual ~ESRIShapefile();
+
+        /**
+         * @brief Prevents the dataset from being destroyed when the object is freed.
+         * If another object is destroying the dataset, this would result in a double free error.
+         * This prevents the error from happening.
+         */
+        void releaseDatasetOwnership()
+        {
+            hasDatasetOwnership = false;
+        }
 
         /*!
          * Fetches the pen to draw the polygon with (outline).
          * @return the QPen to used for drawing.
          */
-        const QPen& getPenPolygon() const;
+        const QPen &getPenPolygon() const;
 
         /*!
          * Sets the pen to draw the polygon with (outline).
@@ -159,6 +171,7 @@ namespace qmapcontrol
     private:
         /// The OGR data set of the ESRI Shapefile.
         GDALDataset *m_ogr_data_set;
+        bool hasDatasetOwnership = true;
         mutable OGRCoordinateTransformation *mTransformation = nullptr;       /**< Transformation from Data Source to World (Local) */
         mutable OGRCoordinateTransformation *mInvTransformation = nullptr;       /**< Transformation from World (Local) to Data Source */
 

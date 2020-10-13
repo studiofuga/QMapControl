@@ -37,6 +37,7 @@
 // STL includes.
 #include <memory>
 #include <string>
+#include <functional>
 
 // Local includes.
 #include "qmapcontrol_global.h"
@@ -85,55 +86,25 @@ namespace qmapcontrol
          * Fetches the pen to draw the polygon with (outline).
          * @return the QPen to used for drawing.
          */
-        const QPen &getPenPolygon() const;
+        const QPen &getPen() const;
 
         /*!
          * Sets the pen to draw the polygon with (outline).
          * @param pen The QPen to used for drawing.
          */
-        void setPenPolygon(const std::shared_ptr<QPen>& pen);
-
-        /*!
-         * Sets the pen to draw the polygon with (outline).
-         * @param pen The QPen to used for drawing.
-         */
-        void setPenPolygon(const QPen& pen);
+        void setPen(QPen pen);
 
         /*!
          * Fetches the brush to draw the polygon with (fill).
          * @return the QBrush to used for drawing.
          */
-        const QBrush& getBrushPolygon() const;
+        const QBrush &getBrush() const;
 
         /*!
          * Sets the brush to draw the polygon with (fill).
          * @param brush The QBrush to used for drawing.
          */
-        void setBrushPolygon(const std::shared_ptr<QBrush>& brush);
-
-        /*!
-         * Sets the brush to draw the polygon with (fill).
-         * @param brush The QBrush to used for drawing.
-         */
-        void setBrushPolygon(const QBrush& brush);
-
-        /*!
-         * Fetches the pen to draw the linestring with (outline).
-         * @return the QPen to used for drawing.
-         */
-        const QPen& getPenLineString() const;
-
-        /*!
-         * Sets the pen to draw the linestring with (outline).
-         * @param pen The QPen to used for drawing.
-         */
-        void setPenLineString(const std::shared_ptr<QPen>& pen);
-
-        /*!
-         * Sets the pen to draw the linestring with (outline).
-         * @param pen The QPen to used for drawing.
-         */
-        void setPenLineString(const QPen &pen);
+        void setBrush(QBrush brush);
 
         /*!
          * Draws ESRI Shapefiles to a pixmap using the provided painter.
@@ -146,6 +117,10 @@ namespace qmapcontrol
         void setAttributeFilter(std::string filter);
 
         void clearAttributeFilter();
+
+        using FeaturePainterSetupFunction = std::function<void(OGRFeature *, QPainter &)>;
+
+        void setFeaturePainterSetupFunction(FeaturePainterSetupFunction function);
 
     protected:
 
@@ -185,14 +160,13 @@ namespace qmapcontrol
         int m_zoom_maximum;
 
         /// The pen to use when drawing a polygon.
-        mutable std::shared_ptr<QPen> m_pen_polygon;
+        QPen mPen;
 
         /// The brush to use when drawing a polygon.
-        mutable std::shared_ptr<QBrush> m_brush_polygon;
-
-        /// The pen to use when drawing a linestring.
-        mutable std::shared_ptr<QPen> m_pen_linestring;
+        QBrush mBrush;
 
         std::string attributeFilter;
+
+        FeaturePainterSetupFunction featurePainterSetupFunction = nullptr;
     };
 }

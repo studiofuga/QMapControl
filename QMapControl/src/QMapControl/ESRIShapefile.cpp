@@ -77,133 +77,66 @@ ESRIShapefile::~ESRIShapefile()
     }
 }
 
-const QPen &ESRIShapefile::getPenPolygon() const
+const QPen &ESRIShapefile::getPen() const
 {
-    // Do we have a pen?
-    if (m_pen_polygon == nullptr) {
-        // Create a default pen.
-        m_pen_polygon = std::make_shared<QPen>();
-    }
-
-    // Get the pen to draw with.
-    return *(m_pen_polygon.get());
+    return mPen;
 }
 
-    void ESRIShapefile::setPenPolygon(const std::shared_ptr<QPen>& pen)
-    {
-        // Set the pen to draw with.
-        m_pen_polygon = pen;
+void ESRIShapefile::setPen(QPen pen)
+{
+    // Set the pen to draw with.
+    mPen = std::move(pen);
 
-        // Emit that we need to redraw to display this change.
-        emit requestRedraw();
-    }
+    // Emit that we need to redraw to display this change.
+    emit requestRedraw();
+}
 
-    void ESRIShapefile::setPenPolygon(const QPen& pen)
-    {
-        // Set the pen to draw with.
-        m_pen_polygon = std::make_shared<QPen>(pen);
+const QBrush &ESRIShapefile::getBrush() const
+{
+    return mBrush;
+}
 
-        // Emit that we need to redraw to display this change.
-        emit requestRedraw();
-    }
+void ESRIShapefile::setBrush(QBrush brush)
+{
+    // Set the brush to draw with.
+    mBrush = std::move(brush);
 
-    const QBrush& ESRIShapefile::getBrushPolygon() const
-    {
-        // Do we have a brush?
-        if(m_brush_polygon == nullptr)
-        {
-            // Create a default brush.
-            m_brush_polygon = std::make_shared<QBrush>();
-        }
+    // Emit that we need to redraw to display this change.
+    emit requestRedraw();
+}
 
-        // Get the brush to draw with.
-        return *(m_brush_polygon.get());
-    }
+void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_px, const int &controller_zoom) const
+{
+    // Check whether the controller zoom is within range?
+    if (m_zoom_minimum > controller_zoom || m_zoom_maximum < controller_zoom) {
+        // Outside of supported zoom levels.
+    } else {
+        // Calculate the world coordinates.
+        const RectWorldCoord backbuffer_rect_coord(
+                projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom),
+                projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom));
 
-    void ESRIShapefile::setBrushPolygon(const std::shared_ptr<QBrush>& brush)
-    {
-        // Set the brush to draw with.
-        m_brush_polygon = brush;
+        // Do we have a data set open?
+        if (m_ogr_data_set != nullptr) {
+            // Do we have a layer name set?
+            if (m_layer_name.empty() == false) {
+                // Get layer.
+                const auto ogr_layer(m_ogr_data_set->GetLayerByName(m_layer_name.c_str()));
+                if (ogr_layer == nullptr) {
+                    // Invalid layer name!
+                } else {
+                    if (mTransformation == nullptr) {
+                        createProjections(ogr_layer->GetSpatialRef());
+                    }
 
-        // Emit that we need to redraw to display this change.
-        emit requestRedraw();
-    }
-
-    void ESRIShapefile::setBrushPolygon(const QBrush& brush)
-    {
-        // Set the brush to draw with.
-        m_brush_polygon = std::make_shared<QBrush>(brush);
-
-        // Emit that we need to redraw to display this change.
-        emit requestRedraw();
-    }
-
-    const QPen& ESRIShapefile::getPenLineString() const
-    {
-        // Do we have a pen?
-        if(m_pen_linestring == nullptr)
-        {
-            // Create a default pen.
-            m_pen_linestring = std::make_shared<QPen>();
-        }
-
-        // Get the pen to draw with.
-        return *(m_pen_linestring.get());
-    }
-
-    void ESRIShapefile::setPenLineString(const std::shared_ptr<QPen>& pen)
-    {
-        // Set the pen to draw with.
-        m_pen_linestring = pen;
-
-        // Emit that we need to redraw to display this change.
-        emit requestRedraw();
-    }
-
-    void ESRIShapefile::setPenLineString(const QPen& pen)
-    {
-        // Set the pen to draw with.
-        m_pen_linestring = std::make_shared<QPen>(pen);
-
-        // Emit that we need to redraw to display this change.
-        emit requestRedraw();
-    }
-
-    void ESRIShapefile::draw(QPainter& painter, const RectWorldPx& backbuffer_rect_px, const int& controller_zoom) const
-    {
-        // Check whether the controller zoom is within range?
-        if(m_zoom_minimum > controller_zoom || m_zoom_maximum < controller_zoom)
-        {
-            // Outside of supported zoom levels.
-        }
-        else
-        {
-            // Calculate the world coordinates.
-            const RectWorldCoord backbuffer_rect_coord(projection::get().toPointWorldCoord(backbuffer_rect_px.topLeftPx(), controller_zoom), projection::get().toPointWorldCoord(backbuffer_rect_px.bottomRightPx(), controller_zoom));
-
-            // Do we have a data set open?
-            if(m_ogr_data_set != nullptr)
-            {
-                // Do we have a layer name set?
-                if(m_layer_name.empty() == false)
-                {
-                    // Get layer.
-                    const auto ogr_layer(m_ogr_data_set->GetLayerByName(m_layer_name.c_str()));
-                    if (ogr_layer == nullptr) {
-                        // Invalid layer name!
-                    } else {
-                        if (mTransformation == nullptr) {
-                            createProjections(ogr_layer->GetSpatialRef());
-                        }
-
-                        auto points = backbuffer_rect_coord.toStdVector();
-                        std::vector<double> xs, ys;
-                        std::transform(points.begin(), points.end(), std::back_inserter(xs),
-                                       [](PointWorldCoord const &pt) {
-                                           return pt.rawPoint().x();
-                                       });
-                        std::transform(points.begin(), points.end(), std::back_inserter(ys),
-                                       [](PointWorldCoord const &pt) {
+                    auto points = backbuffer_rect_coord.toStdVector();
+                    std::vector<double> xs, ys;
+                    std::transform(points.begin(), points.end(), std::back_inserter(xs),
+                                   [](PointWorldCoord const &pt) {
+                                       return pt.rawPoint().x();
+                                   });
+                    std::transform(points.begin(), points.end(), std::back_inserter(ys),
+                                   [](PointWorldCoord const &pt) {
                                            return pt.rawPoint().y();
                                        });
 
@@ -279,6 +212,14 @@ const QPen &ESRIShapefile::getPenPolygon() const
                             // Loop through features.
                             OGRFeature *ogr_feature;
                             while ((ogr_feature = ogr_layer->GetNextFeature()) != nullptr) {
+
+                                if (featurePainterSetupFunction != nullptr) {
+                                    featurePainterSetupFunction(ogr_feature, painter);
+                                } else {
+                                    painter.setPen(getPen());
+                                    painter.setBrush(getBrush());
+                                }
+
                                 // Draw the feature.
                                 drawFeature(ogr_feature, painter, controller_zoom);
 
@@ -350,12 +291,6 @@ const QPen &ESRIShapefile::getPenPolygon() const
 
                 path = path.subtracted(inp);
 
-                // Set the pen to use.
-                painter.setPen(getPenPolygon());
-
-                // Set the brush to use.
-                painter.setBrush(getBrushPolygon());
-
                 // Draw the polygon line.
                 painter.drawPath(path);
             }
@@ -423,14 +358,6 @@ const QPen &ESRIShapefile::getPenPolygon() const
 
                     }
                 }
-
-                // Set the pen to use.
-                painter.setPen(getPenPolygon());
-
-                // Set the brush to use.
-                painter.setBrush(getBrushPolygon());
-
-                // Draw the polygon line.
                 painter.drawPath(path);
 
             }
@@ -458,9 +385,6 @@ const QPen &ESRIShapefile::getPenPolygon() const
                                                          controller_zoom).rawPoint());
             }
 
-            // Set the pen to use.
-            painter.setPen(getPenLineString());
-
             // Draw the polygon line.
             painter.drawPolyline(polygon_line_px);
         } else if (wkbFlatten(ogr_geometry->getGeometryType()) == wkbPoint) {
@@ -473,12 +397,6 @@ const QPen &ESRIShapefile::getPenPolygon() const
             // TODO this could be made user-customizable.
             pointRect.setSize(QSize{10, 10});
             pointRect.moveCenter(point);
-
-            // Set the pen to use.
-            painter.setPen(getPenPolygon());
-
-            // Set the brush to use.
-            painter.setBrush(getBrushPolygon());
 
             painter.drawEllipse(pointRect);
         } else {
@@ -506,6 +424,11 @@ void ESRIShapefile::clearAttributeFilter()
 {
     attributeFilter.clear();
     emit requestRedraw();
+}
+
+void ESRIShapefile::setFeaturePainterSetupFunction(ESRIShapefile::FeaturePainterSetupFunction f)
+{
+    featurePainterSetupFunction = f;
 }
 
 }

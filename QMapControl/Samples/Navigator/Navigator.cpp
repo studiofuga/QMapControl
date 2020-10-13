@@ -580,10 +580,10 @@ void Navigator::onActionLoadShapefile()
             // of a layer present in the shape file! Otherwise nothing will be displayed.
             shp->adapter = std::make_shared<ESRIShapefile>(shp->dataset, "");
 
-            shp->adapter->setPenPolygon(QPen(Qt::red));
+            shp->adapter->setPen(QPen(Qt::red));
             QColor col(Qt::yellow);
             col.setAlpha(64);
-            shp->adapter->setBrushPolygon(QBrush(col));
+            shp->adapter->setBrush(QBrush(col));
 
             shp->name = info.fileName().toStdString();
             shp->layer = std::make_shared<LayerESRIShapefile>(shp->name);

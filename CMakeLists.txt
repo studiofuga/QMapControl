@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 cmake_policy(SET CMP0048 NEW)
 
-project(QMapControl LANGUAGES CXX VERSION 1.0.99)
+project(QMapControl LANGUAGES CXX VERSION 1.1.101)
 
 find_package(GDAL REQUIRED 2.20)
 find_package(PROJ4)

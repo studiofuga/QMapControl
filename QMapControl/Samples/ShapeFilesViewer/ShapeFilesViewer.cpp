@@ -32,7 +32,7 @@ ShapeFilesViewer::ShapeFilesViewer()
 
     map->addLayer(baseLayer);
 
-    map->setMapFocusPoint(PointWorldCoord(-77.042793, -12.046374));
+    map->setMapFocusPoint(PointWorldCoord(2.1521, 41.3298));
     map->setZoom(9);
     map->setBackgroundColour(Qt::white);
 
@@ -90,6 +90,11 @@ void ShapeFilesViewer::onLoadShapeFile()
                 ss << "Can't load shapefile " << shapefile.toStdString() << ": ";
                 throw std::runtime_error(ss.str());
             }
+
+            auto spatialRef = shp->dataset->GetLayer(0)->GetSpatialRef();
+            if (spatialRef)
+                qDebug() << "First layer projection: " << spatialRef->GetName();
+
 
             auto stdShapeFileName = shapefile.toStdString();
 

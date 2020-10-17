@@ -146,25 +146,29 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
 //                        qDebug() << "Window " << backbuffer_rect_coord.rawRect() << " => "
 //                                 << xs[0] << ys[0] << xs[2] << ys[2];
 
-                        // Reset reading.
-                        ogr_layer->ResetReading();
+                    // Reset reading.
+                    ogr_layer->ResetReading();
 
-                        // Set the Spatial Filter.
-                        ogr_layer->SetSpatialFilterRect(xs[0],
-                                                        ys[0],
-                                                        xs[2],
-                                                        ys[2]);
+                    // Set the Spatial Filter.
+                    ogr_layer->SetSpatialFilterRect(xs[0],
+                                                    ys[0],
+                                                    xs[2],
+                                                    ys[2]);
 
-                        // Loop through features.
-                        OGRFeature *ogr_feature;
-                        while ((ogr_feature = ogr_layer->GetNextFeature()) != nullptr) {
-                            // Draw the feature.
-                            drawFeature(ogr_feature, painter, controller_zoom);
-
-                            // Destroy the feature.
-                            OGRFeature::DestroyFeature(ogr_feature);
-                        }
+                    if (!attributeFilter.empty()) {
+                        ogr_layer->SetAttributeFilter(attributeFilter.c_str());
                     }
+
+                    // Loop through features.
+                    OGRFeature *ogr_feature;
+                    while ((ogr_feature = ogr_layer->GetNextFeature()) != nullptr) {
+                        // Draw the feature.
+                        drawFeature(ogr_feature, painter, controller_zoom);
+
+                        // Destroy the feature.
+                        OGRFeature::DestroyFeature(ogr_feature);
+                    }
+                }
                 }
                 else
                 {

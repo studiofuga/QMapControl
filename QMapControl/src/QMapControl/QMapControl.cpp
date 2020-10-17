@@ -1148,26 +1148,7 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
 
     PointWorldPx QMapControl::toPointWorldPx(const PointViewportPx& click_point_px, const PointWorldPx& map_focus_point_px) const
     {
-        // Convert the mouse pixel position into the coordinate system required.
-        /*
-         * Notes:
-         * click_point_px.x() and y() are the mouse pixel points in relation to the viewport (visible-part of the layer).
-         * mapFocusPointPx()->x() and y() are the current focus pixel points in relation to the map control (whole layer).
-         *
-         * Explanation:
-         *   0 1 2 3 4 5 6
-         * 0 |-----------|  Outside box is Map Control (whole layer) and goes from 0,0 to 6,6
-         * 1 | |---------|  Inside box is Viewport (visible-part of the layer) and goes from 0,0 to 4,4 (Center is 2,2)
-         * 2 | |         |  Map Focus is 3,3 (ie: Viewport center on Map Control).
-         * 3 | | X       |  X is at Viewport position 1,2
-         * 4 | |         |
-         * 5 | |         |  X at Map Control position = X is at Viewport position - Viewport Center + Map Focus
-         * 6 |-|---------|  X at Map Control position = 1,2 - 2,2 + 3,3
-         *                  X at Map Control position = 2,3
-         */
-
-        // Calculate the actual position on the map (click - viewport center = delta from map focus point).
-        return map_focus_point_px + (click_point_px - m_viewport_center_px);
+        return map_focus_point_px + click_point_px;
     }
 
 QPointF QMapControl::localToRotatedPoint(QPointF point)

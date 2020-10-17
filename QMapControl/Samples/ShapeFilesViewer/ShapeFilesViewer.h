@@ -55,6 +55,7 @@ private:
     void updateLayersMenu();
 
 public slots:
+    void onShapefileFeaturesClicked(std::vector<OGRFeature *> features);
 
     void onLoadShapeFile();
 

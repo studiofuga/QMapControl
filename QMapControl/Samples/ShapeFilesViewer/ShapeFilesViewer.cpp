@@ -109,6 +109,8 @@ void ShapeFilesViewer::onLoadShapeFile()
 
             shp->name = info.fileName().toStdString();
             shp->layer = std::make_shared<LayerESRIShapefile>(shp->name);
+            connect(shp->layer.get(), &LayerESRIShapefile::featuresClicked, this,
+                    &ShapeFilesViewer::onShapefileFeaturesClicked);
             shp->layer->addESRIShapefile(shp->adapter);
 
             map->addLayer(shp->layer);
@@ -239,6 +241,13 @@ void ShapeFilesViewer::updateLayersMenu()
             updateLayersMenu();
         });
     }
+}
+
+void ShapeFilesViewer::onShapefileFeaturesClicked(std::vector<OGRFeature *> features)
+{
+    QString msg = QString("%1 Features selected").arg(features.size());
+    qDebug() << msg;
+    statusBar()->showMessage(msg);
 }
 
 int main(int argc, char *argv[])

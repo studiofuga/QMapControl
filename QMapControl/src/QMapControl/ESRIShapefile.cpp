@@ -137,10 +137,10 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                                    });
                     std::transform(points.begin(), points.end(), std::back_inserter(ys),
                                    [](PointWorldCoord const &pt) {
-                                           return pt.rawPoint().y();
-                                       });
+                                       return pt.rawPoint().y();
+                                   });
 
-                        mInvTransformation->Transform(points.size(), xs.data(), ys.data());
+                    mInvTransformation->Transform(points.size(), xs.data(), ys.data());
 
                         // Note: sequence is: topleft, topright, botRIGHT, botleft
 //                        qDebug() << "Window " << backbuffer_rect_coord.rawRect() << " => "
@@ -407,6 +407,51 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
 //            qDebug() << "Unsupported feature: " << ogr_geometry->getGeometryType();
         }
     }
+
+std::vector<OGRFeature *> ESRIShapefile::findFeatureByRect(RectWorldCoord rw)
+{
+    std::vector<OGRFeature *> foundFeatures;
+
+    auto points = rw.toStdVector();
+    std::vector<double> xs, ys;
+    std::transform(points.begin(), points.end(), std::back_inserter(xs),
+                   [](PointWorldCoord const &pt) {
+                       return pt.rawPoint().x();
+                   });
+    std::transform(points.begin(), points.end(), std::back_inserter(ys),
+                   [](PointWorldCoord const &pt) {
+                       return pt.rawPoint().y();
+                   });
+
+    // Note: sequence is: topleft, topright, botRIGHT, botleft
+    mInvTransformation->Transform(points.size(), xs.data(), ys.data());
+
+    auto minX = std::min(xs[0], xs[1]);
+    auto maxX = std::max(xs[0], xs[1]);
+    auto minY = std::min(ys[1], ys[2]);
+    auto maxY = std::max(ys[1], ys[2]);
+
+    for (int i = 0; i < m_ogr_data_set->GetLayerCount(); ++i) {
+        const auto ogr_layer(m_ogr_data_set->GetLayer(i));
+
+        ogr_layer->ResetReading();
+        ogr_layer->SetSpatialFilterRect(minX,
+                                        minY,
+                                        maxX,
+                                        maxY);
+
+        if (!attributeFilter.empty()) {
+            ogr_layer->SetAttributeFilter(attributeFilter.c_str());
+        }
+
+        OGRFeature *ogr_feature;
+        while ((ogr_feature = ogr_layer->GetNextFeature()) != nullptr) {
+            foundFeatures.push_back(ogr_feature);
+        }
+    }
+
+    return foundFeatures;
+}
 
 void ESRIShapefile::toWorldCoords(OGRPoint &ogr) const
 {

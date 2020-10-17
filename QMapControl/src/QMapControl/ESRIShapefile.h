@@ -122,6 +122,8 @@ namespace qmapcontrol
 
         void setFeaturePainterSetupFunction(FeaturePainterSetupFunction function);
 
+        std::vector<OGRFeature *> findFeatureByRect(RectWorldCoord);
+
     protected:
 
         /*!

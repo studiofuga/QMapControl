@@ -398,8 +398,7 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                                                           controller_zoom).rawPoint().toPoint();
 
             QRect pointRect;
-            // TODO this could be made user-customizable.
-            pointRect.setSize(QSize{10, 10});
+            pointRect.setSize(mPointGeometrySize);
             pointRect.moveCenter(point);
 
             painter.drawEllipse(pointRect);

@@ -122,6 +122,21 @@ namespace qmapcontrol
 
         void setFeaturePainterSetupFunction(FeaturePainterSetupFunction function);
 
+        /**
+         * @brief Set the dimension of the Points geometries
+         * @param sz Size of the Circle/Ellipse representing a Point Geometry
+         */
+        void setPointGeometrySize(QSize sz)
+        {
+            mPointGeometrySize = sz;
+            requestRedraw();
+        }
+
+        QSize getPointGeometrySize() const
+        {
+            return mPointGeometrySize;
+        }
+
         std::vector<OGRFeature *> findFeatureByRect(RectWorldCoord);
 
     protected:
@@ -166,6 +181,8 @@ namespace qmapcontrol
 
         /// The brush to use when drawing a polygon.
         QBrush mBrush;
+
+        QSize mPointGeometrySize = QSize{10, 10};
 
         std::string attributeFilter;
 

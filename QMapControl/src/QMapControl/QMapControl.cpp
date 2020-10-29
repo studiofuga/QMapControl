@@ -893,21 +893,13 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
 
     void QMapControl::wheelEvent(QWheelEvent* wheel_event)
     {
-        // Is the vertical angle delta positive?
-        if(wheel_event->angleDelta().y() > 0)
-        {
-            // Check the current zoom is less than maximum zoom (as we change the location of the map focus point before we zoom in).
-            if(m_current_zoom < m_zoom_maximum)
-            {
-                // Capture the current wheel point at the current zoom level.
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-                const PointViewportPx wheel_px(wheel_event->position().x(), wheel_event->position().y());
-#else
-                const PointViewportPx wheel_px(wheel_event->posF().x(), wheel_event->posF().y());
-#endif
-                const PointWorldCoord wheel_coord(toPointWorldCoord(wheel_px));
-                const PointPx wheel_delta(mapFocusPointWorldPx() - toPointWorldPx(wheel_px));
+        auto local = localToRotatedPoint(wheel_event->posF());
+        const PointPx wheel_delta(mapFocusPointWorldPx() - local);
 
+        // Is the vertical angle delta positive?
+        if (wheel_event->angleDelta().y() > 0) {
+            // Check the current zoom is less than maximum zoom (as we change the location of the map focus point before we zoom in).
+            if (m_current_zoom < m_zoom_maximum) {
                 // Update the scaled offset with the current wheel_delta.
                 /// @TODO should this add to the offset?
                 m_primary_screen_scaled_offset = wheel_delta;
@@ -915,8 +907,9 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
                 // Zoom in.
                 zoomIn();
 
+                // TODO fix google-style zoom, currently disabled
                 // Google-style zoom...
-                setMapFocusPoint(projection::get().toPointWorldCoord(projection::get().toPointWorldPx(wheel_coord, m_current_zoom) + wheel_delta, m_current_zoom));
+//                setMapFocusPoint(toPointWorldCoord(PointViewportPx(local.x(), local.y())));
 
                 // Tell parents we have accepted this events.
                 wheel_event->accept();
@@ -930,17 +923,7 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
         else if(wheel_event->angleDelta().y() < 0)
         {
             // Check the current zoom is greater than minimum zoom (as we change the location of the map focus point before we zoom in).
-            if(m_current_zoom > m_zoom_minimum)
-            {
-                // Capture the current wheel point at the current zoom level.
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-                const PointViewportPx wheel_px(wheel_event->position().x(), wheel_event->position().y());
-#else
-                const PointViewportPx wheel_px(wheel_event->posF().x(), wheel_event->posF().y());
-#endif
-                const PointWorldCoord wheel_coord(toPointWorldCoord(wheel_px));
-                const PointPx wheel_delta(mapFocusPointWorldPx() - toPointWorldPx(wheel_px));
-
+            if (m_current_zoom > m_zoom_minimum) {
                 // Update the scaled offset with the current wheel_delta.
                 /// @TODO should this add to the offset?
                 /// @TODO not sure if this is correct delta to apply on zoom out!
@@ -949,8 +932,9 @@ void QMapControl::setMouseButtonLeft(const MouseButtonMode &mode, const bool &or
                 // Zoom out.
                 zoomOut();
 
+                // TODO fix google-style zoom, currently disabled
                 // Google-style zoom...
-                setMapFocusPoint(projection::get().toPointWorldCoord(projection::get().toPointWorldPx(wheel_coord, m_current_zoom) + wheel_delta, m_current_zoom));
+//                setMapFocusPoint(toPointWorldCoord(PointViewportPx(local.x(), local.y())));
 
                 // Tell parents we have accepted this events.
                 wheel_event->accept();

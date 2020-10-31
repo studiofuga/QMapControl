@@ -146,13 +146,16 @@ namespace qmapcontrol
          * Set the tile size used in pxiels.
          * @param tile_size_px The tile size in pixels required.
          */
-        void setTileSizePx(const int& tile_size_px = 256);
+        void setTileSizePx(const int &tile_size_px = 256);
 
         /*!
          * Set the background colour of the map control.
          * @param colour The background colour to set.
          */
-        void setBackgroundColour(const QColor& colour = Qt::transparent);
+        void setBackgroundColour(const QColor &colour = Qt::transparent);
+
+        static const std::chrono::minutes PersistentCacheNoExpiration;
+        static const QDir PersistentCacheDefaultPath;
 
         /*!
          * Enable persistent caching of map tiles.
@@ -161,7 +164,8 @@ namespace qmapcontrol
          * @param path The path where the images should be stored.
          * @param expiry The max age (in minutes) of an image before its removed and a new one is requested (0 to keep forever).
          */
-        void enablePersistentCache(const std::chrono::minutes& expiry = std::chrono::minutes(0), const QDir& path = QDir::homePath() + QDir::separator() + "QMapControl.cache");
+        void enablePersistentCache(const std::chrono::minutes &expiry = PersistentCacheNoExpiration,
+                                   const QDir &path = PersistentCacheDefaultPath);
 
         /*!
          * Sets the proxy for HTTP connections.

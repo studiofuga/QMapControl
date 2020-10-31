@@ -43,15 +43,18 @@
 
 #include <QDebug>
 
-namespace qmapcontrol
-{
-    QMapControl::QMapControl(QWidget* parent, Qt::WindowFlags window_flags)
-        : QMapControl(parent->size(), parent, window_flags)
-    {
-        // Nothing else to do.
-    }
+namespace qmapcontrol {
 
-    QMapControl::QMapControl(const QSizeF& size_px, QWidget* parent, Qt::WindowFlags window_flags)
+const std::chrono::minutes QMapControl::PersistentCacheNoExpiration = std::chrono::minutes{0};
+const QDir QMapControl::PersistentCacheDefaultPath = QDir::homePath() + QDir::separator() + "QMapControl.cache";
+
+QMapControl::QMapControl(QWidget *parent, Qt::WindowFlags window_flags)
+        : QMapControl(parent->size(), parent, window_flags)
+{
+    // Nothing else to do.
+}
+
+QMapControl::QMapControl(const QSizeF &size_px, QWidget *parent, Qt::WindowFlags window_flags)
         : QWidget(parent, window_flags),
           m_scalebar_enabled(false),
           m_crosshairs_enabled(true),

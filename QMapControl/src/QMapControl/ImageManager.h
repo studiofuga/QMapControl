@@ -1,31 +1,39 @@
 /*
-*
-* This file is part of QMapControl,
-* an open-source cross-platform map widget
-*
-* Copyright (C) 2007 - 2008 Kai Winter
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with QMapControl. If not, see <http://www.gnu.org/licenses/>.
-*
-* Contact e-mail: kaiwinter@gmx.de
-* Program URL   : http://qmapcontrol.sourceforge.net/
-*
-*/
+ *
+ * This file is part of QMapControl,
+ * an open-source cross-platform map widget
+ *
+ * Copyright (C) 2009 - Federico Fuga <fuga@studiofuga.com>
+ * Copyright (C) 2007 - 2008 Kai Winter
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with QMapControl. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contact e-mail: fuga@studiofuga.com
+ * Contact e-mail: kaiwinter@gmx.de
+ * Program URL   : http://qmapcontrol.sourceforge.net/
+ *
+ */
 
 #pragma once
 
-// Qt includes.
+#ifndef QMAPCONTROL_INTERNAL_IMAGEMANAGER_H
+#define QMAPCONTROL_INTERNAL_IMAGEMANAGER_H
+
+#include "qmapcontrol_global.h"
+#include "NetworkManager.h"
+#include "PersistentCache.h"
+
 #include <QtCore/QDir>
 #include <QtCore/QObject>
 #include <QtCore/QList>
@@ -33,14 +41,9 @@
 #include <QtGui/QPixmap>
 #include <QtNetwork/QNetworkProxy>
 
-// STL includes.
 #include <chrono>
 #include <map>
 #include <memory>
-
-// Local includes.
-#include "qmapcontrol_global.h"
-#include "NetworkManager.h"
 
 /*!
  * @author Kai Winter <kaiwinter@gmx.de>
@@ -225,7 +228,7 @@ namespace qmapcontrol
          * @param return_pixmap The pixmap of the image to be populated.
          * @return whether the image was actually found and loaded.
          */
-        bool persistentCacheFind(const QUrl &url, QPixmap &return_pixmap);
+//        bool persistentCacheFind(const QUrl &url, QPixmap &return_pixmap);
 
         /*!
          * Inserts the image into the persistent cache.
@@ -233,33 +236,28 @@ namespace qmapcontrol
          * @param pixmap The pixmap of the image to insert.
          * @return whether the image was actually inserted.
          */
-        bool persistentCacheInsert(const QUrl &url, const QPixmap &pixmap);
+//        bool persistentCacheInsert(const QUrl &url, const QPixmap &pixmap);
 
     private:
         QMutex mMutex;
 
-        /// Network manager.
-        NetworkManager m_nm;
+    /// Network manager.
+    NetworkManager m_nm;
 
-        /// Cache of pixmaps already loaded.
-        std::map<QString, QPixmap> m_pixmap_cache;
+    /// Cache of pixmaps already loaded.
+    std::map<QString, QPixmap> m_pixmap_cache;
 
-        /// The tile size in pixels.
-        int m_tile_size_px;
+    /// The tile size in pixels.
+    int m_tile_size_px;
 
-        /// Pixmap of an empty image with "LOADING..." text.
-        QPixmap m_pixmap_loading;
+    /// Pixmap of an empty image with "LOADING..." text.
+    QPixmap m_pixmap_loading;
 
-        /// A list of image urls being prefetched.
-        QList<QUrl> m_prefetch_urls;
+    /// A list of image urls being prefetched.
+    QList<QUrl> m_prefetch_urls;
 
-        /// Whether persistent caching is enabled.
-        bool m_persistent_cache;
-
-        /// The persistent cache's storage directory.
-        QDir m_persistent_cache_directory;
-
-        /// The persistent cache's image expiry.
-        std::chrono::minutes m_persistent_cache_expiry;
-    };
+    std::unique_ptr<PersistentCache> m_disk_cache;
+};
 }
+
+#endif

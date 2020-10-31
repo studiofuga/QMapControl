@@ -263,16 +263,18 @@ namespace qmapcontrol
         QFile file(persistentCacheFilename(url));
 
         // Does the file exist?
-        if(file.exists())
-        {
+        if (file.exists()) {
             // Get the file information.
             QFileInfo file_info(file);
 
+            auto expirationTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    m_persistent_cache_expiry).count();
+            auto currentTimeMs = QDateTime::currentDateTime();
+            auto timeToExpiry = file_info.lastModified().msecsTo(QDateTime::currentDateTime());
+
             // Is the persistent cache expiry set, and if so is the file older than the expiry time
             // allowed?
-            if(m_persistent_cache_expiry.count() > 0
-               && file_info.lastModified().msecsTo(QDateTime::currentDateTime()) > std::chrono::duration_cast<std::chrono::milliseconds>(m_persistent_cache_expiry).count())
-            {
+            if (m_persistent_cache_expiry.count() > 0 && timeToExpiry > expirationTimeMs) {
                 // The file is too old, remove it.
                 m_persistent_cache_directory.remove(file.fileName());
 
@@ -280,9 +282,7 @@ namespace qmapcontrol
 #ifdef QMAP_DEBUG
                 qDebug() << "Removing '" << file.fileName() << "' from persistent cache for url '" << url << "'";
 #endif
-            }
-            else
-            {
+            } else {
                 // Try to load the file into the pixmap, store the success result.
                 success = return_pixmap.load(persistentCacheFilename(url));
             }
@@ -292,9 +292,43 @@ namespace qmapcontrol
         return success;
     }
 
-    bool ImageManager::persistentCacheInsert(const QUrl& url, const QPixmap& pixmap)
-    {
-        // Return the result of saving the pixmap to the persistent cache.
-        return pixmap.save(persistentCacheFilename(url), "PNG");
+bool ImageManager::persistentCacheInsert(const QUrl &url, const QPixmap &pixmap)
+{
+    // Return the result of saving the pixmap to the persistent cache.
+    return pixmap.save(persistentCacheFilename(url), "PNG");
+}
+
+void ImageManager::startPersistentCacheHousekeeping()
+{
+    QMutexLocker locker(&mMutex);
+
+    auto allentries = m_persistent_cache_directory.entryInfoList();
+
+    QStringList expiredFiles;
+    auto expirationTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(m_persistent_cache_expiry).count();
+    auto currentTimeMs = QDateTime::currentDateTime();
+
+    for (const auto &entry : allentries) {
+        auto timeToExpiry = entry.lastModified().msecsTo(QDateTime::currentDateTime());
+        if (m_persistent_cache_expiry.count() > 0 && timeToExpiry > expirationTimeMs) {
+            expiredFiles.push_back(entry.fileName());
+        }
     }
+
+    for (const auto &fileToDelete : expiredFiles) {
+        m_persistent_cache_directory.remove(fileToDelete);
+    }
+}
+
+void ImageManager::clearPersistentCache()
+{
+    QMutexLocker locker(&mMutex);
+
+    auto allentries = m_persistent_cache_directory.entryInfoList();
+
+    for (auto entry : allentries) {
+        m_persistent_cache_directory.remove(entry.fileName());
+    }
+}
+
 }

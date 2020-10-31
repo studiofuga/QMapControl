@@ -167,11 +167,25 @@ namespace qmapcontrol
         void enablePersistentCache(const std::chrono::minutes &expiry = PersistentCacheNoExpiration,
                                    const QDir &path = PersistentCacheDefaultPath);
 
+        /**
+         * @brief Starts the Persistent cache housekeeping. Scan the current cache for expired enties, and remove them.
+         * This function should be called just after the enablePersistentCache(), preferably in a separate thread using
+         * QtConcurrent for example.
+         * Indeed the ImageManager::persistentCacheFind only removes the files that are searched for, this means that
+         * even if a file has expired, it will remain in cache forever if never accessed.
+         */
+        void startPersistentCacheHousekeeping();
+
+        /**
+         * @brief Remove all the files in the persistent cache, regardless of the expiration.
+         */
+        void clearPersistentCache();
+
         /*!
          * Sets the proxy for HTTP connections.
          * @param proxy The proxy details.
          */
-        void setProxy(const QNetworkProxy& proxy);
+        void setProxy(const QNetworkProxy &proxy);
 
         /*!
          * Sets the proxy for HTTP connections.

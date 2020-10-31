@@ -173,29 +173,39 @@ void QMapControl::setBackgroundColour(const QColor &colour)
     requestRedraw();
 }
 
-    void QMapControl::enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path)
-    {
-        // Set the Image Manager's persistent cache settings.
-        ImageManager::get().enablePersistentCache(expiry, path);
-    }
+void QMapControl::enablePersistentCache(const std::chrono::minutes &expiry, const QDir &path)
+{
+    // Set the Image Manager's persistent cache settings.
+    ImageManager::get().enablePersistentCache(expiry, path);
+}
 
-    void QMapControl::setProxy(const QNetworkProxy& proxy)
-    {
-        // Set the Image Manager's network proxy.
-        ImageManager::get().setProxy(proxy);
-    }
+void QMapControl::startPersistentCacheHousekeeping()
+{
+    ImageManager::get().startPersistentCacheHousekeeping();
+}
 
-    void QMapControl::setProxy(const std::string& host, const int& port)
-    {
-        // Set the Image Manager's network proxy.
-        ImageManager::get().setProxy(QNetworkProxy(QNetworkProxy::HttpProxy, host.c_str(), port));
-    }
+void QMapControl::clearPersistentCache()
+{
+    ImageManager::get().clearPersistentCache();
+}
 
-    void QMapControl::enableScaledBackground(const bool& visible)
-    {
-        // Set whether the scaled primary screen should be visible as a background image.
-        m_primary_screen_scaled_enabled = visible;
-    }
+void QMapControl::setProxy(const QNetworkProxy &proxy)
+{
+    // Set the Image Manager's network proxy.
+    ImageManager::get().setProxy(proxy);
+}
+
+void QMapControl::setProxy(const std::string &host, const int &port)
+{
+    // Set the Image Manager's network proxy.
+    ImageManager::get().setProxy(QNetworkProxy(QNetworkProxy::HttpProxy, host.c_str(), port));
+}
+
+void QMapControl::enableScaledBackground(const bool &visible)
+{
+    // Set whether the scaled primary screen should be visible as a background image.
+    m_primary_screen_scaled_enabled = visible;
+}
 
     void QMapControl::enableScalebar(const bool& visible)
     {

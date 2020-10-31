@@ -87,7 +87,7 @@ namespace qmapcontrol
          * Set the network proxy to use.
          * @param proxy The network proxy to use.
          */
-        void setProxy(const QNetworkProxy& proxy);
+        void setProxy(const QNetworkProxy &proxy);
 
         /*!
          * Enables the persistent cache, specifying the directory and expiry timeout.
@@ -95,7 +95,22 @@ namespace qmapcontrol
          * @param expiry The max age (in minutes) of an image before its removed and a new one is requested (0 to keep forever).
          * @return whether the persistent cache was enabled.
          */
-        bool enablePersistentCache(const std::chrono::minutes& expiry, const QDir& path);
+        bool enablePersistentCache(const std::chrono::minutes &expiry, const QDir &path);
+
+        /**
+         * @brief Starts the Persistent cache housekeeping. Scan the current cache for expired enties, and remove them.
+         * This function should be called just after the enablePersistentCache(), preferably in a separate thread using
+         * QtConcurrent for example.
+         * Indeed the persistentCacheFind only removes the files that are searched for, this means that
+         * even if a file has expired, it will remain in cache forever if never accessed.
+         */
+        void startPersistentCacheHousekeeping();
+
+        /**
+         * @brief Remove all the files in the persistent cache, regardless of the expiration.
+         */
+        void clearPersistentCache();
+
 
         /*!
          * Aborts all current loading threads.
@@ -210,7 +225,7 @@ namespace qmapcontrol
          * @param return_pixmap The pixmap of the image to be populated.
          * @return whether the image was actually found and loaded.
          */
-        bool persistentCacheFind(const QUrl& url, QPixmap& return_pixmap);
+        bool persistentCacheFind(const QUrl &url, QPixmap &return_pixmap);
 
         /*!
          * Inserts the image into the persistent cache.
@@ -218,7 +233,7 @@ namespace qmapcontrol
          * @param pixmap The pixmap of the image to insert.
          * @return whether the image was actually inserted.
          */
-        bool persistentCacheInsert(const QUrl& url, const QPixmap& pixmap);
+        bool persistentCacheInsert(const QUrl &url, const QPixmap &pixmap);
 
     private:
         QMutex mMutex;

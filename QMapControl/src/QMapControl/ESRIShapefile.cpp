@@ -53,6 +53,8 @@ ESRIShapefile::ESRIShapefile(const std::string &file_path, const std::string &la
 
 #if defined(HAVE_LIBPAL)
     palLibrary = new pal::Pal;
+    palLibrary->setSearch(pal::SearchMethod::CHAIN);
+    palLibrary->setMapUnit(pal::DEGREE);
 #endif
 }
 

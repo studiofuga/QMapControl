@@ -26,13 +26,21 @@
 #include "ESRIShapefile.h"
 #include "Projection.h"
 
+#if defined(HAVE_LIBPAL)
+
+#include <pal/pal.h>
+#include <pal/layer.h>
+
+#include "pal/PalGeometry.h"
+
+#endif
+
 #include <QDebug>
 #include <QPainterPath>
 
 #include <cmath>
 
-namespace qmapcontrol
-{
+namespace qmapcontrol {
 ESRIShapefile::ESRIShapefile(const std::string &file_path, const std::string &layer_name, const int &zoom_minimum,
                              const int &zoom_maximum)
         : m_layer_name(layer_name), m_zoom_minimum(zoom_minimum), m_zoom_maximum(zoom_maximum)
@@ -42,6 +50,10 @@ ESRIShapefile::ESRIShapefile(const std::string &file_path, const std::string &la
 
     // Open the file.
     m_ogr_data_set = reinterpret_cast<GDALDataset *>(OGROpen(file_path.c_str(), 0, nullptr));
+
+#if defined(HAVE_LIBPAL)
+    palLibrary = new pal::Pal;
+#endif
 }
 
 ESRIShapefile::ESRIShapefile(GDALDataset *datasource, const std::string &layer_name, const int &zoom_minimum,
@@ -49,6 +61,12 @@ ESRIShapefile::ESRIShapefile(GDALDataset *datasource, const std::string &layer_n
         : m_ogr_data_set(datasource), m_layer_name(layer_name), m_zoom_minimum(zoom_minimum),
           m_zoom_maximum(zoom_maximum)
 {
+    // Register OGR drivers.
+    OGRRegisterAll();
+
+#if defined(HAVE_LIBPAL)
+    palLibrary = new pal::Pal;
+#endif
 }
 
 void ESRIShapefile::createProjections(OGRSpatialReference *spatialReference) const
@@ -118,6 +136,16 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
 
         // Do we have a data set open?
         if (m_ogr_data_set != nullptr) {
+#if defined(HAVE_LIBPAL)
+            // TODO remove all features
+            if (palLayer != nullptr) {
+                palLibrary->removeLayer(palLayer);
+            }
+            palLayer = palLibrary->addLayer("labels", -1, -1, pal::P_FREE, pal::PIXEL, 0, true, true, true);
+#endif
+
+
+
             // Do we have a layer name set?
             if (m_layer_name.empty() == false) {
                 // Get layer.
@@ -233,7 +261,17 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                         }
                     }
                 }
-            }
+            // Pal has full data. Draw the label layer
+            auto r = backbuffer_rect_coord.rawRect();
+            double bbox[4] = {r.x(), r.y(), r.x() + r.width(), r.y() + r.height()};
+
+            qDebug() << "bbox: " << bbox[0] << bbox[1] << bbox[2] << bbox[3];
+            auto labels = palLibrary->labeller(1, bbox, nullptr, true);
+
+            qDebug() << "features: " << palLayer->getNbFeatures();
+            qDebug() << "labelr: " << labels->size();
+            // here display all the labels
+        }
         }
     }
 
@@ -268,17 +306,24 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                 QPolygonF polygon_px;
 
                 // Loop through the points.
-                for(int i = 0; i < ogr_exterior_ring->getNumPoints(); ++i)
-                {
+                for (int i = 0; i < ogr_exterior_ring->getNumPoints(); ++i) {
                     // Fetch the point.
                     ogr_exterior_ring->getPoint(i, &ogr_point);
                     toWorldCoords(ogr_point);
 
                     // Add the point to be drawn.
-                    polygon_px.append(projection::get().toPointWorldPx(PointWorldCoord(ogr_point.getX(), ogr_point.getY()), controller_zoom).rawPoint());
+                    polygon_px.append(
+                            projection::get().toPointWorldPx(PointWorldCoord(ogr_point.getX(), ogr_point.getY()),
+                                                             controller_zoom).rawPoint());
                 }
 
                 path.addPolygon(polygon_px);
+
+                auto in = ogr_feature->GetFieldAsInteger(1);
+                auto usr = new PalGeometry(ogr_polygon);
+                auto gid = std::to_string(in);
+                palLayer->registerFeature(gid.c_str(), usr);
+                qDebug() << in << gid.c_str();
 
                 QPainterPath inp;
                 for (int i = 0; i < ogr_polygon->getNumInteriorRings(); ++i) {
@@ -364,6 +409,12 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                 }
                 painter.drawPath(path);
 
+                char *wkt;
+                ogr_multi_polygon->exportToWkt(&wkt);
+                auto usr = new PalGeometry(wkt);
+                auto gid = std::to_string(reinterpret_cast<long>(reinterpret_cast<void *>(ogr_feature)));
+                palLayer->registerFeature(gid.c_str(), usr);
+
             }
         }
         else if(wkbFlatten(ogr_geometry->getGeometryType()) == wkbLineString) // wkbLineString
@@ -391,6 +442,14 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
 
             // Draw the polygon line.
             painter.drawPolyline(polygon_line_px);
+
+            char *wkt;
+            ogr_line_string->exportToWkt(&wkt);
+            auto usr = new PalGeometry(wkt);
+            auto gid = std::to_string(reinterpret_cast<long>(reinterpret_cast<void *>(ogr_feature)));
+            palLayer->registerFeature(gid.c_str(), usr);
+
+
         } else if (wkbFlatten(ogr_geometry->getGeometryType()) == wkbPoint) {
             auto ogr_point(static_cast<OGRPoint *>(ogr_geometry));
             toWorldCoords(*ogr_point);
@@ -402,6 +461,12 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
             pointRect.moveCenter(point);
 
             painter.drawEllipse(pointRect);
+
+            char *wkt;
+            ogr_point->exportToWkt(&wkt);
+            auto usr = new PalGeometry(wkt);
+            auto gid = std::to_string(reinterpret_cast<long>(reinterpret_cast<void *>(ogr_feature)));
+            palLayer->registerFeature(gid.c_str(), usr);
         } else {
 //            qDebug() << "Unsupported feature: " << ogr_geometry->getGeometryType();
         }
@@ -451,6 +516,25 @@ std::vector<OGRFeature *> ESRIShapefile::findFeatureByRect(RectWorldCoord rw)
 
     return foundFeatures;
 }
+
+#if defined(HAVE_LIBPAL)
+
+void ESRIShapefile::addDisplayedLabel(int index)
+{
+    displayedLabelsList.insert(index);
+}
+
+std::set<int> const &ESRIShapefile::displayedLabels() const
+{
+    return displayedLabelsList;
+}
+
+void ESRIShapefile::removedDisplayedLabel(int index)
+{
+    displayedLabelsList.erase(index);
+}
+
+#endif
 
 void ESRIShapefile::toWorldCoords(OGRPoint &ogr) const
 {

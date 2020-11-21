@@ -104,6 +104,10 @@ void ShapeFilesViewer::onLoadShapeFile()
             // of a layer present in the shape file! Otherwise nothing will be displayed.
             shp->adapter = std::make_shared<ESRIShapefile>(shp->dataset, "");
 
+#if defined(HAVE_LIBPAL)
+            shp->adapter->addDisplayedLabel(0);
+#endif
+
             shp->adapter->setPen(QPen(Qt::red));
             QColor col(Qt::yellow);
             col.setAlpha(64);

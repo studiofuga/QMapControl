@@ -25,6 +25,14 @@
 
 #pragma once
 
+#if defined(HAVE_LIBPAL)
+namespace pal {
+class Pal;
+
+class Layer;
+}
+#endif
+
 // Qt includes.
 #include <QtCore/QObject>
 #include <QtGui/QBrush>
@@ -37,6 +45,7 @@
 // STL includes.
 #include <memory>
 #include <string>
+#include <set>
 #include <functional>
 
 // Local includes.
@@ -139,6 +148,15 @@ namespace qmapcontrol
 
         std::vector<OGRFeature *> findFeatureByRect(RectWorldCoord);
 
+#if defined(HAVE_LIBPAL)
+
+        void addDisplayedLabel(int index);
+
+        std::set<int> const &displayedLabels() const;
+
+        void removedDisplayedLabel(int index);
+
+#endif
     protected:
 
         /*!
@@ -187,5 +205,11 @@ namespace qmapcontrol
         std::string attributeFilter;
 
         FeaturePainterSetupFunction featurePainterSetupFunction = nullptr;
+
+#if defined(HAVE_LIBPAL)
+        pal::Pal *palLibrary;
+        mutable pal::Layer *palLayer = nullptr;
+        mutable std::set<int> displayedLabelsList;
+#endif
     };
 }

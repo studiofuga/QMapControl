@@ -13,8 +13,10 @@ target_include_directories(gps
 
 target_link_libraries(gps QMapControl ${PROJ4_LIBRARIES})
 
-# Set target directory
-install(TARGETS gps
-        LIBRARY DESTINATION bin
-        ARCHIVE DESTINATION bin
-        COMPONENT examples)
+if (INSTALL_EXAMPLES)
+    # Set target directory
+    install(TARGETS gps
+            LIBRARY DESTINATION bin
+            ARCHIVE DESTINATION bin
+            COMPONENT examples)
+endif ()

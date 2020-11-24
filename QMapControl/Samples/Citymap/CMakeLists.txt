@@ -13,8 +13,10 @@ target_include_directories(Citymap
 
 target_link_libraries(Citymap QMapControl ${PROJ4_LIBRARIES})
 
-# Set target directory
-install(TARGETS Citymap
-        LIBRARY DESTINATION bin
-        ARCHIVE DESTINATION bin
-        COMPONENT examples)
+if (INSTALL_EXAMPLES)
+    # Set target directory
+    install(TARGETS Citymap
+            LIBRARY DESTINATION bin
+            ARCHIVE DESTINATION bin
+            COMPONENT examples)
+endif ()

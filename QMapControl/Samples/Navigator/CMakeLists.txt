@@ -12,8 +12,10 @@ target_include_directories(Navigator
 
 target_link_libraries(Navigator QMapControl ${PROJ4_LIBRARIES})
 
-# Set target directory
-install(TARGETS Navigator
-        LIBRARY DESTINATION bin
-        ARCHIVE DESTINATION bin
-        COMPONENT examples)
+if (INSTALL_EXAMPLES)
+    # Set target directory
+    install(TARGETS Navigator
+            LIBRARY DESTINATION bin
+            ARCHIVE DESTINATION bin
+            COMPONENT examples)
+endif ()

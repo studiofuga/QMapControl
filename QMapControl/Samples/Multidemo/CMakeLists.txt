@@ -14,8 +14,10 @@ target_include_directories(Multidemo
 
 target_link_libraries(Multidemo QMapControl ${PROJ4_LIBRARIES})
 
-# Set target directory
-install(TARGETS Multidemo
-        LIBRARY DESTINATION bin
-        ARCHIVE DESTINATION bin
-        COMPONENT examples)
+if (INSTALL_EXAMPLES)
+    # Set target directory
+    install(TARGETS Multidemo
+            LIBRARY DESTINATION bin
+            ARCHIVE DESTINATION bin
+            COMPONENT examples)
+endif ()

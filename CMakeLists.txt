@@ -10,6 +10,20 @@ message("GDAL include: ${GDAL_INCLUDE_DIR}")
 message("PROJ4 library: ${PROJ4_LIBRARIES}")
 message("PROJ4 include: ${PROJ4_INCLUDE_DIR}")
 
+option(INSTALL_EXAMPLES "Install everything including examples" OFF)
+
+include(CPack)
+include(GNUInstallDirs)
+cpack_add_component(development
+        DESCRIPTION "Development files"
+        REQUIRED
+        )
+cpack_add_component(examples
+        DESCRIPTION "Examples, demo and tests"
+        DISABLED
+        )
+
+
 find_package(Qt5 5.6 COMPONENTS Widgets Core Concurrent Sql Xml PrintSupport Network REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
@@ -57,4 +71,10 @@ add_subdirectory(QMapControl/Samples)
 install(TARGETS QMapControl
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        COMPONENT gui)
+        COMPONENT development)
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/QMapControl/src/QMapControl"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        COMPONENT development
+        FILES_MATCHING
+        PATTERN "*.h")

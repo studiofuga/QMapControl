@@ -5,12 +5,20 @@
 #include "PersistentCache.h"
 
 #include <QCryptographicHash>
-#include <QMutex>
-#include <QMutexLocker>
 #include <QDateTime>
 #include <QDebug>
+#include <QMutex>
+#include <QMutexLocker>
 
-struct PersistentCache::Impl {
+#if defined(_WIN32)
+#include <cstdlib>
+#include <stdexcept>
+
+#include <system_error>
+#endif
+
+struct PersistentCache::Impl
+{
     QMutex m_mutex;
     QDir m_persistent_cache_directory;
     std::chrono::minutes m_persistent_cache_expiry;
@@ -19,8 +27,7 @@ struct PersistentCache::Impl {
     QCryptographicHash hashFunction;
 
     explicit Impl(std::chrono::minutes expiry)
-            : m_persistent_cache_expiry(expiry),
-              hashFunction(QCryptographicHash::Algorithm::Md5)
+        : m_persistent_cache_expiry(expiry), hashFunction(QCryptographicHash::Algorithm::Md5)
     {
         expirationTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
                 m_persistent_cache_expiry).count();

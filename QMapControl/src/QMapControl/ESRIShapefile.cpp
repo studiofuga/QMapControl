@@ -30,6 +30,7 @@
 #include <QPainterPath>
 
 #include <cmath>
+#include <stdexcept>
 
 namespace qmapcontrol
 {
@@ -140,7 +141,8 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                                        return pt.rawPoint().y();
                                    });
 
-                    mInvTransformation->Transform(points.size(), xs.data(), ys.data());
+                        mInvTransformation->Transform(static_cast<int>(points.size()), xs.data(),
+                                                      ys.data());
 
                         // Note: sequence is: topleft, topright, botRIGHT, botleft
 //                        qDebug() << "Window " << backbuffer_rect_coord.rawRect() << " => "
@@ -194,9 +196,10 @@ void ESRIShapefile::draw(QPainter &painter, const RectWorldPx &backbuffer_rect_p
                                            });
 
                             // Note: sequence is: topleft, topright, botRIGHT, botleft
-                            mInvTransformation->Transform(points.size(), xs.data(), ys.data());
+                            mInvTransformation->Transform(static_cast<int>(points.size()),
+                                                          xs.data(), ys.data());
 
-//                            qDebug() << "Window " << backbuffer_rect_coord.rawRect() << " => "
+                            //                            qDebug() << "Window " << backbuffer_rect_coord.rawRect() << " => "
 //                                     << xs[0] << ys[0] << xs[2] << ys[2];
 //
 

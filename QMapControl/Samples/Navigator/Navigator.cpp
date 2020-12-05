@@ -622,7 +622,6 @@ void Navigator::onActionLoadTiff()
 
             rst->dataset = (GDALDataset *) GDALOpen(tiffFileName.toStdString().c_str(), GA_ReadOnly);
 
-            double adfGeoTransform[6];
             OGRSpatialReference *oSRS = new OGRSpatialReference;
 
             // TODO ask the user to enter the correct WCG and Projection

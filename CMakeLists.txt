@@ -65,10 +65,18 @@ target_include_directories(QMapControl
         ${GDAL_INCLUDE_DIRS}
         )
 
+set_target_properties(QMapControl PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        EXPORT_NAME qmapcontrol
+        PUBLIC_HEADER "${PUB_HEADERS}"
+        )
+
 add_subdirectory(QMapControl/Samples)
 
 # Set target directory
 install(TARGETS QMapControl
+        EXPORT qmapcontrol-export
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         COMPONENT development)
@@ -78,3 +86,6 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/QMapControl/src/QMapControl"
         COMPONENT development
         FILES_MATCHING
         PATTERN "*.h")
+
+include(cmake/install.cmake)
+

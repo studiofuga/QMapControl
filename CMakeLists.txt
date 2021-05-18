@@ -4,11 +4,6 @@ cmake_policy(SET CMP0048 NEW)
 project(QMapControl LANGUAGES CXX VERSION 1.1.101)
 
 find_package(GDAL REQUIRED 2.20)
-find_package(PROJ4)
-message("GDAL library: ${GDAL_LIBRARY}")
-message("GDAL include: ${GDAL_INCLUDE_DIR}")
-message("PROJ4 library: ${PROJ4_LIBRARIES}")
-message("PROJ4 include: ${PROJ4_INCLUDE_DIR}")
 
 option(INSTALL_EXAMPLES "Install everything including examples" OFF)
 
@@ -47,7 +42,11 @@ set(LIBRARIES
 add_library(QMapControl SHARED
         ${SOURCES} ${HEADERS}
         ${UIS} ${QRCS}
-        QMapControl/src/QMapControl/LayerRaster.cpp QMapControl/src/QMapControl/LayerRaster.h QMapControl/src/QMapControl/AdapterRaster.cpp QMapControl/src/QMapControl/AdapterRaster.h QMapControl/src/QMapControl/utils/spimpl.h QMapControl/src/QMapControl/RasterUtils.cpp QMapControl/src/QMapControl/RasterUtils.h QMapControl/src/QMapControl/PersistentCache.cpp QMapControl/src/QMapControl/PersistentCache.h)
+        QMapControl/src/QMapControl/LayerRaster.cpp QMapControl/src/QMapControl/LayerRaster.h
+        QMapControl/src/QMapControl/AdapterRaster.cpp QMapControl/src/QMapControl/AdapterRaster.h
+        QMapControl/src/QMapControl/utils/spimpl.h
+        QMapControl/src/QMapControl/RasterUtils.cpp QMapControl/src/QMapControl/RasterUtils.h
+        QMapControl/src/QMapControl/PersistentCache.cpp QMapControl/src/QMapControl/PersistentCache.h)
 
 target_compile_definitions(QMapControl
         PRIVATE
@@ -61,14 +60,22 @@ target_link_libraries(QMapControl
         )
 
 target_include_directories(QMapControl
-        PRIVATE
+        PUBLIC
         ${GDAL_INCLUDE_DIRS}
+        )
+
+set_target_properties(QMapControl PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        EXPORT_NAME qmapcontrol
+        PUBLIC_HEADER "${PUB_HEADERS}"
         )
 
 add_subdirectory(QMapControl/Samples)
 
 # Set target directory
 install(TARGETS QMapControl
+        EXPORT qmapcontrol-export
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         COMPONENT development)
@@ -78,3 +85,6 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/QMapControl/src/QMapControl"
         COMPONENT development
         FILES_MATCHING
         PATTERN "*.h")
+
+include(cmake/install.cmake)
+

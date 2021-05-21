@@ -3,6 +3,13 @@ cmake_policy(SET CMP0048 NEW)
 
 project(QMapControl LANGUAGES CXX VERSION 1.1.101)
 
+if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
+    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup()
+
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+endif ()
+
 find_package(GDAL REQUIRED 2.20)
 
 option(INSTALL_EXAMPLES "Install everything including examples" OFF)
@@ -35,10 +42,6 @@ include_directories(
 file(GLOB HEADERS QMapControl/src/QMapControl/*.h)
 file(GLOB SOURCES QMapControl/src/QMapControl/*.cpp)
 
-set(LIBRARIES
-        ${GDAL_LIBRARY}
-        )
-
 add_library(QMapControl SHARED
         ${SOURCES} ${HEADERS}
         ${UIS} ${QRCS}
@@ -54,7 +57,7 @@ target_compile_definitions(QMapControl
 
 
 target_link_libraries(QMapControl
-        ${LIBRARIES}
+        GDAL::GDAL
         Qt5::Widgets
         Qt5::Network
         )

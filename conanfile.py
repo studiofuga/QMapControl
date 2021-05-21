@@ -14,7 +14,6 @@ class QMapControlConan(ConanFile):
     default_options = {"shared": True}
     generators = ["cmake_find_package", "cmake"]
     exports_sources = "*"
-    requires=("openssl/1.1.1j")
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -27,7 +26,6 @@ class QMapControlConan(ConanFile):
 
     def build_requirements(self):
         self.build_requires("gdal/3.2.1")
-        self.build_requires("qt/5.15.2")
 
     def package(self):
         cmake = self._configure_cmake()
